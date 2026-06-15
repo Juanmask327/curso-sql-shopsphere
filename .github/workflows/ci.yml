@@ -1,0 +1,300 @@
+name: CI
+
+# ============================================================
+# ShopSphere — Pipeline de integración continua
+#
+# Flujo:
+#   push/PR → lint + typecheck (backend y frontend en paralelo)
+#           → test-backend (con servicios reales: Postgres + Redis)
+#           → deploy-staging (solo desde main, pendiente de configurar)
+# ============================================================
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+# Cancelar runs anteriores del mismo branch/PR al hacer push nuevo
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ----------------------------------------------------------
+  # Lint y typecheck del backend
+  # Corre en paralelo con lint-frontend para feedback rápido.
+  # ----------------------------------------------------------
+  lint-backend:
+    name: Lint & Typecheck — Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Lint
+        working-directory: backend
+        run: npm run lint
+
+      - name: Typecheck
+        working-directory: backend
+        run: npm run typecheck
+
+  # ----------------------------------------------------------
+  # Lint y typecheck del frontend
+  # ----------------------------------------------------------
+  lint-frontend:
+    name: Lint & Typecheck — Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+
+  # ----------------------------------------------------------
+  # Tests del backend con servicios reales
+  # Usa PostgreSQL y Redis reales (no mocks) para detectar
+  # problemas de migración y queries antes de llegar a prod.
+  # ----------------------------------------------------------
+  test-backend:
+    name: Tests — Backend
+    runs-on: ubuntu-latest
+    needs: lint-backend
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: shopsphere_test
+          POSTGRES_USER: shopsphere_user
+          # Secret: definir CI_POSTGRES_PASSWORD en GitHub repo secrets.
+          POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shopsphere_user -d shopsphere_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      # Secrets de CI — configurar en GitHub: Settings → Secrets and variables → Actions.
+      DATABASE_URL: postgresql://shopsphere_user:${{ secrets.CI_POSTGRES_PASSWORD }}@localhost:5432/shopsphere_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+      SESSION_COOKIE_SECRET: ${{ secrets.CI_SESSION_COOKIE_SECRET }}
+      JWT_EXPIRY_ACCESS: 15m
+      JWT_EXPIRY_REFRESH: 7d
+      BCRYPT_ROUNDS: 4
+      # Bcrypt rounds bajo en test para que los tests corran rapido.
+      PLAYGROUND_WORKER_POOL_SIZE: 2
+      PLAYGROUND_QUERY_TIMEOUT_MS: 5000
+      PLAYGROUND_RATE_LIMIT_RPM: 60
+      CORS_ORIGIN: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run schema migrations (init.sql)
+        env:
+          PGPASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+        run: |
+          psql \
+            -h localhost \
+            -U shopsphere_user \
+            -d shopsphere_test \
+            -f scripts/init.sql
+
+      - name: Run tests
+        working-directory: backend
+        run: npm run test
+
+  # ----------------------------------------------------------
+  # Auditoria de dependencias (npm audit)
+  # Falla el pipeline ante vulnerabilidades high/critical en
+  # backend y frontend.
+  # ----------------------------------------------------------
+  audit-dependencies:
+    name: npm audit — Backend & Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm audit — Backend
+        working-directory: backend
+        run: npm audit --audit-level=high
+
+      - name: npm audit — Frontend
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+  # ----------------------------------------------------------
+  # Analisis estatico de seguridad con CodeQL (JS/TS)
+  # ----------------------------------------------------------
+  codeql:
+    name: CodeQL — JavaScript/TypeScript
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
+
+  # ----------------------------------------------------------
+  # Escaneo de imagenes Docker con Trivy
+  # Construye las imagenes y las escanea por vulnerabilidades
+  # HIGH/CRITICAL. Falla el build ante hallazgos CRITICAL.
+  # ----------------------------------------------------------
+  docker-image-scan:
+    name: Trivy — Docker Image Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t shopsphere-backend:scan ./backend
+
+      - name: Build frontend image
+        run: docker build -t shopsphere-frontend:scan ./frontend
+
+      # Reporte informativo de HIGH y CRITICAL (no falla el build).
+      - name: Report HIGH+CRITICAL — backend (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: shopsphere-backend:scan
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          ignore-unfixed: true
+
+      - name: Report HIGH+CRITICAL — frontend (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: shopsphere-frontend:scan
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          ignore-unfixed: true
+
+      # Gate: el build falla solo ante hallazgos CRITICAL.
+      - name: Fail on CRITICAL — backend (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: shopsphere-backend:scan
+          format: table
+          severity: CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Fail on CRITICAL — frontend (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: shopsphere-frontend:scan
+          format: table
+          severity: CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+  # ----------------------------------------------------------
+  # Deploy a staging
+  # Solo se ejecuta cuando se mergea a main.
+  # Pendiente de configurar cuando se decida el proveedor.
+  # ----------------------------------------------------------
+  deploy-staging:
+    name: Deploy — Staging
+    runs-on: ubuntu-latest
+    needs: test-backend
+    if: github.ref == 'refs/heads/main'
+
+    environment:
+      name: staging
+      url: https://staging.shopsphere.app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "TODO: configurar deploy cuando se decida el proveedor."
+          echo "Opciones evaluadas: Railway, Vercel (frontend) + Railway (backend), Render."
+          echo "Ver arquitectura/decisiones.md — Estimacion de Costos."
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"

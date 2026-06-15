@@ -1,0 +1,69 @@
+# ============================================================
+# frontend/.dockerignore
+# Archivos excluidos del contexto de build de Docker.
+# Regla: si no es codigo fuente ni manifiesto de dependencias,
+#        no entra en la imagen.
+# ============================================================
+
+# Dependencias instaladas localmente
+node_modules/
+
+# Secrets y configuracion local — NUNCA deben entrar en una imagen
+.env
+.env.*
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Output de build de Next.js
+# El stage build lo genera internamente; no usar el del host
+.next/
+
+# Output standalone (generado en build stage, no necesario en contexto)
+out/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Control de versiones
+.git/
+.gitignore
+
+# Archivos de editor e IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Documentacion
+docs/
+*.md
+!README.md
+
+# Archivos de CI
+.github/
+
+# Archivos de test
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__/
+jest.config.*
+vitest.config.*
+playwright.config.*
+
+# Storybook
+.storybook/
+storybook-static/
+
+# Analisis de bundles
+.next/analyze/
+bundle-analyzer-report.html

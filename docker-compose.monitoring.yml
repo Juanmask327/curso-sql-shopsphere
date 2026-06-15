@@ -1,0 +1,98 @@
+# ============================================================
+# ShopSphere — Stack de observabilidad (opcional)
+#
+# Activa con:
+#   docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml --profile monitoring up -d
+#
+# O para bajarlo:
+#   docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml --profile monitoring down
+#
+# Servicios incluidos:
+#   - Prometheus (puerto 9090): recolecta métricas del backend
+#   - Grafana     (puerto 3002): dashboards de observabilidad
+#
+# NOTA: El backend debe exponer GET /metrics en formato Prometheus.
+# Usa prom-client en Node.js para instrumentar el backend.
+# ============================================================
+
+services:
+
+  # ── Prometheus ──────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: shopsphere-prometheus
+    profiles:
+      - monitoring
+    volumes:
+      # Configuración de scraping
+      - ./scripts/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Datos persistentes entre reinicios
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      # Retener 15 días de métricas (suficiente para dev/staging)
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+      # Permite recargar config con: curl -X POST localhost:9090/-/reload
+    ports:
+      - "9090:9090"
+    networks:
+      - shopsphere-backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ── Grafana ─────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: shopsphere-grafana
+    profiles:
+      - monitoring
+    ports:
+      - "3002:3000"
+    environment:
+      # Credenciales iniciales — cambiar en producción
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: shopsphere_grafana
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      # Datasource de Prometheus pre-configurado via provisioning
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      # Deshabilitar telemetría de Grafana
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      # Datasource pre-configurado (Prometheus automático al arrancar)
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      # Datos persistentes: dashboards guardados, usuarios, etc.
+      - grafana_data:/var/lib/grafana
+    networks:
+      - shopsphere-backend
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+# ── Volúmenes persistentes de monitoring ─────────────────────
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ── Redes: reusa las definidas en docker-compose.yml ─────────
+# El backend ya está en shopsphere-backend, no hay que redefinirla.
+networks:
+  shopsphere-backend:
+    external: true
+    name: shopsphere-backend

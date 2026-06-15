@@ -1,0 +1,3006 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Revenue neto Q1 2026 por pais — pagos completados menos reembolsos",
+    "briefing_ref": "Briefing 8.1 — Ana Castillo: Revenue neto Q1 2026 desagregado por pais",
+    "lesson_ref": "Leccion 1 — Revenue neto con tabla payments: SUM condicional por status",
+    "reference_query": "-- Revenue neto Q1 2026 por país\n-- Briefing 8.1 — Ana Castillo\nWITH pagos_q1 AS (\n    SELECT\n        p.payment_id,\n        p.amount,\n        p.status,\n        c.country\n    FROM payments p\n    INNER JOIN orders o    ON o.order_id    = p.order_id\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE p.paid_at >= '2026-01-01'\n      AND p.paid_at <  '2026-04-01'\n),\nrevenue_por_pais AS (\n    SELECT\n        country,\n        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END)  AS total_cobrado,\n        SUM(CASE WHEN status = 'refunded'  THEN amount ELSE 0 END)  AS total_reembolsado\n    FROM pagos_q1\n    GROUP BY country\n)\nSELECT\n    country                                                   AS pais,\n    ROUND(total_cobrado, 2)                                   AS total_cobrado,\n    ROUND(total_reembolsado, 2)                               AS total_reembolsado,\n    ROUND(total_cobrado - total_reembolsado, 2)               AS revenue_neto,\n    ROUND(\n        total_reembolsado * 100.0\n        / NULLIF(total_cobrado, 0),\n        2\n    )                                                         AS pct_reembolsado\nFROM revenue_por_pais\nORDER BY revenue_neto DESC;",
+    "tables_used": [
+      "payments",
+      "orders",
+      "customers"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "pais",
+      "total_cobrado",
+      "total_reembolsado",
+      "revenue_neto",
+      "pct_reembolsado"
+    ],
+    "sample_rows": [
+      [
+        "Mexico",
+        217225.36,
+        28709.64,
+        188515.72,
+        13.22
+      ],
+      [
+        "Colombia",
+        151364.01,
+        15827.08,
+        135536.93,
+        10.46
+      ],
+      [
+        "Chile",
+        86014.51,
+        672.87,
+        85341.64,
+        0.78
+      ],
+      [
+        "USA",
+        39037.18,
+        2870.53,
+        36166.65,
+        7.35
+      ],
+      [
+        "Peru",
+        30458.12,
+        3217.55,
+        27240.57,
+        10.56
+      ],
+      [
+        "Argentina",
+        26530.79,
+        2538.61,
+        23992.18,
+        9.57
+      ],
+      [
+        "Venezuela",
+        23456.53,
+        3210.52,
+        20246.01,
+        13.69
+      ],
+      [
+        "Spain",
+        20906.65,
+        3829.74,
+        17076.91,
+        18.32
+      ],
+      [
+        "Bolivia",
+        17660.03,
+        1646.7,
+        16013.33,
+        9.32
+      ],
+      [
+        "Honduras",
+        11884.58,
+        1049.87,
+        10834.71,
+        8.83
+      ],
+      [
+        "Ecuador",
+        13035.01,
+        2716.69,
+        10318.32,
+        20.84
+      ],
+      [
+        "Guatemala",
+        10948.82,
+        1228.85,
+        9719.97,
+        11.22
+      ],
+      [
+        "El Salvador",
+        8228.82,
+        2271.66,
+        5957.16,
+        27.61
+      ],
+      [
+        "Costa Rica",
+        5374.36,
+        149.99,
+        5224.37,
+        2.79
+      ],
+      [
+        "Paraguay",
+        5355.17,
+        1934.7,
+        3420.47,
+        36.13
+      ],
+      [
+        "Uruguay",
+        5186.21,
+        1789.76,
+        3396.45,
+        34.51
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "TEMPLATE — valores reales pendientes. El seed tiene clientes de Argentina, Chile, Colombia, Mexico y Peru (5 paises). El resultado deberia tener 5 filas si todos tienen pagos en Q1 2026. Si algun pais no tiene pagos en ese periodo, puede tener menos filas. UMBRAL DEL BRIEFING: si pct_reembolsado > 5% para algun pais, Ana pide incluirlo como nota. El teacher puede implementar esto con una CTE adicional que filtre WHERE pct_reembolsado > 5, o simplemente mencionarlo en la interpretacion del resultado. PAGOS SIN paid_at EN Q1 2026: algunos pagos pueden tener paid_at = NULL (ver EJ3). Estos quedan excluidos del WHERE paid_at >= '2026-01-01'. El teacher debe mencionar esta exclusion — si muchos pagos de Q1 tienen paid_at NULL, el revenue neto calculado es una subestimacion. PUNTO PEDAGOGICO CENTRAL: el revenue neto (completed - refunded) es la metrica financiera mas importante del nivel. El teacher debe contrastarla con el revenue bruto (solo completed) para mostrar la diferencia y por que importa a la junta. RELACION CON LA ANOMALIA: si Chile tiene el mayor pct_reembolsado, confirma la narrativa del Q1."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Anomalia Chile — tasa de fallo por metodo de pago vs resto de paises (marzo-abril 2026)",
+    "briefing_ref": "Briefing 8.2 — Ana Castillo: Tasa de pagos fallidos en Chile vs otros paises por metodo",
+    "lesson_ref": "Leccion 1 — Analisis comparativo con CASE WHEN y segmentacion geografica",
+    "reference_query": "-- Anomalía Chile: tasa de fallo por método vs. resto\n-- Briefing 8.2 — Ana Castillo\nWITH pagos_periodo AS (\n    SELECT\n        p.payment_id,\n        p.amount,\n        p.method,\n        p.status,\n        CASE\n            WHEN c.country = 'Chile' THEN 'Chile'\n            ELSE 'Resto de paises'\n        END                                                   AS grupo_pais\n    FROM payments p\n    INNER JOIN orders o    ON o.order_id    = p.order_id\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE p.paid_at >= '2026-03-01'\n      AND p.paid_at <  '2026-05-01'\n)\nSELECT\n    grupo_pais,\n    method                                                    AS metodo,\n    COUNT(*)                                                  AS total_pagos,\n    SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)        AS pagos_fallidos,\n    ROUND(\n        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) * 100.0\n        / NULLIF(COUNT(*), 0),\n        2\n    )                                                         AS tasa_fallo_pct\nFROM pagos_periodo\nGROUP BY grupo_pais, method\nORDER BY grupo_pais ASC, tasa_fallo_pct DESC;",
+    "tables_used": [
+      "payments",
+      "orders",
+      "customers"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "grupo_pais",
+      "metodo",
+      "total_pagos",
+      "pagos_fallidos",
+      "tasa_fallo_pct"
+    ],
+    "sample_rows": [
+      [
+        "Chile",
+        "credit_card",
+        924,
+        353,
+        38.2
+      ],
+      [
+        "Chile",
+        "paypal",
+        5,
+        1,
+        20.0
+      ],
+      [
+        "Chile",
+        "crypto",
+        5,
+        0,
+        0.0
+      ],
+      [
+        "Chile",
+        "bank_transfer",
+        2,
+        0,
+        0.0
+      ],
+      [
+        "Resto de paises",
+        "bank_transfer",
+        214,
+        20,
+        9.35
+      ],
+      [
+        "Resto de paises",
+        "paypal",
+        243,
+        22,
+        9.05
+      ],
+      [
+        "Resto de paises",
+        "credit_card",
+        758,
+        62,
+        8.18
+      ],
+      [
+        "Resto de paises",
+        "crypto",
+        216,
+        15,
+        6.94
+      ]
+    ],
+    "expected_row_count_approx": 8,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado tiene hasta 8 filas: 4 metodos para Chile + 4 metodos para Resto de paises. Si algun metodo no tiene pagos en ese periodo para alguno de los dos grupos, habra menos filas. HALLAZGO NARRATIVO ESPERADO: el seed debe mostrar una tasa de fallo notablemente mayor en un metodo especifico de Chile (credit_card segun la narrativa del briefing). Si la tasa de Chile en credit_card es mas del doble que en el resto, confirma la hipotesis del problema de infraestructura. El teacher debe incluir esta interpretacion en la leccion. PUNTO PEDAGOGICO: el CASE WHEN para crear el grupo_pais ('Chile' vs 'Resto de paises') es un patron de analisis comparativo muy comun. El teacher puede mostrar la alternativa de usar dos CTEs separadas (una para Chile, otra para el resto) y comparar la legibilidad. EXTENSION AVANZADA: para ver el ratio exacto (tasa Chile / tasa resto), se puede hacer un self-join sobre el resultado agrupado por metodo. El teacher puede proponer esto como ejercicio adicional."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Integridad de pagos — completed con paid_at NULL: monto impacto potencial",
+    "briefing_ref": "Briefing 8.3 — Ana Castillo: Registros con status completed y paid_at IS NULL antes del cierre",
+    "lesson_ref": "Leccion 2 — Auditoria de datos: detectar inconsistencias logicas con IS NULL",
+    "reference_query": "-- Auditoría: pagos 'completed' con paid_at NULL\n-- Briefing 8.3 — Ana Castillo\nSELECT\n    COUNT(*)                    AS registros_problematicos,\n    COUNT(DISTINCT order_id)    AS pedidos_afectados,\n    ROUND(SUM(amount), 2)       AS monto_total_impactado\nFROM payments\nWHERE status  = 'completed'\n  AND paid_at IS NULL;",
+    "tables_used": [
+      "payments"
+    ],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "registros_problematicos",
+      "pedidos_afectados",
+      "monto_total_impactado"
+    ],
+    "sample_rows": [
+      [
+        0,
+        0,
+        null
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado es una sola fila. Si el seed no tiene registros con status='completed' y paid_at=NULL, el resultado sera (0, 0, 0.00) — lo que es tecnicamente correcto pero pedagogicamente poco interesante. El teacher debe verificar si el seed tiene este tipo de registros y, si no los tiene, agregar algunos manualmente para que el ejercicio sea demostrable. PUNTO PEDAGOGICO CENTRAL: un pago 'completado' sin fecha es incoherente a nivel de negocio. Este ejercicio enseña que la auditoria de datos no busca solo NULLs aislados, sino inconsistencias logicas entre columnas — el problema no es que paid_at sea NULL (a veces es valido para pagos pendientes), sino que sea NULL cuando status = 'completed'. EXTENSION: el teacher puede expandir la query para mostrar los paises donde estan concentrados estos registros (con JOIN a customers). Este detalle es lo que Ana pide en el briefing. UMBRALES: si monto_total_impactado > 1% del revenue neto del Q1 (calculado en EJ01), el informe debe incluir advertencia. El teacher puede mostrar como comparar el monto con el revenue total usando una subconsulta o CTE."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Distribucion de metodos de pago por rango de monto — concentracion de riesgo en tickets altos",
+    "briefing_ref": "Briefing 8.4 — Ana Castillo: Metodos de pago por rango de ticket para seccion de riesgos",
+    "lesson_ref": "Leccion 1 — CASE WHEN para rangos de monto y analisis de concentracion",
+    "reference_query": "-- Distribución de métodos por rango de monto\n-- Briefing 8.4 — Ana Castillo\nWITH pagos_clasificados AS (\n    SELECT\n        payment_id,\n        amount,\n        method,\n        CASE\n            WHEN amount < 50                THEN 'bajo (< 50)'\n            WHEN amount BETWEEN 50 AND 200  THEN 'medio (50-200)'\n            WHEN amount > 200               THEN 'alto (> 200)'\n        END                                                   AS rango_monto\n    FROM payments\n    WHERE status = 'completed'\n),\ntotales_por_rango AS (\n    SELECT\n        rango_monto,\n        COUNT(*)                                              AS total_rango\n    FROM pagos_clasificados\n    GROUP BY rango_monto\n)\nSELECT\n    pc.rango_monto,\n    pc.method                                                 AS metodo,\n    COUNT(*)                                                  AS transacciones,\n    ROUND(\n        COUNT(*) * 100.0 / NULLIF(t.total_rango, 0),\n        2\n    )                                                         AS pct_en_rango,\n    ROUND(AVG(pc.amount), 2)                                  AS monto_promedio\nFROM pagos_clasificados pc\nINNER JOIN totales_por_rango t ON t.rango_monto = pc.rango_monto\nGROUP BY pc.rango_monto, pc.method, t.total_rango\nORDER BY\n    CASE pc.rango_monto\n        WHEN 'bajo (< 50)'    THEN 1\n        WHEN 'medio (50-200)' THEN 2\n        WHEN 'alto (> 200)'   THEN 3\n    END,\n    pct_en_rango DESC;",
+    "tables_used": [
+      "payments"
+    ],
+    "join_types": [
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "rango_monto",
+      "metodo",
+      "transacciones",
+      "pct_en_rango",
+      "monto_promedio"
+    ],
+    "sample_rows": [
+      [
+        "bajo (< 50)",
+        "credit_card",
+        1096,
+        55.47,
+        32.72
+      ],
+      [
+        "bajo (< 50)",
+        "paypal",
+        319,
+        16.14,
+        32.3
+      ],
+      [
+        "bajo (< 50)",
+        "bank_transfer",
+        284,
+        14.37,
+        32.44
+      ],
+      [
+        "bajo (< 50)",
+        "crypto",
+        277,
+        14.02,
+        32.81
+      ],
+      [
+        "medio (50-200)",
+        "credit_card",
+        3410,
+        55.14,
+        122.38
+      ],
+      [
+        "medio (50-200)",
+        "paypal",
+        1036,
+        16.75,
+        123.86
+      ],
+      [
+        "medio (50-200)",
+        "crypto",
+        917,
+        14.83,
+        121.93
+      ],
+      [
+        "medio (50-200)",
+        "bank_transfer",
+        821,
+        13.28,
+        119.81
+      ],
+      [
+        "alto (> 200)",
+        "credit_card",
+        3605,
+        53.56,
+        433.83
+      ],
+      [
+        "alto (> 200)",
+        "paypal",
+        1100,
+        16.34,
+        440.96
+      ],
+      [
+        "alto (> 200)",
+        "crypto",
+        1037,
+        15.41,
+        442.41
+      ],
+      [
+        "alto (> 200)",
+        "bank_transfer",
+        989,
+        14.69,
+        444.76
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado tiene hasta 12 filas (3 rangos x 4 metodos), menos si algun metodo no aparece en algun rango. PUNTO NARRATIVO: la hipotesis de Ana es que los tickets altos se concentran en credit_card o bank_transfer. Si la suma de ambos supera el 60% en el rango 'alto', se confirma el riesgo de concentracion. El teacher puede implementar un filtro adicional que muestre solo los metodos con pct > 60% en tickets altos como alerta automatica. PUNTO PEDAGOGICO: la columna total_rango se obtiene con un JOIN a una CTE auxiliar (totales_por_rango). El teacher debe mostrar por que no se puede calcular el porcentaje directamente en el GROUP BY principal sin esta tecnica — un error comun es intentar dividir COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY rango_monto) con window functions, lo que es valido pero mas avanzado. ALTERNATIVA CON WINDOW FUNCTION: ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY rango_monto), 2) AS pct_en_rango — el teacher puede mostrar ambas variantes."
+  },
+  {
+    "exercise_number": 5,
+    "title": "EXPLAIN ANALYZE — optimizacion de query lenta de payments x orders x customers",
+    "briefing_ref": "Briefing 8.5 — Valentina Torres: La query de revenue tarda 45 segundos — identificar y crear indices",
+    "lesson_ref": "Leccion 3 — EXPLAIN ANALYZE: leer el plan de ejecucion y detectar Seq Scans evitables",
+    "reference_query": "-- Revenue neto mensual Q1 2026 con variación MoM\n-- Proyecto Nivel 8 — punto 4\nWITH revenue_mensual AS (\n    SELECT\n        CAST(STRFTIME('%m', paid_at) AS INTEGER)              AS nro_mes,\n        CASE CAST(STRFTIME('%m', paid_at) AS INTEGER)\n            WHEN 1 THEN 'Enero 2026'\n            WHEN 2 THEN 'Febrero 2026'\n            WHEN 3 THEN 'Marzo 2026'\n        END                                                   AS mes_nombre,\n        SUM(CASE WHEN status = 'completed'\n                 THEN amount ELSE 0 END)                      AS cobrado,\n        SUM(CASE WHEN status = 'refunded'\n                 THEN amount ELSE 0 END)                      AS reembolsado\n    FROM payments\n    WHERE paid_at >= '2026-01-01'\n      AND paid_at <  '2026-04-01'\n    GROUP BY CAST(STRFTIME('%m', paid_at) AS INTEGER)\n)\nSELECT\n    mes_nombre                                                AS mes,\n    ROUND(cobrado - reembolsado, 2)                           AS revenue_neto,\n    ROUND(\n        LAG(cobrado - reembolsado) OVER (ORDER BY nro_mes),\n        2\n    )                                                         AS revenue_neto_mes_anterior,\n    ROUND(\n        (\n            (cobrado - reembolsado)\n            - LAG(cobrado - reembolsado) OVER (ORDER BY nro_mes)\n        ) * 100.0\n        / NULLIF(\n            LAG(cobrado - reembolsado) OVER (ORDER BY nro_mes),\n            0\n        ),\n        2\n    )                                                         AS variacion_pct\nFROM revenue_mensual\nORDER BY nro_mes;",
+    "tables_used": [
+      "payments",
+      "orders",
+      "customers"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "manual_review",
+    "expected_columns": [
+      "mes",
+      "revenue_neto",
+      "revenue_neto_mes_anterior",
+      "variacion_pct"
+    ],
+    "sample_rows": [
+      [
+        "Enero 2026",
+        191308.16,
+        null,
+        null
+      ],
+      [
+        "Febrero 2026",
+        200236.67,
+        191308.16,
+        4.67
+      ],
+      [
+        "Marzo 2026",
+        207456.56,
+        200236.67,
+        3.61
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "EJERCICIO DE REVISION MANUAL — EXPLAIN ANALYZE no puede auto-validarse porque su output es texto de plan de ejecucion, no filas de datos. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe ejecutar EXPLAIN ANALYZE antes de crear los indices y copiar el output al entregable. El plan debe mostrar al menos un 'Seq Scan on payments' con Filter. (2) Despues de crear los indices, el nuevo plan debe mostrar 'Index Scan' o 'Bitmap Index Scan' en lugar de 'Seq Scan' para al menos la columna paid_at. (3) El estimated cost del nodo raiz (primer numero en 'cost=X..Y') debe ser materialmente menor en el plan post-indice. Si el costo bajo a menos del 50% del original, es una mejora significativa. (4) El estudiante debe explicar en un comentario por que eligio indexar paid_at en lugar de (o ademas de) status: paid_at es una columna de rango con alta cardinalidad (muchos valores distintos) — un indice de rango es mas selectivo que un indice en status (que solo tiene 4 valores posibles). DIALECTAL: EXPLAIN ANALYZE es PostgreSQL y algunos dialectos similares. En SQLite el equivalente es EXPLAIN QUERY PLAN (sin el ANALYZE). El teacher debe adaptar segun el motor del curso. NOTA DE PRODUCCION: en produccion, no se crea un indice por cada columna del WHERE indiscriminadamente — hay un trade-off con el costo de escritura. El teacher debe mencionar que para este volumen (1481 pagos) el impacto es casi imperceptible, pero el ejercicio enseña el proceso correcto para datasets de millones de filas."
+  },
+  {
+    "exercise_number": 6,
+    "title": "EXPLAIN ANALYZE sobre query de cohortes — detectar Seq Scans y proponer indice optimo",
+    "briefing_ref": "Briefing 8.6 — Valentina Torres: Optimizacion de la query de cohortes de clientes",
+    "lesson_ref": "Leccion 3 — Interpretacion de EXPLAIN ANALYZE: Hash Join, Seq Scan, Index Scan",
+    "reference_query": "-- Revenue neto histórico por país y trimestre\n-- Briefing 8.10 — Marco Jiménez / Valentina\nWITH pagos_anuales AS (\n    SELECT\n        p.amount,\n        p.status,\n        c.country,\n        STRFTIME('%Y', p.paid_at)                             AS anio,\n        CASE\n            WHEN STRFTIME('%m', p.paid_at) BETWEEN '01' AND '03' THEN 1\n            WHEN STRFTIME('%m', p.paid_at) BETWEEN '04' AND '06' THEN 2\n            WHEN STRFTIME('%m', p.paid_at) BETWEEN '07' AND '09' THEN 3\n            ELSE 4\n        END                                                   AS trimestre\n    FROM payments p\n    INNER JOIN orders o    ON o.order_id    = p.order_id\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE p.paid_at IS NOT NULL\n      AND p.paid_at >= '2025-06-01'\n),\nrevenue_por_pais_trimestre AS (\n    SELECT\n        country,\n        anio,\n        trimestre,\n        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) AS cobrado,\n        SUM(CASE WHEN status = 'refunded'  THEN amount ELSE 0 END) AS reembolsado\n    FROM pagos_anuales\n    GROUP BY country, anio, trimestre\n),\ntotales_trimestre AS (\n    SELECT\n        anio,\n        trimestre,\n        SUM(cobrado - reembolsado)                            AS revenue_neto_global\n    FROM revenue_por_pais_trimestre\n    GROUP BY anio, trimestre\n)\nSELECT\n    r.country                                                 AS pais,\n    r.anio,\n    r.trimestre,\n    ROUND(r.cobrado, 2)                                       AS cobrado,\n    ROUND(r.reembolsado, 2)                                   AS reembolsado,\n    ROUND(r.cobrado - r.reembolsado, 2)                       AS revenue_neto,\n    ROUND(\n        (r.cobrado - r.reembolsado) * 100.0\n        / NULLIF(t.revenue_neto_global, 0),\n        2\n    )                                                         AS pct_del_total\nFROM revenue_por_pais_trimestre r\nINNER JOIN totales_trimestre t\n    ON  t.anio      = r.anio\n    AND t.trimestre = r.trimestre\nORDER BY r.anio, r.trimestre, revenue_neto DESC;",
+    "tables_used": [
+      "orders"
+    ],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": [
+      "pais",
+      "anio",
+      "trimestre",
+      "cobrado",
+      "reembolsado",
+      "revenue_neto",
+      "pct_del_total"
+    ],
+    "sample_rows": [
+      [
+        "Mexico",
+        "2025",
+        2,
+        82853.46,
+        10398.84,
+        72454.62,
+        40.46
+      ],
+      [
+        "Colombia",
+        "2025",
+        2,
+        59912.73,
+        5401.47,
+        54511.26,
+        30.44
+      ],
+      [
+        "Chile",
+        "2025",
+        2,
+        10873.84,
+        564.91,
+        10308.93,
+        5.76
+      ],
+      [
+        "Peru",
+        "2025",
+        2,
+        7851.26,
+        0.0,
+        7851.26,
+        4.38
+      ],
+      [
+        "USA",
+        "2025",
+        2,
+        9710.65,
+        2098.73,
+        7611.92,
+        4.25
+      ],
+      [
+        "Argentina",
+        "2025",
+        2,
+        8131.99,
+        719.89,
+        7412.1,
+        4.14
+      ],
+      [
+        "Ecuador",
+        "2025",
+        2,
+        4494.53,
+        59.99,
+        4434.54,
+        2.48
+      ],
+      [
+        "Venezuela",
+        "2025",
+        2,
+        4144.46,
+        659.96,
+        3484.5,
+        1.95
+      ],
+      [
+        "Spain",
+        "2025",
+        2,
+        2909.64,
+        0.0,
+        2909.64,
+        1.62
+      ],
+      [
+        "Bolivia",
+        "2025",
+        2,
+        3864.56,
+        1156.85,
+        2707.71,
+        1.51
+      ],
+      [
+        "Uruguay",
+        "2025",
+        2,
+        2174.77,
+        0.0,
+        2174.77,
+        1.21
+      ],
+      [
+        "El Salvador",
+        "2025",
+        2,
+        2152.73,
+        222.95,
+        1929.78,
+        1.08
+      ],
+      [
+        "Paraguay",
+        "2025",
+        2,
+        614.93,
+        0.0,
+        614.93,
+        0.34
+      ],
+      [
+        "Costa Rica",
+        "2025",
+        2,
+        484.92,
+        0.0,
+        484.92,
+        0.27
+      ],
+      [
+        "Honduras",
+        "2025",
+        2,
+        1595.71,
+        1455.86,
+        139.85,
+        0.08
+      ],
+      [
+        "Guatemala",
+        "2025",
+        2,
+        767.85,
+        723.93,
+        43.92,
+        0.02
+      ],
+      [
+        "Colombia",
+        "2025",
+        3,
+        191757.74,
+        23973.35,
+        167784.39,
+        29.05
+      ],
+      [
+        "Mexico",
+        "2025",
+        3,
+        133693.94,
+        16485.31,
+        117208.63,
+        20.29
+      ],
+      [
+        "Argentina",
+        "2025",
+        3,
+        77755.58,
+        9763.16,
+        67992.42,
+        11.77
+      ],
+      [
+        "Chile",
+        "2025",
+        3,
+        74100.26,
+        8069.31,
+        66030.95,
+        11.43
+      ],
+      [
+        "USA",
+        "2025",
+        3,
+        33899.63,
+        2651.56,
+        31248.07,
+        5.41
+      ],
+      [
+        "Peru",
+        "2025",
+        3,
+        28859.98,
+        3964.6,
+        24895.38,
+        4.31
+      ],
+      [
+        "Venezuela",
+        "2025",
+        3,
+        20877.69,
+        1717.76,
+        19159.93,
+        3.32
+      ],
+      [
+        "Spain",
+        "2025",
+        3,
+        22333.71,
+        3490.54,
+        18843.17,
+        3.26
+      ],
+      [
+        "Ecuador",
+        "2025",
+        3,
+        17915.26,
+        1559.82,
+        16355.44,
+        2.83
+      ],
+      [
+        "Bolivia",
+        "2025",
+        3,
+        15839.96,
+        1544.81,
+        14295.15,
+        2.48
+      ],
+      [
+        "Guatemala",
+        "2025",
+        3,
+        11774.93,
+        1014.89,
+        10760.04,
+        1.86
+      ],
+      [
+        "El Salvador",
+        "2025",
+        3,
+        6774.32,
+        459.93,
+        6314.39,
+        1.09
+      ],
+      [
+        "Uruguay",
+        "2025",
+        3,
+        6160.29,
+        589.93,
+        5570.36,
+        0.96
+      ],
+      [
+        "Costa Rica",
+        "2025",
+        3,
+        5224.46,
+        269.95,
+        4954.51,
+        0.86
+      ],
+      [
+        "Paraguay",
+        "2025",
+        3,
+        3446.48,
+        109.97,
+        3336.51,
+        0.58
+      ],
+      [
+        "Honduras",
+        "2025",
+        3,
+        5901.14,
+        3084.68,
+        2816.46,
+        0.49
+      ],
+      [
+        "Mexico",
+        "2025",
+        4,
+        315774.37,
+        36884.61,
+        278889.76,
+        42.41
+      ],
+      [
+        "Colombia",
+        "2025",
+        4,
+        195382.97,
+        24243.28,
+        171139.69,
+        26.03
+      ],
+      [
+        "Peru",
+        "2025",
+        4,
+        32274.27,
+        3309.78,
+        28964.49,
+        4.4
+      ],
+      [
+        "Argentina",
+        "2025",
+        4,
+        27717.05,
+        2234.71,
+        25482.34,
+        3.88
+      ],
+      [
+        "Spain",
+        "2025",
+        4,
+        25564.53,
+        834.89,
+        24729.64,
+        3.76
+      ],
+      [
+        "USA",
+        "2025",
+        4,
+        27305.59,
+        3619.61,
+        23685.98,
+        3.6
+      ],
+      [
+        "Venezuela",
+        "2025",
+        4,
+        21215.11,
+        689.86,
+        20525.25,
+        3.12
+      ],
+      [
+        "Chile",
+        "2025",
+        4,
+        20887.39,
+        2131.69,
+        18755.7,
+        2.85
+      ],
+      [
+        "Bolivia",
+        "2025",
+        4,
+        18729.92,
+        2904.73,
+        15825.19,
+        2.41
+      ],
+      [
+        "Ecuador",
+        "2025",
+        4,
+        17124.17,
+        1788.82,
+        15335.35,
+        2.33
+      ],
+      [
+        "Honduras",
+        "2025",
+        4,
+        8949.02,
+        546.89,
+        8402.13,
+        1.28
+      ],
+      [
+        "Costa Rica",
+        "2025",
+        4,
+        8356.07,
+        770.84,
+        7585.23,
+        1.15
+      ],
+      [
+        "Guatemala",
+        "2025",
+        4,
+        8095.02,
+        1760.79,
+        6334.23,
+        0.96
+      ],
+      [
+        "El Salvador",
+        "2025",
+        4,
+        5793.24,
+        1499.82,
+        4293.42,
+        0.65
+      ],
+      [
+        "Paraguay",
+        "2025",
+        4,
+        4823.36,
+        939.94,
+        3883.42,
+        0.59
+      ],
+      [
+        "Uruguay",
+        "2025",
+        4,
+        4236.43,
+        503.9,
+        3732.53,
+        0.57
+      ],
+      [
+        "Mexico",
+        "2026",
+        1,
+        217225.36,
+        28709.64,
+        188515.72,
+        31.47
+      ],
+      [
+        "Colombia",
+        "2026",
+        1,
+        151364.01,
+        15827.08,
+        135536.93,
+        22.63
+      ]
+    ],
+    "expected_row_count_approx": 80,
+    "notes": "EJERCICIO DE REVISION MANUAL — EXPLAIN ANALYZE no auto-validable. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe identificar si hay un Seq Scan sobre orders — con 2000 ordenes en el seed este puede ser aceptable, pero el estudiante debe argumentar que con 2 millones de ordenes seria un problema. (2) El estudiante debe identificar si la subconsulta EXISTS genera un scan por cada fila del resultado externo — si hay 36 cohortes mensuales y 500 clientes por cohorte, eso son 18000 evaluaciones del EXISTS. (3) El indice propuesto debe ser sobre orders(customer_id, ordered_at, status) en ese orden — un indice compuesto que cubre los tres predicados del WHERE del EXISTS. El estudiante debe argumentar por que este orden especifico (no status primero). (4) La explicacion del razonamiento vale mas que el indice en si — el teacher califica la justificacion, no solo el CREATE INDEX. PUNTO PEDAGOGICO: con el seed de 2000 ordenes, la diferencia de performance es imperceptible. El teacher debe simular el escenario de produccion mencionando que la misma query sobre 31345 ordenes (el seed original) o millones de ordenes si importa. La discusion del plan de ejecucion es conceptual en este nivel."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Indice parcial para pagos fallidos de Chile — eficiencia en queries repetitivas",
+    "briefing_ref": "Briefing 8.7 — Valentina Torres: Indice parcial sobre payments para acelerar consultas de Chile",
+    "lesson_ref": "Leccion 3 — Indices parciales: indexar solo un subconjunto de filas",
+    "reference_query": "-- EXPLAIN + CREATE INDEX + EXPLAIN\n-- Briefing 8.5 — Valentina Torres\n\n-- BLOQUE 1: plan antes de crear índices\nEXPLAIN QUERY PLAN\nSELECT\n    c.country,\n    ROUND(SUM(p.amount), 2)                                   AS revenue_bruto\nFROM payments p\nINNER JOIN orders o    ON o.order_id    = p.order_id\nINNER JOIN customers c ON c.customer_id = o.customer_id\nWHERE p.paid_at >= '2026-01-01'\n  AND p.paid_at <  '2026-04-01'\n  AND p.status  = 'completed'\nGROUP BY c.country;\n-- Resultado esperado: SCAN payments (revisa toda la tabla)\n\n-- BLOQUE 2: crear los índices\n-- paid_at: columna de rango con alta cardinalidad — usada en todos los filtros de período\nCREATE INDEX IF NOT EXISTS idx_payments_paid_at\n    ON payments(paid_at);\n-- order_id: clave foránea usada en todos los JOINs payments → orders\nCREATE INDEX IF NOT EXISTS idx_payments_order_id\n    ON payments(order_id);\n\n-- BLOQUE 3: plan después de crear los índices\nEXPLAIN QUERY PLAN\nSELECT\n    c.country,\n    ROUND(SUM(p.amount), 2)                                   AS revenue_bruto\nFROM payments p\nINNER JOIN orders o    ON o.order_id    = p.order_id\nINNER JOIN customers c ON c.customer_id = o.customer_id\nWHERE p.paid_at >= '2026-01-01'\n  AND p.paid_at <  '2026-04-01'\n  AND p.status  = 'completed'\nGROUP BY c.country;\n-- Resultado esperado: SEARCH payments USING INDEX idx_payments_paid_at",
+    "tables_used": [
+      "payments"
+    ],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": [
+      "id",
+      "parent",
+      "notused",
+      "detail"
+    ],
+    "sample_rows": [
+      [
+        9,
+        0,
+        164,
+        "SEARCH p USING INDEX idx_payments_paid_at (paid_at>? AND paid_at<?)"
+      ],
+      [
+        17,
+        0,
+        45,
+        "SEARCH o USING INTEGER PRIMARY KEY (rowid=?)"
+      ],
+      [
+        20,
+        0,
+        45,
+        "SEARCH c USING INTEGER PRIMARY KEY (rowid=?)"
+      ],
+      [
+        23,
+        0,
+        0,
+        "USE TEMP B-TREE FOR GROUP BY"
+      ]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "EJERCICIO DE REVISION MANUAL — la creacion del indice no auto-validable en el contexto del sistema de ejercicios. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe incluir un comentario SQL explicando por que un indice parcial es mejor que un indice general en status. Los puntos clave son: (a) la tabla payments tiene 4 valores posibles en status — un indice general en status es de baja selectividad, (b) un indice parcial WHERE status = 'failed' solo indexa un subconjunto de filas (ej: 20% si la tasa de fallo es 20%), siendo mucho mas compacto, (c) para la consulta especifica de Ana (pagos fallidos de Chile), el indice parcial es optimo. (2) El estudiante debe ejecutar el SELECT de verificacion y confirmar que el indice fue creado. (3) El estudiante puede proponer un indice alternativo mas especifico si argumenta correctamente. DIALECTAL: CREATE INDEX ... WHERE es una caracteristica de PostgreSQL (indice parcial). SQLite tambien soporta indices parciales con la misma sintaxis. MySQL NO soporta indices parciales — si el curso usa MySQL, esta funcionalidad no esta disponible y el teacher debe adaptarlo. pg_indexes es una vista del catalogo de sistema de PostgreSQL — en SQLite usar sqlite_master WHERE type = 'index'."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Transaccion atomica — INSERT en orders y UPDATE en inventory con SAVEPOINT",
+    "briefing_ref": "Briefing 8.8 — Diego Morales: Transaccion que envuelve INSERT en orders y UPDATE en inventory con ROLLBACK en fallo",
+    "lesson_ref": "Leccion 4 — Transacciones: BEGIN, COMMIT, ROLLBACK y SAVEPOINT",
+    "reference_query": "-- NOT IN vs NOT EXISTS\n-- Pedidos sin ningún pago completado\n\n-- Versión A — NOT IN (problemática)\n-- PROBLEMA: si algún order_id en la subquery es NULL,\n-- la comparación NOT IN devuelve NULL para cada fila\n-- (no TRUE ni FALSE). El resultado puede ser vacío aunque\n-- haya pedidos sin pago. NULL IN (1, 2, NULL) = NULL,\n-- y NOT NULL = NULL (no TRUE). Por eso NOT IN es peligroso\n-- cuando la subquery puede contener NULLs.\nSELECT\n    order_id,\n    customer_id,\n    ordered_at,\n    status\nFROM orders\nWHERE order_id NOT IN (\n    SELECT order_id\n    FROM payments\n    WHERE status = 'completed'\n    -- Si algún order_id en payments es NULL, esta subquery\n    -- devuelve NULL → NOT IN falla silenciosamente\n)\nORDER BY ordered_at DESC;\n\n-- Versión B — NOT EXISTS (correcta)\n-- NOT EXISTS maneja NULLs correctamente: verifica si existe\n-- al menos una fila que cumpla la condición, y NULL en\n-- las columnas comparadas no afecta el resultado\nSELECT\n    o.order_id,\n    o.customer_id,\n    o.ordered_at,\n    o.status\nFROM orders o\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM payments p\n    WHERE p.order_id = o.order_id\n      AND p.status   = 'completed'\n)\nORDER BY o.ordered_at DESC;",
+    "tables_used": [
+      "orders",
+      "inventory"
+    ],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": [
+      "order_id",
+      "customer_id",
+      "ordered_at",
+      "status"
+    ],
+    "sample_rows": [
+      [
+        31320,
+        57,
+        "2026-05-15 21:02:00",
+        "delivered"
+      ],
+      [
+        31327,
+        160,
+        "2026-05-15 20:46:00",
+        "pending"
+      ],
+      [
+        31326,
+        431,
+        "2026-05-15 20:17:00",
+        "pending"
+      ],
+      [
+        31343,
+        22,
+        "2026-05-15 20:14:00",
+        "cancelled"
+      ],
+      [
+        31321,
+        298,
+        "2026-05-15 20:02:00",
+        "delivered"
+      ],
+      [
+        31286,
+        401,
+        "2026-05-15 19:24:00",
+        "pending"
+      ],
+      [
+        31299,
+        99,
+        "2026-05-15 19:00:00",
+        "shipped"
+      ],
+      [
+        31312,
+        363,
+        "2026-05-15 18:19:00",
+        "pending"
+      ],
+      [
+        31292,
+        439,
+        "2026-05-15 18:08:00",
+        "delivered"
+      ],
+      [
+        31322,
+        251,
+        "2026-05-15 17:53:00",
+        "pending"
+      ],
+      [
+        31318,
+        439,
+        "2026-05-15 17:15:00",
+        "pending"
+      ],
+      [
+        31345,
+        432,
+        "2026-05-15 17:08:00",
+        "pending"
+      ],
+      [
+        31338,
+        480,
+        "2026-05-15 15:54:00",
+        "shipped"
+      ],
+      [
+        31313,
+        68,
+        "2026-05-15 15:51:00",
+        "delivered"
+      ],
+      [
+        31305,
+        235,
+        "2026-05-15 15:29:00",
+        "shipped"
+      ],
+      [
+        31307,
+        481,
+        "2026-05-15 14:56:00",
+        "cancelled"
+      ],
+      [
+        31300,
+        502,
+        "2026-05-15 14:52:00",
+        "pending"
+      ],
+      [
+        31302,
+        482,
+        "2026-05-15 14:52:00",
+        "cancelled"
+      ],
+      [
+        31315,
+        68,
+        "2026-05-15 14:40:00",
+        "pending"
+      ],
+      [
+        31306,
+        331,
+        "2026-05-15 14:30:00",
+        "pending"
+      ],
+      [
+        31333,
+        73,
+        "2026-05-15 14:30:00",
+        "pending"
+      ],
+      [
+        31325,
+        247,
+        "2026-05-15 14:29:00",
+        "delivered"
+      ],
+      [
+        31319,
+        365,
+        "2026-05-15 13:55:00",
+        "shipped"
+      ],
+      [
+        31290,
+        270,
+        "2026-05-15 13:38:00",
+        "delivered"
+      ],
+      [
+        31289,
+        10,
+        "2026-05-15 13:27:00",
+        "pending"
+      ],
+      [
+        31337,
+        344,
+        "2026-05-15 13:22:00",
+        "cancelled"
+      ],
+      [
+        31341,
+        322,
+        "2026-05-15 12:30:00",
+        "pending"
+      ],
+      [
+        31294,
+        477,
+        "2026-05-15 12:25:00",
+        "cancelled"
+      ],
+      [
+        31336,
+        469,
+        "2026-05-15 11:57:00",
+        "cancelled"
+      ],
+      [
+        31309,
+        410,
+        "2026-05-15 11:45:00",
+        "pending"
+      ],
+      [
+        31334,
+        410,
+        "2026-05-15 11:10:00",
+        "shipped"
+      ],
+      [
+        31330,
+        81,
+        "2026-05-15 11:09:00",
+        "shipped"
+      ],
+      [
+        31298,
+        533,
+        "2026-05-15 10:53:00",
+        "shipped"
+      ],
+      [
+        31335,
+        419,
+        "2026-05-15 10:42:00",
+        "pending"
+      ],
+      [
+        31314,
+        435,
+        "2026-05-15 10:16:00",
+        "delivered"
+      ],
+      [
+        31310,
+        54,
+        "2026-05-15 09:34:00",
+        "cancelled"
+      ],
+      [
+        31311,
+        215,
+        "2026-05-15 09:32:00",
+        "pending"
+      ],
+      [
+        31308,
+        432,
+        "2026-05-15 09:26:00",
+        "shipped"
+      ],
+      [
+        31304,
+        489,
+        "2026-05-15 08:17:00",
+        "cancelled"
+      ],
+      [
+        31344,
+        318,
+        "2026-05-15 08:10:00",
+        "shipped"
+      ],
+      [
+        31280,
+        394,
+        "2026-05-14 22:44:00",
+        "pending"
+      ],
+      [
+        31247,
+        460,
+        "2026-05-14 22:43:00",
+        "delivered"
+      ],
+      [
+        31279,
+        99,
+        "2026-05-14 22:38:00",
+        "cancelled"
+      ],
+      [
+        31214,
+        495,
+        "2026-05-14 22:12:00",
+        "cancelled"
+      ],
+      [
+        31252,
+        252,
+        "2026-05-14 22:05:00",
+        "pending"
+      ],
+      [
+        31226,
+        213,
+        "2026-05-14 21:46:00",
+        "pending"
+      ],
+      [
+        31223,
+        399,
+        "2026-05-14 21:09:00",
+        "shipped"
+      ],
+      [
+        31210,
+        220,
+        "2026-05-14 21:08:00",
+        "delivered"
+      ],
+      [
+        31264,
+        462,
+        "2026-05-14 20:49:00",
+        "cancelled"
+      ],
+      [
+        31208,
+        186,
+        "2026-05-14 20:30:00",
+        "shipped"
+      ]
+    ],
+    "expected_row_count_approx": 16454,
+    "notes": "EJERCICIO DE REVISION MANUAL — las transacciones no pueden auto-validarse porque su comportamiento depende del estado de la base de datos en tiempo de ejecucion. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) La transaccion debe comenzar con BEGIN (o START TRANSACTION). (2) El INSERT en orders debe ir antes del SAVEPOINT. (3) El SAVEPOINT debe estar entre el INSERT y el UPDATE — no al principio ni al final. (4) El UPDATE en inventory debe incluir una condicion de stock suficiente (stock >= cantidad_a_descontar) para el caso de stock insuficiente. (5) El estudiante debe mostrar tres variantes: (a) el flujo normal con COMMIT, (b) el ROLLBACK TO SAVEPOINT para revertir solo el descuento, (c) el ROLLBACK completo para revertir todo. (6) Los comentarios deben explicar en que caso de negocio se usa cada variante. ADVERTENCIA SOBRE EL SEED: ejecutar este ejercicio modifica la tabla orders con un order_id ficticio (99001). El teacher debe indicar que este ejercicio se ejecuta en un entorno de prueba o que el estudiante debe hacer ROLLBACK al final para no contaminar los datos del curso. PUNTO PEDAGOGICO: la atomicidad es la 'A' de ACID. Si el sistema falla entre el INSERT y el UPDATE, la transaccion se revierte completa — el estado inconsistente (pedido sin descuento de stock) nunca queda en la base de datos."
+  },
+  {
+    "exercise_number": 9,
+    "title": "INSERT ... ON CONFLICT DO UPDATE — upsert de inventario idempotente",
+    "briefing_ref": "Briefing 8.9 — Diego Morales: INSERT en inventory con manejo automatico de conflicto por product_id duplicado",
+    "lesson_ref": "Leccion 4 — Idempotencia: INSERT ... ON CONFLICT para operaciones de escritura seguras",
+    "reference_query": "-- Reescribir WHERE con función en columna → rango de fechas\n-- Eliminar STRFTIME del WHERE para permitir Index Scan\n\n-- El problema de la versión original:\n-- STRFTIME('%Y', p.paid_at) aplica una función a la columna paid_at\n-- → el optimizador no puede usar el índice en paid_at\n-- → la base de datos hace SCAN completo\n\nSELECT\n    c.country,\n    COUNT(*)                                                  AS pagos_completados\nFROM payments p\nINNER JOIN orders o    ON o.order_id    = p.order_id\nINNER JOIN customers c ON c.customer_id = o.customer_id\n-- Rango explícito: permite usar el índice en paid_at (si existe)\nWHERE p.paid_at >= '2025-01-01'\n  AND p.paid_at <  '2026-01-01'\n  AND p.status  = 'completed'\nGROUP BY c.country\nORDER BY pagos_completados DESC;",
+    "tables_used": [
+      "inventory"
+    ],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "country",
+      "pagos_completados"
+    ],
+    "sample_rows": [
+      [
+        "Mexico",
+        2988
+      ],
+      [
+        "Colombia",
+        2349
+      ],
+      [
+        "Argentina",
+        937
+      ],
+      [
+        "Peru",
+        885
+      ],
+      [
+        "Chile",
+        548
+      ],
+      [
+        "USA",
+        438
+      ],
+      [
+        "Venezuela",
+        245
+      ],
+      [
+        "Bolivia",
+        241
+      ],
+      [
+        "Spain",
+        237
+      ],
+      [
+        "Ecuador",
+        221
+      ],
+      [
+        "Guatemala",
+        126
+      ],
+      [
+        "Honduras",
+        111
+      ],
+      [
+        "El Salvador",
+        92
+      ],
+      [
+        "Uruguay",
+        82
+      ],
+      [
+        "Costa Rica",
+        74
+      ],
+      [
+        "Paraguay",
+        65
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "TEMPLATE — validacion parcialmente automatizable. El SELECT de verificacion retorna 1 fila para product_id = 1. El valor esperado de stock es 150 (el valor del INSERT). El inventory_id debe ser el original (el que tenia el registro antes del conflicto) — NO 9001, porque el ON CONFLICT DO UPDATE no inserta una nueva fila, actualiza la existente. PUNTO PEDAGOGICO CENTRAL: EXCLUDED es una pseudo-tabla que referencia los valores que se intentaron insertar (los del VALUES). Esto permite actualizar con el nuevo valor de forma elegante. El teacher debe mostrar que sin ON CONFLICT, el segundo INSERT falla con: ERROR duplicate key value violates unique constraint. IDEMPOTENCIA: si se ejecuta el mismo INSERT dos veces, el resultado es el mismo (stock = 150). Si se ejecuta una tercera vez con otro valor de stock, el stock se actualiza de nuevo. Esta propiedad es crucial para sistemas que pueden enviar el mismo mensaje dos veces. PREREQUISITO: ON CONFLICT (product_id) requiere que product_id tenga un constraint UNIQUE o sea PRIMARY KEY en la tabla inventory. El schema canonico tiene inventory_id como PK pero product_id no tiene UNIQUE constraint explicito. El teacher debe verificar si esto funciona o si necesita agregar UNIQUE constraint a product_id. DIALECTAL: INSERT ... ON CONFLICT es PostgreSQL y SQLite (desde 3.24.0). En MySQL el equivalente es INSERT ... ON DUPLICATE KEY UPDATE."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Revenue neto historico por pais y trimestre — para presentacion a inversores",
+    "briefing_ref": "Briefing 8.10 — Marco Jimenez y Valentina Torres: Revenue neto por pais y trimestre en los ultimos 12 meses",
+    "lesson_ref": "Leccion 1 — Revenue neto con desagregacion temporal por trimestre",
+    "reference_query": "-- SELECT * → SELECT columnas específicas\n-- Solo las columnas necesarias para el análisis de Ana\n\nSELECT\n    c.country,\n    STRFTIME('%Y-%m', p.paid_at)                              AS mes,\n    ROUND(\n        SUM(CASE WHEN p.status = 'completed' THEN p.amount ELSE 0 END)\n        - SUM(CASE WHEN p.status = 'refunded'  THEN p.amount ELSE 0 END),\n        2\n    )                                                         AS revenue_neto\nFROM payments p\nINNER JOIN orders o    ON o.order_id    = p.order_id\nINNER JOIN customers c ON c.customer_id = o.customer_id\nWHERE p.paid_at >= '2026-01-01'\n  AND p.paid_at IS NOT NULL\nGROUP BY c.country, STRFTIME('%Y-%m', p.paid_at)\nORDER BY c.country, mes;",
+    "tables_used": [
+      "payments",
+      "orders",
+      "customers"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "country",
+      "mes",
+      "revenue_neto"
+    ],
+    "sample_rows": [
+      [
+        "Argentina",
+        "2026-01",
+        4605.55
+      ],
+      [
+        "Argentina",
+        "2026-02",
+        7709.12
+      ],
+      [
+        "Argentina",
+        "2026-03",
+        11677.51
+      ],
+      [
+        "Argentina",
+        "2026-04",
+        11023.37
+      ],
+      [
+        "Argentina",
+        "2026-05",
+        4142.59
+      ],
+      [
+        "Bolivia",
+        "2026-01",
+        4703.49
+      ],
+      [
+        "Bolivia",
+        "2026-02",
+        2261.8
+      ],
+      [
+        "Bolivia",
+        "2026-03",
+        9048.04
+      ],
+      [
+        "Bolivia",
+        "2026-04",
+        3298.39
+      ],
+      [
+        "Bolivia",
+        "2026-05",
+        3927.62
+      ],
+      [
+        "Chile",
+        "2026-01",
+        8333.98
+      ],
+      [
+        "Chile",
+        "2026-02",
+        8451.81
+      ],
+      [
+        "Chile",
+        "2026-03",
+        68555.85
+      ],
+      [
+        "Chile",
+        "2026-04",
+        54880.62
+      ],
+      [
+        "Chile",
+        "2026-05",
+        4060.44
+      ],
+      [
+        "Colombia",
+        "2026-01",
+        59108.71
+      ],
+      [
+        "Colombia",
+        "2026-02",
+        51082.89
+      ],
+      [
+        "Colombia",
+        "2026-03",
+        25345.33
+      ],
+      [
+        "Colombia",
+        "2026-04",
+        13519.44
+      ],
+      [
+        "Colombia",
+        "2026-05",
+        26931.18
+      ],
+      [
+        "Costa Rica",
+        "2026-01",
+        867.86
+      ],
+      [
+        "Costa Rica",
+        "2026-02",
+        1014.9
+      ],
+      [
+        "Costa Rica",
+        "2026-03",
+        3341.61
+      ],
+      [
+        "Costa Rica",
+        "2026-04",
+        1783.71
+      ],
+      [
+        "Costa Rica",
+        "2026-05",
+        1124.85
+      ],
+      [
+        "Ecuador",
+        "2026-01",
+        2624.49
+      ],
+      [
+        "Ecuador",
+        "2026-02",
+        3847.53
+      ],
+      [
+        "Ecuador",
+        "2026-03",
+        3846.3
+      ],
+      [
+        "Ecuador",
+        "2026-04",
+        9938.91
+      ],
+      [
+        "Ecuador",
+        "2026-05",
+        1959.71
+      ],
+      [
+        "El Salvador",
+        "2026-01",
+        1025.82
+      ],
+      [
+        "El Salvador",
+        "2026-02",
+        1989.74
+      ],
+      [
+        "El Salvador",
+        "2026-03",
+        2941.6
+      ],
+      [
+        "El Salvador",
+        "2026-04",
+        5452.52
+      ],
+      [
+        "El Salvador",
+        "2026-05",
+        3634.69
+      ],
+      [
+        "Guatemala",
+        "2026-01",
+        2584.75
+      ],
+      [
+        "Guatemala",
+        "2026-02",
+        2613.71
+      ],
+      [
+        "Guatemala",
+        "2026-03",
+        4521.51
+      ],
+      [
+        "Guatemala",
+        "2026-04",
+        4872.44
+      ],
+      [
+        "Guatemala",
+        "2026-05",
+        1704.82
+      ],
+      [
+        "Honduras",
+        "2026-01",
+        3423.62
+      ],
+      [
+        "Honduras",
+        "2026-02",
+        4164.61
+      ],
+      [
+        "Honduras",
+        "2026-03",
+        3246.48
+      ],
+      [
+        "Honduras",
+        "2026-04",
+        3442.6
+      ],
+      [
+        "Honduras",
+        "2026-05",
+        1862.81
+      ],
+      [
+        "Mexico",
+        "2026-01",
+        82909.84
+      ],
+      [
+        "Mexico",
+        "2026-02",
+        89376.9
+      ],
+      [
+        "Mexico",
+        "2026-03",
+        16228.98
+      ],
+      [
+        "Mexico",
+        "2026-04",
+        10633.34
+      ],
+      [
+        "Mexico",
+        "2026-05",
+        38000.89
+      ]
+    ],
+    "expected_row_count_approx": 80,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado tendra una fila por cada combinacion pais + trimestre que tenga pagos en los ultimos 12 meses. El numero exacto depende de cuantos paises y trimestres tienen datos en el seed. NOTA SOBRE CURRENT_DATE: el uso de CURRENT_DATE hace la query no determinista — el resultado cambia segun la fecha de ejecucion. Para el curso, el teacher puede fijar la fecha ('2026-06-01') para que el resultado sea reproducible entre estudiantes. Alternativamente, puede usar CURRENT_DATE pero documentar el comportamiento esperado en un rango de fechas. DIALECTAL: EXTRACT(QUARTER FROM ...) es PostgreSQL. En SQLite no existe QUARTER — el teacher puede usar CASE WHEN strftime('%m', paid_at) BETWEEN '01' AND '03' THEN 1 ... etc. CHILE EN Q1 2026: si el seed tiene la anomalia de pagos fallidos plantada, Chile en Q1 2026 deberia mostrar revenue_neto notablemente inferior al resto de paises en proporcion. El teacher puede usar este dato como el 'algo raro en Chile' que Marco necesita mencionar en la junta."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Evolucion mensual de revenue neto Q1 2026 — variacion MoM para apertura del dashboard",
+    "briefing_ref": "Proyecto Nivel 8 — Punto 4: Evolucion mensual del revenue neto Q1 2026 con variacion porcentual",
+    "lesson_ref": "Leccion 1 — Revenue neto mensual con LAG() para variacion MoM",
+    "reference_query": "-- EXPLAIN QUERY PLAN sobre query de cohortes\n-- Briefing 8.6 — Valentina Torres\n\nEXPLAIN QUERY PLAN\nWITH primera_compra AS (\n    SELECT\n        customer_id,\n        STRFTIME('%Y-%m', MIN(ordered_at))                    AS mes_cohorte\n    FROM orders\n    WHERE status = 'delivered'\n    GROUP BY customer_id\n)\nSELECT\n    pc.mes_cohorte,\n    COUNT(DISTINCT pc.customer_id)                            AS clientes_nuevos,\n    COUNT(DISTINCT o2.customer_id)                            AS retenidos_mes2\nFROM primera_compra pc\nLEFT JOIN orders o2\n    ON  o2.customer_id = pc.customer_id\n    AND o2.status      = 'delivered'\n    AND STRFTIME('%Y-%m', o2.ordered_at)\n          > pc.mes_cohorte\n    AND STRFTIME('%Y-%m', o2.ordered_at)\n          <= STRFTIME('%Y-%m',\n               DATE(pc.mes_cohorte || '-01', '+1 month'))\nGROUP BY pc.mes_cohorte\nORDER BY pc.mes_cohorte;\n\n-- (a) Operación identificada:\n-- La query hace un SCAN sobre orders en la CTE primera_compra\n-- y otro SCAN (o un JOIN scan) en el LEFT JOIN con o2.\n-- Con 2000 órdenes en el seed el costo es aceptable, pero\n-- con millones de órdenes ambos scans serían costosos.\n-- El JOIN de o2 usa STRFTIME en la columna ordered_at —\n-- esto impide el uso de índices en esa columna.\n\n-- (b) Índice propuesto y justificación:\n-- CREATE INDEX IF NOT EXISTS idx_orders_customer_id_ordered_at_status\n--     ON orders(customer_id, ordered_at, status);\n-- Justificación del orden:\n-- 1. customer_id primero: el WHERE del LEFT JOIN filtra por customer_id\n--    (= pc.customer_id) — es la condición de igualdad más selectiva\n-- 2. ordered_at segundo: permite la búsqueda de rango que acota\n--    el mes siguiente al primer pedido\n-- 3. status tercero: como columna de cobertura para evitar\n--    un lookup adicional a la tabla\n-- No se pone status primero porque tiene baja cardinalidad (4 valores)\n-- y el filtro por customer_id ya es mucho más selectivo.",
+    "tables_used": [
+      "payments"
+    ],
+    "join_types": [],
+    "validation_mode": "schema_match",
+    "expected_columns": [
+      "id",
+      "parent",
+      "notused",
+      "detail"
+    ],
+    "sample_rows": [
+      [
+        2,
+        0,
+        0,
+        "CO-ROUTINE primera_compra"
+      ],
+      [
+        8,
+        2,
+        216,
+        "SCAN orders"
+      ],
+      [
+        12,
+        2,
+        0,
+        "USE TEMP B-TREE FOR GROUP BY"
+      ],
+      [
+        57,
+        0,
+        82,
+        "SCAN pc"
+      ],
+      [
+        62,
+        0,
+        0,
+        "BLOOM FILTER ON o2 (customer_id=? AND status=?)"
+      ],
+      [
+        76,
+        0,
+        53,
+        "SEARCH o2 USING AUTOMATIC PARTIAL COVERING INDEX (customer_id=? AND status=?) LEFT-JOIN"
+      ],
+      [
+        102,
+        0,
+        0,
+        "USE TEMP B-TREE FOR GROUP BY"
+      ],
+      [
+        151,
+        0,
+        0,
+        "USE TEMP B-TREE FOR count(DISTINCT)"
+      ],
+      [
+        153,
+        0,
+        0,
+        "USE TEMP B-TREE FOR count(DISTINCT)"
+      ]
+    ],
+    "expected_row_count_approx": 9,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 3 filas (enero, febrero, marzo 2026) si el seed tiene pagos en esos tres meses. NARRATIVA ESPERADA: si la anomalia de Chile en marzo-abril 2026 esta plantada en el seed, el revenue de marzo 2026 puede ser menor que febrero — la variacion_pct de marzo seria negativa. Esto es el dato principal del grafico de tendencia que abre la presentacion de Ana. PUNTO PEDAGOGICO: la formula de variacion usa LAG(cobrado - reembolsado) pero la CTE ya calculo por separado cobrado y reembolsado. Se podria refactorizar para que la CTE tenga una columna revenue_neto calculada y entonces LAG opere sobre esa columna. El teacher puede mostrar ambas versiones y discutir cuala es mas legible. DEPENDENCIA DEL EJERCICIO: este ejercicio puede ver datos incompletos si hay pagos de Q1 2026 con paid_at NULL (ver EJ03). El teacher debe mencionar que los resultados de este ejercicio son los mismos que podrian estar subestimados por los datos sucios del EJ03."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Transaccion de ajuste contable — UPDATE de pagos duplicados con verificacion y COMMIT condicional",
+    "briefing_ref": "Proyecto Nivel 8 — Punto 6: Transaccion de ajuste: 3 pagos duplicados del 15 de febrero marcados como refunded",
+    "lesson_ref": "Leccion 4 — Transacciones con verificacion intermedia: SELECT dentro de una transaccion",
+    "reference_query": "-- Subquery correlacionada → LEFT JOIN\n-- Reescritura de anti-patrón de performance\nSELECT\n    c.customer_id,\n    c.first_name || ' ' || c.last_name                       AS nombre,\n    c.country,\n    ROUND(COALESCE(SUM(p.amount), 0), 2)                      AS total_pagado\nFROM customers c\nLEFT JOIN orders o    ON o.customer_id = c.customer_id\nLEFT JOIN payments p  ON p.order_id    = o.order_id\n                      AND p.status     = 'completed'\nGROUP BY c.customer_id, c.first_name, c.last_name, c.country\nORDER BY total_pagado DESC\nLIMIT 10;",
+    "tables_used": [
+      "payments"
+    ],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": [
+      "customer_id",
+      "nombre",
+      "country",
+      "total_pagado"
+    ],
+    "sample_rows": [
+      [
+        394,
+        "Richard Jones",
+        "Mexico",
+        26944.27
+      ],
+      [
+        344,
+        "Isabella Morales",
+        "Mexico",
+        26196.29
+      ],
+      [
+        73,
+        "Isabella Gutierrez",
+        "Mexico",
+        26004.44
+      ],
+      [
+        243,
+        "Fernanda Mendoza",
+        "Mexico",
+        25333.14
+      ],
+      [
+        173,
+        "Ana Guerrero",
+        "Mexico",
+        24323.88
+      ],
+      [
+        140,
+        "Joseph Hall",
+        "Mexico",
+        24078.77
+      ],
+      [
+        186,
+        "Patricia Jones",
+        "Colombia",
+        22132.95
+      ],
+      [
+        395,
+        "Camila Delgado",
+        "Colombia",
+        22128.91
+      ],
+      [
+        158,
+        "Jorge Vega",
+        "Colombia",
+        22069.15
+      ],
+      [
+        193,
+        "David Harris",
+        "Mexico",
+        21709.01
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "EJERCICIO DE REVISION MANUAL — la transaccion no puede auto-validarse. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe incluir un SELECT previo que identifique los payment_ids de los pagos duplicados del 15 de febrero 2026. Si el seed no tiene pagos en esa fecha exacta, el student debe adaptar la fecha a una que si tenga pagos completados. (2) La transaccion debe tener: BEGIN, UPDATE con condicion de seguridad (status = 'completed'), SELECT de verificacion, y COMMIT o ROLLBACK segun el resultado. (3) La condicion de seguridad en el UPDATE es crucial — si el UPDATE se ejecuta sobre un pago que ya fue marcado como 'refunded' anteriormente, la condicion AND status = 'completed' lo protege de doble-reversion. (4) El estudiante debe documentar en un comentario que sucederia si el SELECT de verificacion retornara un numero diferente a 3 (ej: porque uno de los payment_ids no existia o ya estaba en otro status). (5) La transaccion debe poder revertirse (el estudiante puede incluir ROLLBACK al final del entregable para no modificar permanentemente el seed del curso). PUNTO PEDAGOGICO: un SELECT dentro de una transaccion abierta ve los datos modificados por el UPDATE anterior (los cambios son visibles dentro de la misma transaccion antes del COMMIT). Esto es lo que permite la verificacion intermedia. Si el ROLLBACK sucede, el SELECT externo volveria a ver el estado original."
+  },
+  {
+    "exercise_number": 13,
+    "title": "Ejercicio 13",
+    "briefing_ref": "Briefing 8.13",
+    "lesson_ref": "Lección 13",
+    "reference_query": "-- Transacción atómica con SAVEPOINT\n-- Diego Morales — Briefing 8.8\n\nBEGIN;\n\n-- Paso 1: registrar el pedido\nINSERT INTO orders (order_id, customer_id, ordered_at, status)\nVALUES (99001, 42, '2026-06-01 10:00:00', 'pending');\n\n-- Punto de restauración: permite rollback parcial del descuento de stock\nSAVEPOINT antes_del_descuento;\n\n-- Paso 2: descontar 2 unidades del producto 1\n-- Condición stock >= 2: garantiza que no se descuenta si no hay suficiente stock\nUPDATE inventory\nSET    stock      = stock - 2,\n       updated_at = '2026-06-01 10:00:00'\nWHERE  product_id = 1\n  AND  stock >= 2;\n\n-- Escenarios de resolución:\n-- A) Todo bien → ejecutar: COMMIT  (persisten INSERT + UPDATE)\n-- B) Descuento falló (stock insuficiente) → ejecutar:\n--    ROLLBACK TO SAVEPOINT antes_del_descuento\n--    (deshace solo el UPDATE, mantiene el INSERT; transacción sigue abierta)\n-- C) Error crítico en cualquier paso → ejecutar: ROLLBACK\n--    (deshace TODO: INSERT + UPDATE, estado original restaurado)\n\n-- En el Playground usamos ROLLBACK para no modificar el dataset del curso.\n-- Si quisieras persistir los cambios en un entorno real, usarías COMMIT en su lugar.\nROLLBACK;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 14,
+    "title": "Ejercicio 14",
+    "briefing_ref": "Briefing 8.14",
+    "lesson_ref": "Lección 14",
+    "reference_query": "-- Auditoría: pedidos 'delivered' sin pago 'completed'\n-- Proyecto Nivel 8 — integridad de datos\nSELECT\n    o.order_id,\n    o.customer_id,\n    o.ordered_at,\n    COUNT(p.payment_id)                                       AS total_intentos_de_pago,\n    MAX(p.status)                                             AS ultimo_estado_pago\nFROM orders o\nLEFT JOIN payments p ON p.order_id = o.order_id\nWHERE o.status = 'delivered'\nGROUP BY o.order_id, o.customer_id, o.ordered_at\nHAVING SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) = 0\nORDER BY o.ordered_at DESC\nLIMIT 20;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "order_id",
+      "customer_id",
+      "ordered_at",
+      "total_intentos_de_pago",
+      "ultimo_estado_pago"
+    ],
+    "sample_rows": [
+      [
+        31320,
+        57,
+        "2026-05-15 21:02:00",
+        1,
+        "failed"
+      ],
+      [
+        31321,
+        298,
+        "2026-05-15 20:02:00",
+        1,
+        "refunded"
+      ],
+      [
+        31292,
+        439,
+        "2026-05-15 18:08:00",
+        1,
+        "failed"
+      ],
+      [
+        31313,
+        68,
+        "2026-05-15 15:51:00",
+        1,
+        "failed"
+      ],
+      [
+        31325,
+        247,
+        "2026-05-15 14:29:00",
+        1,
+        "refunded"
+      ],
+      [
+        31290,
+        270,
+        "2026-05-15 13:38:00",
+        1,
+        "refunded"
+      ],
+      [
+        31314,
+        435,
+        "2026-05-15 10:16:00",
+        1,
+        "refunded"
+      ],
+      [
+        31247,
+        460,
+        "2026-05-14 22:43:00",
+        1,
+        "failed"
+      ],
+      [
+        31210,
+        220,
+        "2026-05-14 21:08:00",
+        1,
+        "refunded"
+      ],
+      [
+        31209,
+        398,
+        "2026-05-14 19:41:00",
+        1,
+        "refunded"
+      ],
+      [
+        31274,
+        433,
+        "2026-05-14 18:58:00",
+        1,
+        "refunded"
+      ],
+      [
+        31278,
+        167,
+        "2026-05-14 17:21:00",
+        1,
+        "failed"
+      ],
+      [
+        31235,
+        73,
+        "2026-05-14 14:45:00",
+        1,
+        "failed"
+      ],
+      [
+        31233,
+        391,
+        "2026-05-14 14:07:00",
+        1,
+        "refunded"
+      ],
+      [
+        31273,
+        461,
+        "2026-05-14 12:59:00",
+        1,
+        "refunded"
+      ],
+      [
+        31248,
+        333,
+        "2026-05-14 11:21:00",
+        1,
+        "failed"
+      ],
+      [
+        31154,
+        142,
+        "2026-05-13 21:30:00",
+        1,
+        "failed"
+      ],
+      [
+        31194,
+        41,
+        "2026-05-13 20:05:00",
+        1,
+        "refunded"
+      ],
+      [
+        31177,
+        213,
+        "2026-05-13 19:44:00",
+        1,
+        "failed"
+      ],
+      [
+        31168,
+        105,
+        "2026-05-13 19:35:00",
+        1,
+        "failed"
+      ]
+    ],
+    "expected_row_count_approx": 20,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 15,
+    "title": "Ejercicio 15",
+    "briefing_ref": "Briefing 8.15",
+    "lesson_ref": "Lección 15",
+    "reference_query": "-- Auditoría: returns sin order_id válido en orders\nSELECT\n    r.return_id,\n    r.order_id,\n    r.returned_at,\n    r.reason,\n    r.status\nFROM returns r\nLEFT JOIN orders o ON o.order_id = r.order_id\nWHERE o.order_id IS NULL\nORDER BY r.returned_at DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "return_id",
+      "order_id",
+      "returned_at",
+      "reason",
+      "status"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 16,
+    "title": "Ejercicio 16",
+    "briefing_ref": "Briefing 8.16",
+    "lesson_ref": "Lección 16",
+    "reference_query": "-- Auditoría: order_items con product_id inexistente en products\nSELECT\n    oi.item_id,\n    oi.order_id,\n    oi.product_id,\n    oi.quantity,\n    oi.unit_price\nFROM order_items oi\nLEFT JOIN products p ON p.product_id = oi.product_id\nWHERE p.product_id IS NULL\nORDER BY oi.order_id;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "item_id",
+      "order_id",
+      "product_id",
+      "quantity",
+      "unit_price"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 17,
+    "title": "Ejercicio 17",
+    "briefing_ref": "Briefing 8.17",
+    "lesson_ref": "Lección 17",
+    "reference_query": "-- Revenue en riesgo: dos componentes\n-- Componente 1: pedidos delivered sin pago completed\nWITH pedidos_sin_pago AS (\n    SELECT\n        o.order_id\n    FROM orders o\n    LEFT JOIN payments p\n        ON  p.order_id = o.order_id\n        AND p.status   = 'completed'\n    WHERE o.status   = 'delivered'\n    GROUP BY o.order_id\n    HAVING SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) = 0\n),\nmonto_sin_pago AS (\n    SELECT\n        COUNT(DISTINCT psp.order_id)                          AS cantidad_pedidos_sin_pago,\n        ROUND(COALESCE(SUM(oi.quantity * oi.unit_price), 0), 2) AS monto_en_riesgo_sin_pago\n    FROM pedidos_sin_pago psp\n    LEFT JOIN order_items oi ON oi.order_id = psp.order_id\n),\n-- Componente 2: pagos pending > 30 días\npagos_pending_viejos AS (\n    SELECT\n        COUNT(*)                                              AS cantidad_pagos_pending_viejos,\n        ROUND(SUM(p.amount), 2)                               AS monto_pending_viejo\n    FROM payments p\n    INNER JOIN orders o ON o.order_id = p.order_id\n    WHERE p.status     = 'pending'\n      AND o.ordered_at < DATE('2026-06-01', '-30 days')\n)\nSELECT\n    mspp.cantidad_pedidos_sin_pago,\n    mspp.monto_en_riesgo_sin_pago,\n    ppv.cantidad_pagos_pending_viejos,\n    ppv.monto_pending_viejo,\n    ROUND(\n        mspp.monto_en_riesgo_sin_pago\n        + ppv.monto_pending_viejo,\n        2\n    )                                                         AS revenue_total_en_riesgo\nFROM monto_sin_pago mspp\nCROSS JOIN pagos_pending_viejos ppv;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "cantidad_pedidos_sin_pago",
+      "monto_en_riesgo_sin_pago",
+      "cantidad_pagos_pending_viejos",
+      "monto_pending_viejo",
+      "revenue_total_en_riesgo"
+    ],
+    "sample_rows": [
+      [
+        3354,
+        1101081.09,
+        70,
+        17419.04,
+        1118500.13
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 18,
+    "title": "Ejercicio 18",
+    "briefing_ref": "Briefing 8.18",
+    "lesson_ref": "Lección 18",
+    "reference_query": "-- Detección de posible fraude: múltiples pagos fallidos el mismo día\nSELECT\n    o.customer_id,\n    c.country                                                 AS pais,\n    STRFTIME('%Y-%m-%d', p.paid_at)                           AS dia,\n    COUNT(*)                                                  AS intentos_fallidos,\n    ROUND(SUM(p.amount), 2)                                   AS monto_total_fallido\nFROM payments p\nINNER JOIN orders o    ON o.order_id    = p.order_id\nINNER JOIN customers c ON c.customer_id = o.customer_id\nWHERE p.status  = 'failed'\n  AND p.paid_at IS NOT NULL\nGROUP BY o.customer_id, c.country, STRFTIME('%Y-%m-%d', p.paid_at)\nHAVING COUNT(*) > 3\nORDER BY intentos_fallidos DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "pais",
+      "dia",
+      "intentos_fallidos",
+      "monto_total_fallido"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 19,
+    "title": "Ejercicio 19",
+    "briefing_ref": "Briefing 8.19",
+    "lesson_ref": "Lección 19",
+    "reference_query": "-- Vista de auditoría consolidada v_inconsistencias_datos\nDROP VIEW IF EXISTS v_inconsistencias_datos;\nCREATE VIEW v_inconsistencias_datos AS\n-- Tipo 1: pedidos entregados sin pago completado\nSELECT\n    'pedido_entregado_sin_pago'                               AS tipo_inconsistencia,\n    o.order_id                                                AS entidad_id,\n    'Pedido delivered sin ningun pago completed asociado'     AS detalle\nFROM orders o\nLEFT JOIN payments p\n    ON  p.order_id = o.order_id\n    AND p.status   = 'completed'\nWHERE o.status   = 'delivered'\nGROUP BY o.order_id\nHAVING SUM(CASE WHEN p.status = 'completed' THEN 1 ELSE 0 END) = 0\n\nUNION ALL\n\n-- Tipo 2: returns con order_id que no existe en orders\nSELECT\n    'return_sin_pedido_valido'                                AS tipo_inconsistencia,\n    r.return_id                                               AS entidad_id,\n    'Return con order_id no encontrado en tabla orders'       AS detalle\nFROM returns r\nLEFT JOIN orders o ON o.order_id = r.order_id\nWHERE o.order_id IS NULL\n\nUNION ALL\n\n-- Tipo 3: order_items con product_id que no existe en products\nSELECT\n    'item_con_producto_inexistente'                           AS tipo_inconsistencia,\n    oi.item_id                                                AS entidad_id,\n    'Item con product_id no encontrado en tabla products'     AS detalle\nFROM order_items oi\nLEFT JOIN products p ON p.product_id = oi.product_id\nWHERE p.product_id IS NULL;\n\n-- Validación\nSELECT * FROM v_inconsistencias_datos;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "tipo_inconsistencia",
+      "entidad_id",
+      "detalle"
+    ],
+    "sample_rows": [
+      [
+        "pedido_entregado_sin_pago",
+        11,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        28,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        34,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        43,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        46,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        54,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        64,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        70,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        99,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        110,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        116,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        125,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        136,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        143,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        151,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        161,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        171,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        179,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        182,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        210,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        227,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        243,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        250,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        251,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        252,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        257,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        258,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        288,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        294,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        316,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        322,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        329,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        346,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        355,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        357,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        363,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        366,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        383,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        384,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        392,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        413,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        424,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        426,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        432,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        433,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        440,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        443,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        445,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        451,
+        "Pedido delivered sin ningun pago completed asociado"
+      ],
+      [
+        "pedido_entregado_sin_pago",
+        477,
+        "Pedido delivered sin ningun pago completed asociado"
+      ]
+    ],
+    "expected_row_count_approx": 3354,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 20,
+    "title": "Ejercicio 20",
+    "briefing_ref": "Briefing 8.20",
+    "lesson_ref": "Lección 20",
+    "reference_query": "-- Vista v_resumen_mensual_ejecutivo\nDROP VIEW IF EXISTS v_resumen_mensual_ejecutivo;\nCREATE VIEW v_resumen_mensual_ejecutivo AS\nWITH pagos_mes AS (\n    SELECT\n        STRFTIME('%Y-%m', p.paid_at)                          AS mes,\n        COUNT(DISTINCT p.order_id)                            AS pedidos_del_mes,\n        COUNT(*)                                              AS total_intentos,\n        SUM(CASE WHEN p.status = 'completed'\n                 THEN p.amount ELSE 0 END)                    AS cobrado,\n        SUM(CASE WHEN p.status = 'refunded'\n                 THEN p.amount ELSE 0 END)                    AS reembolsado,\n        SUM(CASE WHEN p.status = 'failed'\n                 THEN 1 ELSE 0 END)                           AS fallos,\n        COUNT(DISTINCT c.customer_id)                         AS clientes_activos\n    FROM payments p\n    INNER JOIN orders o    ON o.order_id    = p.order_id\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE p.paid_at IS NOT NULL\n    GROUP BY STRFTIME('%Y-%m', p.paid_at)\n)\nSELECT\n    mes,\n    ROUND(cobrado, 2)                                         AS revenue_cobrado,\n    ROUND(reembolsado, 2)                                     AS revenue_reembolsado,\n    ROUND(cobrado - reembolsado, 2)                           AS revenue_neto,\n    total_intentos                                            AS total_intentos_pago,\n    ROUND(\n        fallos * 100.0 / NULLIF(total_intentos, 0),\n        2\n    )                                                         AS tasa_fallo_pago_pct,\n    pedidos_del_mes,\n    clientes_activos\nFROM pagos_mes\nORDER BY mes ASC;\n\n-- Validación\nSELECT * FROM v_resumen_mensual_ejecutivo\nWHERE mes >= '2026-01'\nORDER BY mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_cobrado",
+      "revenue_reembolsado",
+      "revenue_neto",
+      "total_intentos_pago",
+      "tasa_fallo_pago_pct",
+      "pedidos_del_mes",
+      "clientes_activos"
+    ],
+    "sample_rows": [
+      [
+        "2026-01",
+        221429.53,
+        30121.37,
+        191308.16,
+        1109,
+        6.04,
+        1109,
+        335
+      ],
+      [
+        "2026-02",
+        229092.23,
+        28855.56,
+        200236.67,
+        1081,
+        6.38,
+        1081,
+        333
+      ],
+      [
+        "2026-03",
+        222144.39,
+        14687.83,
+        207456.56,
+        1234,
+        19.29,
+        1234,
+        437
+      ],
+      [
+        "2026-04",
+        184575.43,
+        19396.77,
+        165178.66,
+        1133,
+        20.74,
+        1133,
+        422
+      ],
+      [
+        "2026-05",
+        116672.96,
+        12319.29,
+        104353.67,
+        616,
+        8.93,
+        616,
+        273
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 21,
+    "title": "Ejercicio 21",
+    "briefing_ref": "Briefing 8.21",
+    "lesson_ref": "Lección 21",
+    "reference_query": "-- Segmentación completa: canal de adquisición + segmento de valor + LTV\nWITH primera_sesion AS (\n    SELECT\n        ws.customer_id,\n        ws.campaign_id,\n        ROW_NUMBER() OVER (\n            PARTITION BY ws.customer_id\n            ORDER BY ws.started_at ASC\n        )                                                     AS rn\n    FROM website_sessions ws\n),\ncanal_cliente AS (\n    SELECT\n        ps.customer_id,\n        COALESCE(mc.channel, 'organic')                       AS canal_adquisicion\n    FROM primera_sesion ps\n    LEFT JOIN marketing_campaigns mc ON mc.campaign_id = ps.campaign_id\n    WHERE ps.rn = 1\n),\ncanal_todos AS (\n    SELECT\n        c.customer_id,\n        COALESCE(cc.canal_adquisicion, 'sin sesion')          AS canal_adquisicion\n    FROM customers c\n    LEFT JOIN canal_cliente cc ON cc.customer_id = c.customer_id\n),\nltv_cliente AS (\n    SELECT\n        o.customer_id,\n        COALESCE(SUM(p.amount), 0)                            AS ltv_estimado\n    FROM orders o\n    LEFT JOIN payments p\n        ON  p.order_id = o.order_id\n        AND p.status   = 'completed'\n    GROUP BY o.customer_id\n)\nSELECT\n    c.customer_id,\n    c.country,\n    ct.canal_adquisicion,\n    CASE\n        WHEN COALESCE(lc.ltv_estimado, 0) = 0           THEN 'sin pagos'\n        WHEN lc.ltv_estimado BETWEEN 1    AND 200        THEN 'basico'\n        WHEN lc.ltv_estimado BETWEEN 201  AND 500        THEN 'intermedio'\n        WHEN lc.ltv_estimado > 500                       THEN 'premium'\n    END                                                       AS segmento_valor,\n    ROUND(COALESCE(lc.ltv_estimado, 0), 2)                    AS ltv_estimado\nFROM customers c\nLEFT JOIN canal_todos ct  ON ct.customer_id = c.customer_id\nLEFT JOIN ltv_cliente lc  ON lc.customer_id = c.customer_id\nORDER BY ltv_estimado DESC\nLIMIT 20;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "country",
+      "canal_adquisicion",
+      "segmento_valor",
+      "ltv_estimado"
+    ],
+    "sample_rows": [
+      [
+        394,
+        "Mexico",
+        "organic",
+        "premium",
+        26944.27
+      ],
+      [
+        344,
+        "Mexico",
+        "organic",
+        "premium",
+        26196.29
+      ],
+      [
+        73,
+        "Mexico",
+        "organic",
+        "premium",
+        26004.44
+      ],
+      [
+        243,
+        "Mexico",
+        "organic",
+        "premium",
+        25333.14
+      ],
+      [
+        173,
+        "Mexico",
+        "organic",
+        "premium",
+        24323.88
+      ],
+      [
+        140,
+        "Mexico",
+        "organic",
+        "premium",
+        24078.77
+      ],
+      [
+        186,
+        "Colombia",
+        "organic",
+        "premium",
+        22132.95
+      ],
+      [
+        395,
+        "Colombia",
+        "organic",
+        "premium",
+        22128.91
+      ],
+      [
+        158,
+        "Colombia",
+        "organic",
+        "premium",
+        22069.15
+      ],
+      [
+        193,
+        "Mexico",
+        "organic",
+        "premium",
+        21709.01
+      ],
+      [
+        447,
+        "Mexico",
+        "organic",
+        "premium",
+        21686.37
+      ],
+      [
+        203,
+        "Mexico",
+        "organic",
+        "premium",
+        21382.18
+      ],
+      [
+        399,
+        "Mexico",
+        "organic",
+        "premium",
+        21187.55
+      ],
+      [
+        252,
+        "Mexico",
+        "organic",
+        "premium",
+        20953.37
+      ],
+      [
+        157,
+        "Colombia",
+        "organic",
+        "premium",
+        20851.72
+      ],
+      [
+        7,
+        "Mexico",
+        "organic",
+        "premium",
+        20817.13
+      ],
+      [
+        250,
+        "Mexico",
+        "organic",
+        "premium",
+        20253.26
+      ],
+      [
+        495,
+        "Mexico",
+        "organic",
+        "premium",
+        20123.25
+      ],
+      [
+        282,
+        "Colombia",
+        "organic",
+        "premium",
+        20087.35
+      ],
+      [
+        376,
+        "Colombia",
+        "organic",
+        "premium",
+        19989.19
+      ]
+    ],
+    "expected_row_count_approx": 20,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 22,
+    "title": "Ejercicio 22",
+    "briefing_ref": "Briefing 8.22",
+    "lesson_ref": "Lección 22",
+    "reference_query": "-- Rentabilidad real por categoría\n-- Revenue bruto - devoluciones, con tasa de fallos de pago\nWITH revenue_por_categoria AS (\n    SELECT\n        cat.category_id,\n        cat.name                                              AS categoria,\n        SUM(oi.quantity * oi.unit_price)                      AS revenue_bruto\n    FROM categories cat\n    INNER JOIN products p    ON p.category_id   = cat.category_id\n    INNER JOIN order_items oi ON oi.product_id  = p.product_id\n    INNER JOIN orders o       ON o.order_id     = oi.order_id\n    WHERE o.status = 'delivered'\n    GROUP BY cat.category_id, cat.name\n),\ndevoluciones_por_categoria AS (\n    SELECT\n        p.category_id,\n        SUM(oi.quantity * oi.unit_price)                      AS monto_devuelto\n    FROM returns r\n    INNER JOIN order_items oi ON oi.order_id   = r.order_id\n                               AND oi.product_id = r.product_id\n    INNER JOIN products p     ON p.product_id  = oi.product_id\n    WHERE r.status IN ('approved', 'refunded')\n    GROUP BY p.category_id\n),\npagos_por_categoria AS (\n    SELECT\n        p2.category_id,\n        SUM(CASE WHEN pay.status = 'failed' THEN 1 ELSE 0 END) AS pagos_fallidos,\n        COUNT(*)                                              AS total_intentos\n    FROM payments pay\n    INNER JOIN orders o       ON o.order_id    = pay.order_id\n    INNER JOIN order_items oi ON oi.order_id   = o.order_id\n    INNER JOIN products p2    ON p2.product_id = oi.product_id\n    GROUP BY p2.category_id\n)\nSELECT\n    rpc.categoria,\n    ROUND(rpc.revenue_bruto, 2)                               AS revenue_bruto,\n    ROUND(COALESCE(dpc.monto_devuelto, 0), 2)                 AS monto_devuelto,\n    ROUND(rpc.revenue_bruto - COALESCE(dpc.monto_devuelto, 0), 2) AS revenue_neto_operacional,\n    COALESCE(ppc.pagos_fallidos, 0)                           AS pagos_fallidos_del_periodo,\n    ROUND(\n        COALESCE(ppc.pagos_fallidos, 0) * 100.0\n        / NULLIF(COALESCE(ppc.total_intentos, 0), 0),\n        2\n    )                                                         AS margen_de_riesgo_pct\nFROM revenue_por_categoria rpc\nLEFT JOIN devoluciones_por_categoria dpc ON dpc.category_id = rpc.category_id\nLEFT JOIN pagos_por_categoria ppc        ON ppc.category_id = rpc.category_id\nORDER BY revenue_neto_operacional DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "categoria",
+      "revenue_bruto",
+      "monto_devuelto",
+      "revenue_neto_operacional",
+      "pagos_fallidos_del_periodo",
+      "margen_de_riesgo_pct"
+    ],
+    "sample_rows": [
+      [
+        "Home Appliances",
+        1840376.48,
+        76943.2,
+        1763433.28,
+        581,
+        8.6
+      ],
+      [
+        "Electronics",
+        1772250.81,
+        85832.42,
+        1686418.39,
+        663,
+        8.48
+      ],
+      [
+        "Wearables",
+        666242.96,
+        33175.44,
+        633067.52,
+        238,
+        7.46
+      ],
+      [
+        "Clothing",
+        503234.27,
+        26796.4,
+        476437.87,
+        335,
+        7.93
+      ],
+      [
+        "Audio",
+        291598.01,
+        9513.24,
+        282084.77,
+        247,
+        8.78
+      ],
+      [
+        "Toys & Games",
+        291749.44,
+        13042.24,
+        278707.2,
+        184,
+        8.61
+      ],
+      [
+        "Sports",
+        251499.34,
+        8844.06,
+        242655.28,
+        240,
+        8.61
+      ],
+      [
+        "Office",
+        221533.28,
+        9392.58,
+        212140.7,
+        126,
+        7.14
+      ],
+      [
+        "Beauty",
+        149655.03,
+        7229.67,
+        142425.36,
+        238,
+        9.32
+      ],
+      [
+        "Books",
+        99819.18,
+        4030.6,
+        95788.58,
+        214,
+        9.67
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 23,
+    "title": "Ejercicio 23",
+    "briefing_ref": "Briefing 8.23",
+    "lesson_ref": "Lección 23",
+    "reference_query": "-- Forecast: promedio móvil 3 meses + proyección\nWITH revenue_mensual AS (\n    SELECT\n        STRFTIME('%Y-%m', paid_at)                            AS mes,\n        ROUND(\n            SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END)\n            - SUM(CASE WHEN status = 'refunded'  THEN amount ELSE 0 END),\n            2\n        )                                                     AS revenue_neto\n    FROM payments\n    WHERE paid_at >= '2025-05-01'\n      AND paid_at <  '2026-06-01'\n      AND paid_at IS NOT NULL\n    GROUP BY STRFTIME('%Y-%m', paid_at)\n),\ncon_rolling_avg AS (\n    SELECT\n        mes,\n        revenue_neto,\n        ROUND(\n            AVG(revenue_neto) OVER (\n                ORDER BY mes\n                ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n            ),\n            2\n        )                                                     AS rolling_avg_3m\n    FROM revenue_mensual\n),\nforecast_mes AS (\n    SELECT\n        ROUND(AVG(revenue_neto), 2)                           AS forecast_junio\n    FROM revenue_mensual\n    WHERE mes IN ('2026-03', '2026-04', '2026-05')\n)\nSELECT mes, revenue_neto, rolling_avg_3m\nFROM con_rolling_avg\n\nUNION ALL\n\nSELECT\n    '2026-06 (forecast)'                                      AS mes,\n    NULL                                                      AS revenue_neto,\n    f.forecast_junio                                          AS rolling_avg_3m\nFROM forecast_mes f\n\nORDER BY mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_neto",
+      "rolling_avg_3m"
+    ],
+    "sample_rows": [
+      [
+        "2025-05",
+        253797.56,
+        253797.56
+      ],
+      [
+        "2025-06",
+        179074.65,
+        216436.1
+      ],
+      [
+        "2025-07",
+        165487.98,
+        199453.4
+      ],
+      [
+        "2025-08",
+        152582.78,
+        165715.14
+      ],
+      [
+        "2025-09",
+        259495.04,
+        192521.93
+      ],
+      [
+        "2025-10",
+        194688.94,
+        202255.59
+      ],
+      [
+        "2025-11",
+        210317.23,
+        221500.4
+      ],
+      [
+        "2025-12",
+        252558.18,
+        219188.12
+      ],
+      [
+        "2026-01",
+        191308.16,
+        218061.19
+      ],
+      [
+        "2026-02",
+        200236.67,
+        214701.0
+      ],
+      [
+        "2026-03",
+        207456.56,
+        199667.13
+      ],
+      [
+        "2026-04",
+        165178.66,
+        190957.3
+      ],
+      [
+        "2026-05",
+        104353.67,
+        158996.3
+      ],
+      [
+        "2026-06 (forecast)",
+        null,
+        158996.3
+      ]
+    ],
+    "expected_row_count_approx": 14,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 24,
+    "title": "Ejercicio 24",
+    "briefing_ref": "Briefing 8.24",
+    "lesson_ref": "Lección 24",
+    "reference_query": "-- 5 insights ejecutivos con UNION ALL\n-- Briefing ejecutivo — Marco Jiménez\nWITH insight1 AS (\n    SELECT\n        1                                                     AS numero_insight,\n        'Revenue neto total 2025-2026'                        AS titulo,\n        CAST(\n            ROUND(\n                SUM(CASE WHEN status='completed' THEN amount ELSE 0 END)\n                - SUM(CASE WHEN status='refunded' THEN amount ELSE 0 END),\n                2\n            ) AS TEXT\n        )                                                     AS valor_texto\n    FROM payments\n    WHERE paid_at >= '2025-01-01'\n      AND paid_at IS NOT NULL\n),\ninsight2 AS (\n    SELECT\n        2                                                     AS numero_insight,\n        'Pais con mayor revenue neto (historico)'             AS titulo,\n        c.country || ': $' || CAST(\n            ROUND(\n                SUM(CASE WHEN p.status='completed' THEN p.amount ELSE 0 END)\n                - SUM(CASE WHEN p.status='refunded' THEN p.amount ELSE 0 END),\n                2\n            ) AS TEXT\n        )                                                     AS valor_texto\n    FROM payments p\n    INNER JOIN orders o    ON o.order_id    = p.order_id\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE p.paid_at IS NOT NULL\n    GROUP BY c.country\n    ORDER BY\n        SUM(CASE WHEN p.status='completed' THEN p.amount ELSE 0 END)\n        - SUM(CASE WHEN p.status='refunded' THEN p.amount ELSE 0 END) DESC\n    LIMIT 1\n),\ninsight3 AS (\n    SELECT\n        3                                                     AS numero_insight,\n        'Tasa de fallo global de pagos'                       AS titulo,\n        CAST(\n            ROUND(\n                SUM(CASE WHEN status='failed' THEN 1 ELSE 0 END) * 100.0\n                / NULLIF(COUNT(*), 0),\n                2\n            ) AS TEXT\n        ) || '%'                                              AS valor_texto\n    FROM payments\n),\ninsight4 AS (\n    SELECT\n        4                                                     AS numero_insight,\n        'Metodo de pago mas usado (por transacciones)'        AS titulo,\n        method || ' (' || CAST(COUNT(*) AS TEXT) || ' transacciones)' AS valor_texto\n    FROM payments\n    WHERE status = 'completed'\n    GROUP BY method\n    ORDER BY COUNT(*) DESC\n    LIMIT 1\n),\ninsight5 AS (\n    SELECT\n        5                                                     AS numero_insight,\n        'Mes con mayor revenue neto (historico)'              AS titulo,\n        STRFTIME('%Y-%m', paid_at) || ': $' || CAST(\n            ROUND(\n                SUM(CASE WHEN status='completed' THEN amount ELSE 0 END)\n                - SUM(CASE WHEN status='refunded' THEN amount ELSE 0 END),\n                2\n            ) AS TEXT\n        )                                                     AS valor_texto\n    FROM payments\n    WHERE paid_at IS NOT NULL\n    GROUP BY STRFTIME('%Y-%m', paid_at)\n    ORDER BY\n        SUM(CASE WHEN status='completed' THEN amount ELSE 0 END)\n        - SUM(CASE WHEN status='refunded' THEN amount ELSE 0 END) DESC\n    LIMIT 1\n)\nSELECT numero_insight, titulo, valor_texto FROM insight1\nUNION ALL\nSELECT numero_insight, titulo, valor_texto FROM insight2\nUNION ALL\nSELECT numero_insight, titulo, valor_texto FROM insight3\nUNION ALL\nSELECT numero_insight, titulo, valor_texto FROM insight4\nUNION ALL\nSELECT numero_insight, titulo, valor_texto FROM insight5\nORDER BY numero_insight;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "numero_insight",
+      "titulo",
+      "valor_texto"
+    ],
+    "sample_rows": [
+      [
+        1,
+        "Revenue neto total 2025-2026",
+        "3135590.97"
+      ],
+      [
+        2,
+        "Pais con mayor revenue neto (historico)",
+        "Mexico: $947267.14"
+      ],
+      [
+        3,
+        "Tasa de fallo global de pagos",
+        "8.45%"
+      ],
+      [
+        4,
+        "Metodo de pago mas usado (por transacciones)",
+        "credit_card (8111 transacciones)"
+      ],
+      [
+        5,
+        "Mes con mayor revenue neto (historico)",
+        "2025-09: $259495.04"
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 25,
+    "title": "Integrador del Nivel 8",
+    "briefing_ref": "Briefing 8.25",
+    "lesson_ref": "Lección 25",
+    "reference_query": "-- Vista v_dashboard_inversores\nDROP VIEW IF EXISTS v_dashboard_inversores;\nCREATE VIEW v_dashboard_inversores AS\nWITH pagos_historicos AS (\n    -- Todos los pagos con datos de cliente, excluyendo paid_at NULL\n    SELECT\n        p.payment_id,\n        p.order_id,\n        p.amount,\n        p.status,\n        p.paid_at,\n        c.country\n    FROM payments p\n    INNER JOIN orders o    ON o.order_id    = p.order_id\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE p.paid_at IS NOT NULL\n),\nmetricas_generales AS (\n    SELECT\n        country,\n        COUNT(DISTINCT order_id)                              AS total_pedidos,\n        COUNT(*)                                              AS total_intentos,\n        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) AS cobrado,\n        SUM(CASE WHEN status = 'refunded'  THEN amount ELSE 0 END) AS reembolsado,\n        SUM(CASE WHEN status = 'failed'    THEN 1    ELSE 0 END)   AS fallos,\n        COUNT(DISTINCT CASE WHEN status = 'completed'\n                            THEN order_id END)                AS pedidos_completados\n    FROM pagos_historicos\n    GROUP BY country\n),\nrevenue_q1_2026 AS (\n    -- Revenue neto de Q1 2026 por país (para la columna específica)\n    SELECT\n        country,\n        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END)\n        - SUM(CASE WHEN status = 'refunded' THEN amount ELSE 0 END) AS revenue_neto_q1\n    FROM pagos_historicos\n    WHERE paid_at >= '2026-01-01'\n      AND paid_at <  '2026-04-01'\n    GROUP BY country\n),\nclientes_compradores AS (\n    -- Clientes únicos con al menos un pago completado, por país\n    SELECT\n        c.country,\n        COUNT(DISTINCT o.customer_id)                         AS clientes_con_compra\n    FROM payments p\n    INNER JOIN orders o    ON o.order_id    = p.order_id\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE p.status = 'completed'\n    GROUP BY c.country\n)\nSELECT\n    mg.country                                                AS pais,\n    ROUND(mg.cobrado, 2)                                      AS revenue_cobrado,\n    ROUND(mg.reembolsado, 2)                                  AS revenue_reembolsado,\n    ROUND(mg.cobrado - mg.reembolsado, 2)                     AS revenue_neto,\n    mg.total_pedidos,\n    COALESCE(cc.clientes_con_compra, 0)                       AS clientes_con_compra,\n    ROUND(\n        mg.cobrado / NULLIF(mg.total_pedidos, 0),\n        2\n    )                                                         AS ticket_promedio,\n    ROUND(\n        mg.reembolsado * 100.0 / NULLIF(mg.cobrado, 0),\n        2\n    )                                                         AS tasa_reembolso_pct,\n    ROUND(\n        mg.fallos * 100.0 / NULLIF(mg.total_intentos, 0),\n        2\n    )                                                         AS tasa_fallo_pago_pct,\n    ROUND(COALESCE(rq.revenue_neto_q1, 0), 2)                 AS revenue_neto_q1_2026,\n    CASE\n        WHEN mg.country = 'Chile'\n         AND (mg.fallos * 100.0 / NULLIF(mg.total_intentos, 0)) > 20\n        THEN 'ALERTA — tasa de fallo alta'\n        ELSE 'Normal'\n    END                                                       AS indicador_riesgo_chile\nFROM metricas_generales mg\nLEFT JOIN revenue_q1_2026 rq      ON rq.country = mg.country\nLEFT JOIN clientes_compradores cc  ON cc.country = mg.country\nORDER BY revenue_neto DESC;\n\n-- Validación completa\nSELECT * FROM v_dashboard_inversores;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "pais",
+      "revenue_cobrado",
+      "revenue_reembolsado",
+      "revenue_neto",
+      "total_pedidos",
+      "clientes_con_compra",
+      "ticket_promedio",
+      "tasa_reembolso_pct",
+      "tasa_fallo_pago_pct",
+      "revenue_neto_q1_2026",
+      "indicador_riesgo_chile"
+    ],
+    "sample_rows": [
+      [
+        "Mexico",
+        1073861.77,
+        126594.63,
+        947267.14,
+        5132,
+        64,
+        209.25,
+        11.79,
+        7.19,
+        188515.72,
+        "Normal"
+      ],
+      [
+        "Colombia",
+        821780.83,
+        96110.1,
+        725670.73,
+        3885,
+        55,
+        211.53,
+        11.7,
+        6.72,
+        135536.93,
+        "Normal"
+      ],
+      [
+        "Argentina",
+        344642.96,
+        36816.85,
+        307826.11,
+        1495,
+        54,
+        230.53,
+        10.68,
+        7.02,
+        23992.18,
+        "Normal"
+      ],
+      [
+        "Chile",
+        317858.39,
+        19890.13,
+        297968.26,
+        1821,
+        48,
+        174.55,
+        6.26,
+        23.17,
+        85341.64,
+        "ALERTA — tasa de fallo alta"
+      ],
+      [
+        "Peru",
+        289961.34,
+        35648.25,
+        254313.09,
+        1391,
+        51,
+        208.46,
+        12.29,
+        7.05,
+        27240.57,
+        "Normal"
+      ],
+      [
+        "USA",
+        209168.71,
+        28229.17,
+        180939.54,
+        1057,
+        64,
+        197.89,
+        13.5,
+        6.34,
+        36166.65,
+        "Normal"
+      ],
+      [
+        "Spain",
+        121152.27,
+        15641.91,
+        105510.36,
+        539,
+        35,
+        224.77,
+        12.91,
+        5.75,
+        17076.91,
+        "Normal"
+      ],
+      [
+        "Venezuela",
+        116173.9,
+        11215.44,
+        104958.46,
+        578,
+        35,
+        200.99,
+        9.65,
+        8.13,
+        20246.01,
+        "Normal"
+      ],
+      [
+        "Ecuador",
+        103438.06,
+        10072.17,
+        93365.89,
+        498,
+        31,
+        207.71,
+        9.74,
+        5.82,
+        10318.32,
+        "Normal"
+      ],
+      [
+        "Bolivia",
+        105413.74,
+        14258.99,
+        91154.75,
+        515,
+        30,
+        204.69,
+        13.53,
+        6.41,
+        16013.33,
+        "Normal"
+      ],
+      [
+        "Guatemala",
+        60662.58,
+        6427.46,
+        54235.12,
+        269,
+        16,
+        225.51,
+        10.6,
+        3.72,
+        9719.97,
+        "Normal"
+      ],
+      [
+        "El Salvador",
+        48979.54,
+        6906.99,
+        42072.55,
+        249,
+        16,
+        196.7,
+        14.1,
+        6.83,
+        5957.16,
+        "Normal"
+      ],
+      [
+        "Honduras",
+        50124.08,
+        8947.98,
+        41176.1,
+        252,
+        15,
+        198.91,
+        17.85,
+        4.37,
+        10834.71,
+        "Normal"
+      ],
+      [
+        "Costa Rica",
+        37731.02,
+        4362.34,
+        33368.68,
+        192,
+        12,
+        196.52,
+        11.56,
+        7.81,
+        5224.37,
+        "Normal"
+      ],
+      [
+        "Uruguay",
+        37337.27,
+        4808.72,
+        32528.55,
+        200,
+        13,
+        186.69,
+        12.88,
+        7.5,
+        3396.45,
+        "Normal"
+      ],
+      [
+        "Paraguay",
+        29655.38,
+        5049.08,
+        24606.3,
+        172,
+        11,
+        172.41,
+        17.03,
+        6.98,
+        3420.47,
+        "Normal"
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  }
+]

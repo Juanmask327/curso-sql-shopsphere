@@ -1,0 +1,210 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Producto con mas unidades vendidas en toda la historia",
+    "briefing_ref": "Briefing 3.5 — Marco Jimenez: El producto estrella",
+    "lesson_ref": "Leccion 1 — Ejercicio Basico",
+    "reference_query": "SELECT p.name AS producto, SUM(oi.quantity) AS unidades_vendidas FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id GROUP BY p.name ORDER BY unidades_vendidas DESC LIMIT 1;",
+    "tables_used": ["order_items", "products"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "unidades_vendidas"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes de ejecucion contra el seed. El producto ganador debe ser uno de los 90 del catalogo. La query usa LIMIT 1 por lo que el resultado es exactamente 1 fila. El criterio de exito es: usa INNER JOIN entre order_items y products, usa SUM(quantity), limita a 1 resultado ordenado DESC."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Top 10 productos por revenue total de toda la historia",
+    "briefing_ref": "Briefing 3.1 — Valentina Torres: Revenue por producto para Marco",
+    "lesson_ref": "Leccion 1 — Ejemplo Practico Query 2",
+    "reference_query": "SELECT p.name AS producto, c.name AS categoria, SUM(oi.quantity * oi.unit_price) AS revenue_total FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id GROUP BY p.name, c.name ORDER BY revenue_total DESC LIMIT 10;",
+    "tables_used": ["order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "categoria", "revenue_total"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. Este es el ejercicio arquetipo del nivel: 3 tablas encadenadas, GROUP BY con columnas de dos tablas distintas, SUM del producto de dos columnas. El criterio de exito es: usa al menos 2 INNER JOINs, calcula revenue como SUM(quantity * unit_price), agrupa por nombre de producto y categoria, limita a 10 filas ordenadas por revenue DESC."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Revenue y unidades por categoria — Dia de Madres (5-10 mayo de algun anio)",
+    "briefing_ref": "Briefing 3.2 — Sofia Ramirez: Categorias mas vendidas campana Dia de Madres",
+    "lesson_ref": "Leccion 1 — ejercicio de aplicacion de briefing",
+    "reference_query": "SELECT c.name AS categoria, SUM(oi.quantity * oi.unit_price) AS revenue_total, SUM(oi.quantity) AS unidades_vendidas, COUNT(DISTINCT o.order_id) AS pedidos_distintos FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id WHERE o.ordered_at >= '2025-05-05' AND o.ordered_at < '2025-05-11' GROUP BY c.name ORDER BY revenue_total DESC;",
+    "tables_used": ["orders", "order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["categoria", "revenue_total", "unidades_vendidas", "pedidos_distintos"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0.00, 0, 0]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Nota sobre el periodo: el briefing dice 'campana Dia de Madres (5 al 10 de mayo)' sin especificar el anio. El seed cubre 2023-2026; el ejercicio deberia especificar el anio (probablemente 2025 dado el volumen de datos). El criterio de exito: 4 tablas encadenadas, 3 metricas distintas (revenue, unidades, pedidos unicos), filtro de rango de fechas correcto."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Clientes sin ningun pedido (para campana de reactivacion)",
+    "briefing_ref": "Briefing 3.6 — Valentina Torres: Clientes sin ninguna compra",
+    "lesson_ref": "Leccion 2 — Ejemplo Practico Query 1",
+    "reference_query": "SELECT c.customer_id, c.first_name, c.last_name, c.email, c.country FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id WHERE o.order_id IS NULL ORDER BY c.country, c.last_name;",
+    "tables_used": ["customers", "orders"],
+    "join_types": ["LEFT JOIN"],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["customer_id", "first_name", "last_name", "email", "country"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Con el seed actual (550 clientes, todos con pedidos segun el EJ05 del Nivel 2), el resultado esperado es 0 filas. Esto es pedagogicamente valioso — la respuesta correcta puede ser una lista vacia. El criterio de exito: usa LEFT JOIN, filtra con WHERE o.order_id IS NULL (no WHERE o.customer_id IS NULL), no usa INNER JOIN. Si el resultado es 0 filas, el enunciado debe advertirlo explicitamente."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Productos activos precio > $50 sin ventas en los ultimos 90 dias",
+    "briefing_ref": "Briefing 3.3 — Diego Morales: Productos sin movimiento en los ultimos 90 dias",
+    "lesson_ref": "Leccion 2 — Ejemplo Practico Query 2",
+    "reference_query": "SELECT p.product_id, p.name AS producto, c.name AS categoria, p.price FROM products p INNER JOIN categories c ON c.category_id = p.category_id LEFT JOIN order_items oi ON oi.product_id = p.product_id AND oi.order_id IN (SELECT order_id FROM orders WHERE ordered_at >= CURRENT_DATE - INTERVAL '90 days') WHERE oi.item_id IS NULL AND p.is_active = TRUE AND p.price > 50 ORDER BY p.price DESC;",
+    "tables_used": ["products", "categories", "order_items", "orders"],
+    "join_types": ["INNER JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["product_id", "producto", "categoria", "precio"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real (resultado varia segun la fecha de ejecucion)", "PLACEHOLDER", "PLACEHOLDER", 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA IMPORTANTE: Este ejercicio usa CURRENT_DATE, por lo que el resultado varia segun la fecha en que se ejecute. El validador automatico no puede comparar resultados exactos. La estrategia de validacion debe ser: (a) verificar la estructura del resultado (columnas correctas), (b) verificar que ninguno de los productos retornados tenga ventas en los ultimos 90 dias (verificacion de coherencia), o (c) fijar una fecha de corte especifica en lugar de CURRENT_DATE para tener resultados deterministas."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Catalogo completo con unidades vendidas (incluyendo productos sin ventas)",
+    "briefing_ref": "Leccion 2 — Ejercicio Intermedio",
+    "lesson_ref": "Leccion 2 — Ejercicio Intermedio",
+    "reference_query": "SELECT p.name AS producto, c.name AS categoria, p.price AS precio, COALESCE(SUM(oi.quantity), 0) AS unidades_vendidas FROM products p INNER JOIN categories c ON c.category_id = p.category_id LEFT JOIN order_items oi ON oi.product_id = p.product_id WHERE p.is_active = TRUE GROUP BY p.name, c.name, p.price ORDER BY unidades_vendidas DESC;",
+    "tables_used": ["products", "categories", "order_items"],
+    "join_types": ["INNER JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["producto", "categoria", "precio", "unidades_vendidas"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, 0]
+    ],
+    "expected_row_count_approx": 86,
+    "notes": "TEMPLATE — valores de muestra pendientes. El conteo de filas es determinista: 86 productos activos (90 total menos los 4 marcados como inactivos con el fix del seed). Los productos sin ventas deben mostrar unidades_vendidas = 0 (no NULL). El criterio de exito: usa LEFT JOIN entre products y order_items (no INNER JOIN), usa COALESCE para convertir NULL en 0, el resultado tiene exactamente 86 filas."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Todas las categorias con pedidos en abril 2026 (incluyendo categorias sin ventas)",
+    "briefing_ref": "Briefing 3.9 — Ana Castillo: Categorias sin ventas en abril 2026",
+    "lesson_ref": "Leccion 2 — Ejercicio Basico",
+    "reference_query": "SELECT c.name AS categoria, COUNT(DISTINCT o.order_id) AS pedidos_abril_2026 FROM categories c LEFT JOIN products p ON p.category_id = c.category_id LEFT JOIN order_items oi ON oi.product_id = p.product_id LEFT JOIN orders o ON o.order_id = oi.order_id AND o.ordered_at >= '2026-04-01' AND o.ordered_at < '2026-05-01' GROUP BY c.name ORDER BY pedidos_abril_2026 DESC;",
+    "tables_used": ["categories", "products", "order_items", "orders"],
+    "join_types": ["LEFT JOIN", "LEFT JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["categoria", "pedidos_abril_2026"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. El conteo de filas es determinista: exactamente 10 filas (una por cada categoria del schema canonico). El criterio de exito CRITICO: el filtro de fecha debe ir en el ON del JOIN con orders, NO en el WHERE. Si va en WHERE, las categorias sin ventas en abril son eliminadas del resultado. Verificar que el resultado tenga exactamente 10 filas. Las categorias sin ventas en ese mes deben mostrar pedidos_abril_2026 = 0."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Detalle de los ultimos 20 pedidos (validacion de integridad)",
+    "briefing_ref": "Briefing 3.10 — Valentina Torres: Pedidos con su detalle — muestra para validacion",
+    "lesson_ref": "Leccion 3 (esperada) — JOINs de multiples tablas",
+    "reference_query": "SELECT o.ordered_at, c.first_name || ' ' || c.last_name AS cliente, p.name AS producto, oi.quantity AS cantidad, oi.unit_price AS precio_unitario FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id INNER JOIN order_items oi ON oi.order_id = o.order_id INNER JOIN products p ON p.product_id = oi.product_id ORDER BY o.ordered_at DESC LIMIT 20;",
+    "tables_used": ["orders", "customers", "order_items", "products"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["ordered_at", "cliente", "producto", "cantidad", "precio_unitario"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 0, 0.00]
+    ],
+    "expected_row_count_approx": 20,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA: LIMIT 20 retorna los 20 items de orden_items mas recientes por ordered_at, no los 20 pedidos mas recientes. Un pedido con 3 items ocupa 3 filas. Si el enunciado quiere los 20 pedidos mas recientes (cada uno con todos sus items), la query es mas compleja (CTE con subquery). Clarificar el enunciado antes de publicar. El criterio de exito: une 4 tablas, usa concatenacion para nombre completo del cliente, el resultado tiene exactamente 20 filas."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Revenue por categoria en enero-abril 2026 con unidades vendidas",
+    "briefing_ref": "Briefing 3.8 — Diego Morales: Revenue por categoria enero-abril 2026",
+    "lesson_ref": "Leccion 3 (esperada) — JOINs de multiples tablas con agregacion",
+    "reference_query": "SELECT c.name AS categoria, SUM(oi.quantity * oi.unit_price) AS revenue_total, SUM(oi.quantity) AS unidades_vendidas FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id WHERE o.ordered_at >= '2026-01-01' AND o.ordered_at < '2026-05-01' GROUP BY c.name ORDER BY revenue_total DESC;",
+    "tables_used": ["orders", "order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["categoria", "revenue_total", "unidades_vendidas"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0.00, 0]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. Se esperan 10 filas (una por categoria), asumiendo que todas las categorias tuvieron ventas en ese periodo. Si alguna categoria no tuvo ventas, tendria menos filas (este ejercicio usa INNER JOIN, no LEFT JOIN). El criterio de exito: filtro de fecha correcto para ene-abr 2026, dos metricas en la misma tabla, ORDER BY revenue DESC."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Top 10 productos mas vendidos en Black Friday 2025",
+    "briefing_ref": "Briefing 3.7 — Sofia Ramirez: Top productos Black Friday 2025 (28 nov 2025)",
+    "lesson_ref": "Leccion 1 — Ejercicio Intermedio",
+    "reference_query": "SELECT p.name AS producto, c.name AS categoria, SUM(oi.quantity) AS unidades_vendidas FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id WHERE o.ordered_at >= '2025-11-28' AND o.ordered_at < '2025-11-29' GROUP BY p.name, c.name ORDER BY unidades_vendidas DESC LIMIT 10;",
+    "tables_used": ["orders", "order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "categoria", "unidades_vendidas"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. El filtro de fecha usa el patron eficiente >= y < sobre la columna TIMESTAMP (no DATE(ordered_at) = '...', que no puede usar indices). Verificar con el seed que el 28 de noviembre de 2025 tiene suficiente volumen de pedidos. Segun los expected-results-nivel-02.json EJ17, noviembre 2025 tiene datos hasta el dia 28."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Categorias co-compradas con Tecnologia (que acompanan a Tecnologia en el mismo pedido)",
+    "briefing_ref": "Briefing 3.11 — Sofia Ramirez: Que compra la gente junto con tecnologia",
+    "lesson_ref": "Leccion 3 (esperada) — Self-join o join con subquery",
+    "reference_query": "SELECT c_acomp.name AS categoria_acompanante, COUNT(*) AS veces_cocomprada FROM order_items oi_tech INNER JOIN products p_tech ON p_tech.product_id = oi_tech.product_id INNER JOIN categories c_tech ON c_tech.category_id = p_tech.category_id AND c_tech.name = 'Electronics' INNER JOIN order_items oi_acomp ON oi_acomp.order_id = oi_tech.order_id AND oi_acomp.product_id <> oi_tech.product_id INNER JOIN products p_acomp ON p_acomp.product_id = oi_acomp.product_id INNER JOIN categories c_acomp ON c_acomp.category_id = p_acomp.category_id AND c_acomp.name <> 'Electronics' GROUP BY c_acomp.name ORDER BY veces_cocomprada DESC;",
+    "tables_used": ["order_items", "products", "categories"],
+    "join_types": ["INNER JOIN (x5)"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["categoria_acompanante", "veces_cocomprada"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. NOTA DE COMPLEJIDAD: Este ejercicio es el mas complejo del nivel — requiere un auto-join sobre order_items para encontrar co-ocurrencias. Es candidato a ser ejercicio avanzado o aparecer en el nivel 3 como ejercicio de aplicacion. El nombre de la categoria 'Electronics' puede diferir en el seed (verificar con SELECT DISTINCT name FROM categories). La query puede simplificarse usando una CTE para primero encontrar los order_id con productos de tecnologia, y luego buscar los demas items de esos pedidos."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Ticket promedio por item vendido por categoria",
+    "briefing_ref": "Briefing 3.12 — Diego Morales: Ticket promedio real por categoria",
+    "lesson_ref": "Leccion 4 (esperada) — Metricas avanzadas con JOINs",
+    "reference_query": "SELECT c.name AS categoria, ROUND(SUM(oi.quantity * oi.unit_price) / SUM(oi.quantity), 2) AS precio_promedio_por_unidad, SUM(oi.quantity) AS total_unidades FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id GROUP BY c.name ORDER BY precio_promedio_por_unidad DESC;",
+    "tables_used": ["order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["categoria", "precio_promedio_por_unidad", "total_unidades"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0.00, 0]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. Distincion importante: el briefing pide 'revenue total / total de items vendidos' — esto es el precio promedio ponderado por volumen, no el AVG de unit_price. La formula correcta es SUM(quantity * unit_price) / SUM(quantity). Esto es diferente de AVG(unit_price) que trata todas las transacciones como iguales sin importar la cantidad. Incluir esta distincion en la explicacion del ejercicio."
+  },
+  {
+    "exercise_number": 13,
+    "title": "Revenue neto Q1 2026 por categoria (excluyendo cancelados)",
+    "briefing_ref": "Briefing 3.4 — Ana Castillo: Revenue real vs revenue bruto — Q1 2026",
+    "lesson_ref": "Leccion 4 (esperada) — Filtros en JOINs con multiples condiciones",
+    "reference_query": "SELECT c.name AS categoria, SUM(oi.quantity * oi.unit_price) AS revenue_neto_q1_2026 FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id WHERE o.ordered_at >= '2026-01-01' AND o.ordered_at < '2026-04-01' AND o.status NOT IN ('cancelled') GROUP BY c.name ORDER BY revenue_neto_q1_2026 DESC;",
+    "tables_used": ["orders", "order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["categoria", "revenue_neto_q1_2026"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0.00]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. NOTA SOBRE LA INTERPRETACION: el briefing dice 'pedidos completados, descontando pedidos devueltos o cancelados'. En el schema de orders, el status 'devuelto' no existe — los estados son pending/shipped/delivered/cancelled. La interpretacion mas conservadora es excluir solo 'cancelled' y contar los demas (including delivered y shipped). Una interpretacion mas estricta incluiria solo 'delivered'. El sql-teacher debe aclarar cual interpretacion usar y reflejarlo en el enunciado del ejercicio."
+  }
+]

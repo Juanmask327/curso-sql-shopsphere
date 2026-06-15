@@ -1,0 +1,19 @@
+# ============================================================
+# Grafana — Configuración de provider de dashboards
+#
+# Grafana buscará archivos .json en la carpeta /dashboards
+# y los cargará automáticamente al arrancar.
+# ============================================================
+
+apiVersion: 1
+
+providers:
+  - name: ShopSphere
+    orgId: 1
+    folder: ShopSphere
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards

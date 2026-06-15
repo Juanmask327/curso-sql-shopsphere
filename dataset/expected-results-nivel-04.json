@@ -1,0 +1,5754 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Ejercicio 01",
+    "briefing_ref": "Briefing 4.1",
+    "lesson_ref": "Lección 1",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country\nFROM customers c\nWHERE EXISTS (\n    -- condición 1: devolución en los últimos 12 meses\n    SELECT 1\n    FROM returns r\n    INNER JOIN orders o ON o.order_id = r.order_id\n    WHERE o.customer_id  = c.customer_id\n      AND r.returned_at >= '2024-07-01'\n)\nAND EXISTS (\n    -- condición 2: al menos un pedido pendiente\n    SELECT 1\n    FROM orders o2\n    WHERE o2.customer_id = c.customer_id\n      AND o2.status      = 'pending'\n)\nORDER BY c.last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        22,
+        "Pablo",
+        "Aguilar",
+        "pablo.aguilar@gmail.com",
+        "Mexico"
+      ],
+      [
+        24,
+        "Ricardo",
+        "Aguilar",
+        "ricardo.aguilar@outlook.com",
+        "Bolivia"
+      ],
+      [
+        27,
+        "Marcela",
+        "Aguilar",
+        "marcela.aguilar@icloud.com",
+        "Peru"
+      ],
+      [
+        34,
+        "Marcela",
+        "Aguilar",
+        "marcela.aguilar@gmail.com",
+        "Ecuador"
+      ],
+      [
+        121,
+        "Elena",
+        "Aguilar",
+        "elena.aguilar@yahoo.com",
+        "USA"
+      ],
+      [
+        131,
+        "Marcela",
+        "Aguilar",
+        "marcela.aguilar@outlook.com",
+        "Spain"
+      ],
+      [
+        233,
+        "Teresa",
+        "Aguilar",
+        "teresa.aguilar@outlook.com",
+        "Chile"
+      ],
+      [
+        337,
+        "Adriana",
+        "Aguilar",
+        "adriana.aguilar@hotmail.com",
+        "Ecuador"
+      ],
+      [
+        368,
+        "Silvia",
+        "Aguilar",
+        "silvia.aguilar@protonmail.com",
+        "Argentina"
+      ],
+      [
+        372,
+        "Carlos",
+        "Aguilar",
+        "carlos.aguilar@icloud.com",
+        "Bolivia"
+      ],
+      [
+        428,
+        "Rosa",
+        "Aguilar",
+        "rosa.aguilar@hotmail.com",
+        "Uruguay"
+      ],
+      [
+        435,
+        "Ana",
+        "Aguilar",
+        "ana.aguilar@protonmail.com",
+        "Mexico"
+      ],
+      [
+        501,
+        "Miguel",
+        "Aguilar",
+        "miguel.aguilar501@gmail.com",
+        "Peru"
+      ],
+      [
+        512,
+        "Sofia",
+        "Aguilar",
+        "sofia.aguilar512@gmail.com",
+        "Peru"
+      ],
+      [
+        527,
+        "Camila",
+        "Aguilar",
+        "camila.aguilar527@outlook.com",
+        "Chile"
+      ],
+      [
+        538,
+        "Camila",
+        "Aguilar",
+        "camila.aguilar538@outlook.com",
+        "Mexico"
+      ],
+      [
+        540,
+        "Luis",
+        "Aguilar",
+        "luis.aguilar540@outlook.com",
+        "Colombia"
+      ],
+      [
+        542,
+        "Diego",
+        "Aguilar",
+        "diego.aguilar542@outlook.com",
+        "Colombia"
+      ],
+      [
+        545,
+        "Fernando",
+        "Aguilar",
+        "fernando.aguilar545@outlook.com",
+        "Chile"
+      ],
+      [
+        29,
+        "Susan",
+        "Allen",
+        "susan.allen@hotmail.com",
+        "Honduras"
+      ],
+      [
+        219,
+        "Sharon",
+        "Allen",
+        "sharon.allen@icloud.com",
+        "USA"
+      ],
+      [
+        316,
+        "James",
+        "Allen",
+        "james.allen@yahoo.com",
+        "Chile"
+      ],
+      [
+        358,
+        "Joseph",
+        "Allen",
+        "joseph.allen@outlook.com",
+        "Peru"
+      ],
+      [
+        44,
+        "Gustavo",
+        "Alvarez",
+        "gustavo.alvarez@protonmail.com",
+        "Mexico"
+      ],
+      [
+        111,
+        "Carlos",
+        "Alvarez",
+        "carlos.alvarez@yahoo.com",
+        "USA"
+      ],
+      [
+        125,
+        "Diego",
+        "Alvarez",
+        "diego.alvarez@yahoo.com",
+        "Chile"
+      ],
+      [
+        128,
+        "Teresa",
+        "Alvarez",
+        "teresa.alvarez@protonmail.com",
+        "Venezuela"
+      ],
+      [
+        188,
+        "Ivan",
+        "Alvarez",
+        "ivan.alvarez@outlook.com",
+        "Argentina"
+      ],
+      [
+        297,
+        "Nicolas",
+        "Alvarez",
+        "nicolas.alvarez@icloud.com",
+        "Ecuador"
+      ],
+      [
+        322,
+        "Diego",
+        "Alvarez",
+        "diego.alvarez2@yahoo.com",
+        "Mexico"
+      ],
+      [
+        417,
+        "Oscar",
+        "Alvarez",
+        "oscar.alvarez@protonmail.com",
+        "Spain"
+      ],
+      [
+        431,
+        "Fernando",
+        "Alvarez",
+        "fernando.alvarez@icloud.com",
+        "Mexico"
+      ],
+      [
+        460,
+        "Elena",
+        "Alvarez",
+        "elena.alvarez@gmail.com",
+        "Colombia"
+      ],
+      [
+        500,
+        "Camila",
+        "Alvarez",
+        "camila.alvarez@gmail.com",
+        "Uruguay"
+      ],
+      [
+        33,
+        "Elizabeth",
+        "Anderson",
+        "elizabeth.anderson@outlook.com",
+        "Chile"
+      ],
+      [
+        47,
+        "David",
+        "Anderson",
+        "david.anderson@outlook.com",
+        "Peru"
+      ],
+      [
+        122,
+        "Daniel",
+        "Anderson",
+        "daniel.anderson@outlook.com",
+        "Chile"
+      ],
+      [
+        321,
+        "James",
+        "Anderson",
+        "james.anderson@protonmail.com",
+        "Uruguay"
+      ],
+      [
+        87,
+        "Karen",
+        "Baker",
+        "karen.baker@protonmail.com",
+        "USA"
+      ],
+      [
+        14,
+        "Claudia",
+        "Bravo",
+        "claudia.bravo@hotmail.com",
+        "Paraguay"
+      ],
+      [
+        64,
+        "Pedro",
+        "Bravo",
+        "pedro.bravo@protonmail.com",
+        "Argentina"
+      ],
+      [
+        78,
+        "Emilio",
+        "Bravo",
+        "emilio.bravo@icloud.com",
+        "Argentina"
+      ],
+      [
+        163,
+        "Jorge",
+        "Bravo",
+        "jorge.bravo@protonmail.com",
+        "Bolivia"
+      ],
+      [
+        224,
+        "Rafael",
+        "Bravo",
+        "rafael.bravo@outlook.com",
+        "Mexico"
+      ],
+      [
+        407,
+        "Beatriz",
+        "Bravo",
+        "beatriz.bravo@hotmail.com",
+        "Spain"
+      ],
+      [
+        442,
+        "Diego",
+        "Bravo",
+        "diego.bravo@gmail.com",
+        "Chile"
+      ],
+      [
+        419,
+        "David",
+        "Brown",
+        "david.brown@protonmail.com",
+        "Mexico"
+      ],
+      [
+        9,
+        "Elena",
+        "Campos",
+        "elena.campos@icloud.com",
+        "Venezuela"
+      ],
+      [
+        46,
+        "Teresa",
+        "Campos",
+        "teresa.campos@yahoo.com",
+        "Venezuela"
+      ],
+      [
+        170,
+        "Adriana",
+        "Campos",
+        "adriana.campos@outlook.com",
+        "USA"
+      ]
+    ],
+    "expected_row_count_approx": 477,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Ejercicio 02",
+    "briefing_ref": "Briefing 4.2",
+    "lesson_ref": "Lección 2",
+    "reference_query": "SELECT\n    p.product_id,\n    p.name      AS producto,\n    cat.name    AS categoria,\n    p.price     AS precio\nFROM products p\nINNER JOIN categories cat ON cat.category_id = p.category_id\nWHERE p.is_active = TRUE\n  AND NOT EXISTS (\n      SELECT 1\n      FROM returns r\n      WHERE r.product_id = p.product_id\n        AND r.status IN ('approved', 'refunded')\n  )\nORDER BY p.price DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "product_id",
+      "producto",
+      "categoria",
+      "precio"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Ejercicio 03",
+    "briefing_ref": "Briefing 4.3",
+    "lesson_ref": "Lección 3",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country\nFROM customers c\nWHERE EXISTS (\n    -- tiene al menos un pedido entregado\n    SELECT 1\n    FROM orders o\n    WHERE o.customer_id = c.customer_id\n      AND o.status      = 'delivered'\n)\nAND NOT EXISTS (\n    -- nunca devolvió nada\n    SELECT 1\n    FROM returns r\n    INNER JOIN orders o2 ON o2.order_id = r.order_id\n    WHERE o2.customer_id = c.customer_id\n)\nORDER BY c.country, c.last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        334,
+        "Lorena",
+        "Hernandez",
+        "lorena.hernandez@icloud.com",
+        "Argentina"
+      ],
+      [
+        548,
+        "Ana",
+        "Mendoza",
+        "ana.mendoza548@outlook.com",
+        "Argentina"
+      ],
+      [
+        459,
+        "Alicia",
+        "Ruiz",
+        "alicia.ruiz@yahoo.com",
+        "Argentina"
+      ],
+      [
+        309,
+        "Ronald",
+        "Thomas",
+        "ronald.thomas@yahoo.com",
+        "Argentina"
+      ],
+      [
+        214,
+        "Linda",
+        "Nelson",
+        "linda.nelson@gmail.com",
+        "Bolivia"
+      ],
+      [
+        430,
+        "Patricia",
+        "Robinson",
+        "patricia.robinson@outlook.com",
+        "Bolivia"
+      ],
+      [
+        276,
+        "Melissa",
+        "Smith",
+        "melissa.smith@gmail.com",
+        "Bolivia"
+      ],
+      [
+        273,
+        "Juan",
+        "Vargas",
+        "juan.vargas@outlook.com",
+        "Bolivia"
+      ],
+      [
+        499,
+        "Susan",
+        "Williams",
+        "susan.williams@outlook.com",
+        "Chile"
+      ],
+      [
+        112,
+        "Fernando",
+        "Campos",
+        "fernando.campos@yahoo.com",
+        "Costa Rica"
+      ],
+      [
+        156,
+        "Diego",
+        "Dominguez",
+        "diego.dominguez@yahoo.com",
+        "Costa Rica"
+      ],
+      [
+        348,
+        "Gabriela",
+        "Reyes",
+        "gabriela.reyes@protonmail.com",
+        "Costa Rica"
+      ],
+      [
+        169,
+        "Ximena",
+        "Delgado",
+        "ximena.delgado@gmail.com",
+        "Ecuador"
+      ],
+      [
+        174,
+        "Emilio",
+        "Delgado",
+        "emilio.delgado@icloud.com",
+        "Ecuador"
+      ],
+      [
+        151,
+        "Silvia",
+        "Gutierrez",
+        "silvia.gutierrez@outlook.com",
+        "Ecuador"
+      ],
+      [
+        216,
+        "Pablo",
+        "Perez",
+        "pablo.perez@protonmail.com",
+        "Ecuador"
+      ],
+      [
+        285,
+        "Miguel",
+        "Ramirez",
+        "miguel.ramirez@protonmail.com",
+        "Ecuador"
+      ],
+      [
+        113,
+        "Ivan",
+        "Cruz",
+        "ivan.cruz@outlook.com",
+        "El Salvador"
+      ],
+      [
+        91,
+        "Jessica",
+        "Scott",
+        "jessica.scott@outlook.com",
+        "El Salvador"
+      ],
+      [
+        467,
+        "Sarah",
+        "Young",
+        "sarah.young@hotmail.com",
+        "El Salvador"
+      ],
+      [
+        206,
+        "Gloria",
+        "Fuentes",
+        "gloria.fuentes@hotmail.com",
+        "Guatemala"
+      ],
+      [
+        336,
+        "Jessica",
+        "Moore",
+        "jessica.moore@outlook.com",
+        "Guatemala"
+      ],
+      [
+        272,
+        "Sergio",
+        "Sanchez",
+        "sergio.sanchez@yahoo.com",
+        "Guatemala"
+      ],
+      [
+        330,
+        "Melissa",
+        "Williams",
+        "melissa.williams@icloud.com",
+        "Guatemala"
+      ],
+      [
+        486,
+        "Andres",
+        "Guerrero",
+        "andres.guerrero@gmail.com",
+        "Honduras"
+      ],
+      [
+        130,
+        "Silvia",
+        "Aguilar",
+        "silvia.aguilar@hotmail.com",
+        "Paraguay"
+      ],
+      [
+        383,
+        "Alicia",
+        "Castillo",
+        "alicia.castillo@gmail.com",
+        "Peru"
+      ],
+      [
+        69,
+        "Eduardo",
+        "Garcia",
+        "eduardo.garcia@hotmail.com",
+        "Peru"
+      ],
+      [
+        516,
+        "Valentina",
+        "Huanca",
+        "valentina.huanca516@gmail.com",
+        "Peru"
+      ],
+      [
+        491,
+        "Pedro",
+        "Chavez",
+        "pedro.chavez@protonmail.com",
+        "Spain"
+      ],
+      [
+        493,
+        "Sebastian",
+        "Chavez",
+        "sebastian.chavez@gmail.com",
+        "Spain"
+      ],
+      [
+        264,
+        "Paola",
+        "Espinoza",
+        "paola.espinoza@yahoo.com",
+        "Spain"
+      ],
+      [
+        434,
+        "Raul",
+        "Espinoza",
+        "raul.espinoza@hotmail.com",
+        "Spain"
+      ],
+      [
+        327,
+        "Natalia",
+        "Romero",
+        "natalia.romero@gmail.com",
+        "Spain"
+      ],
+      [
+        429,
+        "Diego",
+        "Chavez",
+        "diego.chavez@protonmail.com",
+        "USA"
+      ],
+      [
+        375,
+        "Rafael",
+        "Cruz",
+        "rafael.cruz@icloud.com",
+        "USA"
+      ],
+      [
+        416,
+        "Emilio",
+        "Delgado",
+        "emilio.delgado@protonmail.com",
+        "USA"
+      ],
+      [
+        43,
+        "Ricardo",
+        "Gonzalez",
+        "ricardo.gonzalez@outlook.com",
+        "USA"
+      ],
+      [
+        3,
+        "Natalia",
+        "Guerrero",
+        "natalia.guerrero@gmail.com",
+        "USA"
+      ],
+      [
+        352,
+        "Sharon",
+        "Jackson",
+        "sharon.jackson@outlook.com",
+        "USA"
+      ],
+      [
+        366,
+        "Monica",
+        "Jimenez",
+        "monica.jimenez@yahoo.com",
+        "USA"
+      ],
+      [
+        160,
+        "Sharon",
+        "King",
+        "sharon.king@icloud.com",
+        "USA"
+      ],
+      [
+        325,
+        "Ashley",
+        "Moore",
+        "ashley.moore@outlook.com",
+        "USA"
+      ],
+      [
+        484,
+        "Sofia",
+        "Morales",
+        "sofia.morales@hotmail.com",
+        "USA"
+      ],
+      [
+        61,
+        "Lorena",
+        "Ramirez",
+        "lorena.ramirez@protonmail.com",
+        "USA"
+      ],
+      [
+        20,
+        "Rafael",
+        "Ramos",
+        "rafael.ramos@icloud.com",
+        "USA"
+      ],
+      [
+        339,
+        "John",
+        "Taylor",
+        "john.taylor@outlook.com",
+        "USA"
+      ],
+      [
+        488,
+        "Daniel",
+        "White",
+        "daniel.white@yahoo.com",
+        "USA"
+      ],
+      [
+        165,
+        "Sergio",
+        "Jimenez",
+        "sergio.jimenez@hotmail.com",
+        "Uruguay"
+      ],
+      [
+        433,
+        "Ivan",
+        "Sanchez",
+        "ivan.sanchez@hotmail.com",
+        "Uruguay"
+      ]
+    ],
+    "expected_row_count_approx": 55,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Ejercicio 04",
+    "briefing_ref": "Briefing 4.4",
+    "lesson_ref": "Lección 4",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country\nFROM customers c\nWHERE EXISTS (\n    -- tuvo una devolución aprobada/reembolsada en los últimos 12 meses\n    SELECT 1\n    FROM returns r\n    INNER JOIN orders o ON o.order_id = r.order_id\n    WHERE o.customer_id = c.customer_id\n      AND r.status IN ('approved', 'refunded')\n      AND r.returned_at >= '2024-07-01'\n)\nAND NOT EXISTS (\n    -- NO tiene ningún pedido posterior a su última devolución\n    SELECT 1\n    FROM orders o2\n    WHERE o2.customer_id = c.customer_id\n      AND o2.ordered_at > (\n          -- última devolución del cliente\n          SELECT MAX(r2.returned_at)\n          FROM returns r2\n          INNER JOIN orders o3 ON o3.order_id = r2.order_id\n          WHERE o3.customer_id = c.customer_id\n            AND r2.status IN ('approved', 'refunded')\n            AND r2.returned_at >= '2024-07-01'\n      )\n      AND o2.status <> 'cancelled'\n)\nORDER BY c.last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        545,
+        "Fernando",
+        "Aguilar",
+        "fernando.aguilar545@outlook.com",
+        "Chile"
+      ],
+      [
+        407,
+        "Beatriz",
+        "Bravo",
+        "beatriz.bravo@hotmail.com",
+        "Spain"
+      ],
+      [
+        148,
+        "Claudia",
+        "Campos",
+        "claudia.campos@icloud.com",
+        "Venezuela"
+      ],
+      [
+        364,
+        "Beatriz",
+        "Campos",
+        "beatriz.campos@icloud.com",
+        "Bolivia"
+      ],
+      [
+        183,
+        "Jorge",
+        "Chavez",
+        "jorge.chavez@hotmail.com",
+        "Mexico"
+      ],
+      [
+        410,
+        "Rafael",
+        "Chavez",
+        "rafael.chavez@protonmail.com",
+        "Mexico"
+      ],
+      [
+        310,
+        "Kenneth",
+        "Clark",
+        "kenneth.clark@protonmail.com",
+        "Argentina"
+      ],
+      [
+        182,
+        "Sofia",
+        "Cruz",
+        "sofia.cruz@yahoo.com",
+        "Ecuador"
+      ],
+      [
+        475,
+        "Jason",
+        "Davis",
+        "jason.davis@icloud.com",
+        "USA"
+      ],
+      [
+        395,
+        "Camila",
+        "Delgado",
+        "camila.delgado@outlook.com",
+        "Colombia"
+      ],
+      [
+        450,
+        "Rodrigo",
+        "Delgado",
+        "rodrigo.delgado@protonmail.com",
+        "Colombia"
+      ],
+      [
+        50,
+        "Silvia",
+        "Espinoza",
+        "silvia.espinoza@protonmail.com",
+        "Chile"
+      ],
+      [
+        88,
+        "Claudia",
+        "Espinoza",
+        "claudia.espinoza@hotmail.com",
+        "Mexico"
+      ],
+      [
+        210,
+        "Raul",
+        "Flores",
+        "raul.flores@hotmail.com",
+        "Mexico"
+      ],
+      [
+        423,
+        "Rosa",
+        "Flores",
+        "rosa.flores@protonmail.com",
+        "Peru"
+      ],
+      [
+        205,
+        "Ricardo",
+        "Fuentes",
+        "ricardo.fuentes@hotmail.com",
+        "Paraguay"
+      ],
+      [
+        1,
+        "Fernanda",
+        "Guerrero",
+        "fernanda.guerrero@yahoo.com",
+        "Venezuela"
+      ],
+      [
+        173,
+        "Ana",
+        "Guerrero",
+        "ana.guerrero@hotmail.com",
+        "Mexico"
+      ],
+      [
+        299,
+        "Ivan",
+        "Gutierrez",
+        "ivan.gutierrez@yahoo.com",
+        "Chile"
+      ],
+      [
+        370,
+        "Gloria",
+        "Gutierrez",
+        "gloria.gutierrez@gmail.com",
+        "Mexico"
+      ],
+      [
+        12,
+        "Steven",
+        "Hall",
+        "steven.hall@yahoo.com",
+        "Peru"
+      ],
+      [
+        485,
+        "Claudia",
+        "Hernandez",
+        "claudia.hernandez@yahoo.com",
+        "Costa Rica"
+      ],
+      [
+        186,
+        "Patricia",
+        "Jones",
+        "patricia.jones@outlook.com",
+        "Colombia"
+      ],
+      [
+        394,
+        "Richard",
+        "Jones",
+        "richard.jones@gmail.com",
+        "Mexico"
+      ],
+      [
+        68,
+        "Paola",
+        "Lopez",
+        "paola.lopez@icloud.com",
+        "Colombia"
+      ],
+      [
+        469,
+        "Thomas",
+        "Martin",
+        "thomas.martin@hotmail.com",
+        "Mexico"
+      ],
+      [
+        351,
+        "Emilio",
+        "Medina",
+        "emilio.medina@protonmail.com",
+        "Mexico"
+      ],
+      [
+        421,
+        "Mario",
+        "Mendoza",
+        "mario.mendoza@yahoo.com",
+        "Colombia"
+      ],
+      [
+        317,
+        "Mark",
+        "Miller",
+        "mark.miller@icloud.com",
+        "Bolivia"
+      ],
+      [
+        4,
+        "Mark",
+        "Moore",
+        "mark.moore@outlook.com",
+        "Colombia"
+      ],
+      [
+        242,
+        "Susan",
+        "Moore",
+        "susan.moore@icloud.com",
+        "Mexico"
+      ],
+      [
+        344,
+        "Isabella",
+        "Morales",
+        "isabella.morales@gmail.com",
+        "Mexico"
+      ],
+      [
+        420,
+        "Sergio",
+        "Morales",
+        "sergio.morales@icloud.com",
+        "El Salvador"
+      ],
+      [
+        427,
+        "Natalia",
+        "Morales",
+        "natalia.morales@hotmail.com",
+        "Chile"
+      ],
+      [
+        282,
+        "Mario",
+        "Pena",
+        "mario.pena@yahoo.com",
+        "Colombia"
+      ],
+      [
+        379,
+        "Alberto",
+        "Pena",
+        "alberto.pena@outlook.com",
+        "Argentina"
+      ],
+      [
+        474,
+        "Rafael",
+        "Pena",
+        "rafael.pena@icloud.com",
+        "Chile"
+      ],
+      [
+        386,
+        "Marcela",
+        "Ramirez",
+        "marcela.ramirez@protonmail.com",
+        "Colombia"
+      ],
+      [
+        462,
+        "Veronica",
+        "Ramos",
+        "veronica.ramos@gmail.com",
+        "Uruguay"
+      ],
+      [
+        311,
+        "Gloria",
+        "Reyes",
+        "gloria.reyes@gmail.com",
+        "Bolivia"
+      ],
+      [
+        145,
+        "Monica",
+        "Rodriguez",
+        "monica.rodriguez@gmail.com",
+        "El Salvador"
+      ],
+      [
+        289,
+        "Luis",
+        "Romero",
+        "luis.romero@yahoo.com",
+        "Colombia"
+      ],
+      [
+        168,
+        "Roberto",
+        "Ruiz",
+        "roberto.ruiz@icloud.com",
+        "Guatemala"
+      ],
+      [
+        58,
+        "Gabriela",
+        "Soto",
+        "gabriela.soto@icloud.com",
+        "Chile"
+      ],
+      [
+        149,
+        "Stephanie",
+        "Taylor",
+        "stephanie.taylor@outlook.com",
+        "USA"
+      ],
+      [
+        177,
+        "Jessica",
+        "Taylor",
+        "jessica.taylor@gmail.com",
+        "Bolivia"
+      ],
+      [
+        236,
+        "Elizabeth",
+        "Thomas",
+        "elizabeth.thomas@hotmail.com",
+        "USA"
+      ],
+      [
+        19,
+        "Sharon",
+        "Thompson",
+        "sharon.thompson@hotmail.com",
+        "El Salvador"
+      ],
+      [
+        23,
+        "Lorena",
+        "Torres",
+        "lorena.torres@protonmail.com",
+        "Peru"
+      ],
+      [
+        90,
+        "Diego",
+        "Torres",
+        "diego.torres@outlook.com",
+        "Chile"
+      ]
+    ],
+    "expected_row_count_approx": 58,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Ejercicio 05",
+    "briefing_ref": "Briefing 4.5",
+    "lesson_ref": "Lección 5",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country,\n    ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_historico\nFROM customers c\nINNER JOIN orders      o  ON o.customer_id = c.customer_id\nINNER JOIN order_items oi ON oi.order_id   = o.order_id\nWHERE NOT EXISTS (\n    -- nunca compró en la categoría 'Calzado'\n    SELECT 1\n    FROM orders      o2\n    INNER JOIN order_items oi2  ON oi2.order_id    = o2.order_id\n    INNER JOIN products    p2   ON p2.product_id   = oi2.product_id\n    INNER JOIN categories  cat2 ON cat2.category_id = p2.category_id\n    WHERE o2.customer_id = c.customer_id\n      AND cat2.name = 'Calzado'\n)\nGROUP BY c.customer_id, c.first_name, c.last_name, c.email, c.country\nHAVING SUM(oi.quantity * oi.unit_price) > 500\nORDER BY revenue_historico DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country",
+      "revenue_historico"
+    ],
+    "sample_rows": [
+      [
+        73,
+        "Isabella",
+        "Gutierrez",
+        "isabella.gutierrez@protonmail.com",
+        "Mexico",
+        71862.03
+      ],
+      [
+        140,
+        "Joseph",
+        "Hall",
+        "joseph.hall@gmail.com",
+        "Mexico",
+        64228.01
+      ],
+      [
+        250,
+        "Alicia",
+        "Hernandez",
+        "alicia.hernandez@outlook.com",
+        "Mexico",
+        64172.05
+      ],
+      [
+        344,
+        "Isabella",
+        "Morales",
+        "isabella.morales@gmail.com",
+        "Mexico",
+        63920.93
+      ],
+      [
+        282,
+        "Mario",
+        "Pena",
+        "mario.pena@yahoo.com",
+        "Colombia",
+        63094.57
+      ],
+      [
+        243,
+        "Fernanda",
+        "Mendoza",
+        "fernanda.mendoza@gmail.com",
+        "Mexico",
+        62651.44
+      ],
+      [
+        193,
+        "David",
+        "Harris",
+        "david.harris@protonmail.com",
+        "Mexico",
+        58644.73
+      ],
+      [
+        394,
+        "Richard",
+        "Jones",
+        "richard.jones@gmail.com",
+        "Mexico",
+        56234.85
+      ],
+      [
+        22,
+        "Pablo",
+        "Aguilar",
+        "pablo.aguilar@gmail.com",
+        "Mexico",
+        55967.15
+      ],
+      [
+        157,
+        "Ashley",
+        "Taylor",
+        "ashley.taylor@yahoo.com",
+        "Colombia",
+        55687.6
+      ],
+      [
+        469,
+        "Thomas",
+        "Martin",
+        "thomas.martin@hotmail.com",
+        "Mexico",
+        55321.93
+      ],
+      [
+        203,
+        "Melissa",
+        "Davis",
+        "melissa.davis@hotmail.com",
+        "Mexico",
+        54670.04
+      ],
+      [
+        242,
+        "Susan",
+        "Moore",
+        "susan.moore@icloud.com",
+        "Mexico",
+        54043.96
+      ],
+      [
+        36,
+        "Emily",
+        "Jones",
+        "emily.jones@hotmail.com",
+        "Mexico",
+        53967.29
+      ],
+      [
+        495,
+        "Gustavo",
+        "Herrera",
+        "gustavo.herrera@hotmail.com",
+        "Mexico",
+        53853.49
+      ],
+      [
+        477,
+        "Rafael",
+        "Ruiz",
+        "rafael.ruiz@protonmail.com",
+        "Colombia",
+        53500.31
+      ],
+      [
+        338,
+        "Isabella",
+        "Navarro",
+        "isabella.navarro@icloud.com",
+        "Mexico",
+        53414.95
+      ],
+      [
+        228,
+        "Linda",
+        "Wilson",
+        "linda.wilson@protonmail.com",
+        "Colombia",
+        53329.43
+      ],
+      [
+        211,
+        "Maria",
+        "Romero",
+        "maria.romero@icloud.com",
+        "Colombia",
+        52683.12
+      ],
+      [
+        173,
+        "Ana",
+        "Guerrero",
+        "ana.guerrero@hotmail.com",
+        "Mexico",
+        52634.99
+      ],
+      [
+        470,
+        "Carlos",
+        "Fuentes",
+        "carlos.fuentes@protonmail.com",
+        "Mexico",
+        52629.27
+      ],
+      [
+        324,
+        "Emilio",
+        "Ramirez",
+        "emilio.ramirez@outlook.com",
+        "Mexico",
+        52357.89
+      ],
+      [
+        186,
+        "Patricia",
+        "Jones",
+        "patricia.jones@outlook.com",
+        "Colombia",
+        52004.07
+      ],
+      [
+        419,
+        "David",
+        "Brown",
+        "david.brown@protonmail.com",
+        "Mexico",
+        51963.24
+      ],
+      [
+        158,
+        "Jorge",
+        "Vega",
+        "jorge.vega@hotmail.com",
+        "Colombia",
+        51867.55
+      ],
+      [
+        252,
+        "Daniel",
+        "Young",
+        "daniel.young@protonmail.com",
+        "Mexico",
+        51786.81
+      ],
+      [
+        401,
+        "Melissa",
+        "Robinson",
+        "melissa.robinson2@icloud.com",
+        "Mexico",
+        51617.07
+      ],
+      [
+        322,
+        "Diego",
+        "Alvarez",
+        "diego.alvarez2@yahoo.com",
+        "Mexico",
+        51538.13
+      ],
+      [
+        374,
+        "Lorena",
+        "Guerrero",
+        "lorena.guerrero@hotmail.com",
+        "Colombia",
+        51450.13
+      ],
+      [
+        376,
+        "Brian",
+        "Wright",
+        "brian.wright@outlook.com",
+        "Colombia",
+        51100.75
+      ],
+      [
+        480,
+        "William",
+        "Smith",
+        "william.smith@icloud.com",
+        "Colombia",
+        50925.63
+      ],
+      [
+        224,
+        "Rafael",
+        "Bravo",
+        "rafael.bravo@outlook.com",
+        "Mexico",
+        50652.42
+      ],
+      [
+        31,
+        "Roberto",
+        "Ramirez",
+        "roberto.ramirez@outlook.com",
+        "Mexico",
+        50511.53
+      ],
+      [
+        217,
+        "Hector",
+        "Vega",
+        "hector.vega@protonmail.com",
+        "Mexico",
+        50507.86
+      ],
+      [
+        398,
+        "Sebastian",
+        "Herrera",
+        "sebastian.herrera@hotmail.com",
+        "Mexico",
+        50189.37
+      ],
+      [
+        461,
+        "Carlos",
+        "Guerrero",
+        "carlos.guerrero@hotmail.com",
+        "Mexico",
+        50109.89
+      ],
+      [
+        399,
+        "Ana",
+        "Torres",
+        "ana.torres@gmail.com",
+        "Mexico",
+        49622.2
+      ],
+      [
+        497,
+        "Carolina",
+        "Castillo",
+        "carolina.castillo@yahoo.com",
+        "Colombia",
+        49174.46
+      ],
+      [
+        307,
+        "Ricardo",
+        "Vega",
+        "ricardo.vega@gmail.com",
+        "Mexico",
+        48972.43
+      ],
+      [
+        318,
+        "Andres",
+        "Navarro",
+        "andres.navarro@protonmail.com",
+        "Colombia",
+        48950.78
+      ],
+      [
+        432,
+        "Cynthia",
+        "Williams",
+        "cynthia.williams@protonmail.com",
+        "Mexico",
+        48829.34
+      ],
+      [
+        13,
+        "Miguel",
+        "Ortiz",
+        "miguel.ortiz@outlook.com",
+        "Colombia",
+        48783.42
+      ],
+      [
+        138,
+        "Teresa",
+        "Gutierrez",
+        "teresa.gutierrez@yahoo.com",
+        "Mexico",
+        48670.78
+      ],
+      [
+        361,
+        "Sofia",
+        "Ruiz",
+        "sofia.ruiz@outlook.com",
+        "Colombia",
+        48265.33
+      ],
+      [
+        351,
+        "Emilio",
+        "Medina",
+        "emilio.medina@protonmail.com",
+        "Mexico",
+        48043.01
+      ],
+      [
+        210,
+        "Raul",
+        "Flores",
+        "raul.flores@hotmail.com",
+        "Mexico",
+        48027.67
+      ],
+      [
+        208,
+        "Rafael",
+        "Medina",
+        "rafael.medina@outlook.com",
+        "Mexico",
+        47694.25
+      ],
+      [
+        88,
+        "Claudia",
+        "Espinoza",
+        "claudia.espinoza@hotmail.com",
+        "Mexico",
+        47478.23
+      ],
+      [
+        59,
+        "Ronald",
+        "Wilson",
+        "ronald.wilson@yahoo.com",
+        "Mexico",
+        47462.36
+      ],
+      [
+        237,
+        "Rosa",
+        "Soto",
+        "rosa.soto@yahoo.com",
+        "Colombia",
+        47440.39
+      ]
+    ],
+    "expected_row_count_approx": 550,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Ejercicio 06",
+    "briefing_ref": "Briefing 4.6",
+    "lesson_ref": "Lección 6",
+    "reference_query": "SELECT\n    o.order_id,\n    o.ordered_at,\n    c.first_name || ' ' || c.last_name AS nombre_cliente,\n    o.status\nFROM orders o\nINNER JOIN customers c ON c.customer_id = o.customer_id\nWHERE EXISTS (\n    SELECT 1\n    FROM returns r\n    WHERE r.order_id = o.order_id\n      AND r.status   = 'pending'\n)\nORDER BY o.ordered_at DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "order_id",
+      "ordered_at",
+      "nombre_cliente",
+      "status"
+    ],
+    "sample_rows": [
+      [
+        31321,
+        "2026-05-15 20:02:00",
+        "Edward Robinson",
+        "delivered"
+      ],
+      [
+        31313,
+        "2026-05-15 15:51:00",
+        "Paola Lopez",
+        "delivered"
+      ],
+      [
+        31244,
+        "2026-05-14 14:37:00",
+        "Gustavo Herrera",
+        "delivered"
+      ],
+      [
+        31234,
+        "2026-05-14 13:09:00",
+        "William Smith",
+        "delivered"
+      ],
+      [
+        31132,
+        "2026-05-13 14:14:00",
+        "David Harris",
+        "delivered"
+      ],
+      [
+        31127,
+        "2026-05-13 12:19:00",
+        "Gustavo Alvarez",
+        "delivered"
+      ],
+      [
+        31083,
+        "2026-05-12 21:38:00",
+        "Emily Walker",
+        "delivered"
+      ],
+      [
+        31114,
+        "2026-05-12 17:39:00",
+        "George Robinson",
+        "delivered"
+      ],
+      [
+        30863,
+        "2026-05-09 21:57:00",
+        "Isabella Gutierrez",
+        "delivered"
+      ],
+      [
+        30840,
+        "2026-05-08 10:55:00",
+        "Ivan Gonzalez",
+        "delivered"
+      ],
+      [
+        30759,
+        "2026-05-07 12:25:00",
+        "Jorge Espinoza",
+        "delivered"
+      ],
+      [
+        30682,
+        "2026-05-06 08:43:00",
+        "Natalia Mendoza",
+        "delivered"
+      ],
+      [
+        30608,
+        "2026-05-05 20:56:00",
+        "Rosa Romero",
+        "delivered"
+      ],
+      [
+        30428,
+        "2026-05-03 12:48:00",
+        "Maria Jimenez",
+        "delivered"
+      ],
+      [
+        30396,
+        "2026-05-02 21:07:00",
+        "William Smith",
+        "delivered"
+      ],
+      [
+        30319,
+        "2026-05-01 10:07:00",
+        "Ximena Campos",
+        "delivered"
+      ],
+      [
+        30265,
+        "2026-04-30 15:26:00",
+        "Charles Williams",
+        "delivered"
+      ],
+      [
+        30044,
+        "2026-04-27 15:20:00",
+        "Alicia Hernandez",
+        "delivered"
+      ],
+      [
+        29824,
+        "2026-04-23 16:59:00",
+        "Isabella Navarro",
+        "delivered"
+      ],
+      [
+        29827,
+        "2026-04-23 08:25:00",
+        "Daniel Wright",
+        "delivered"
+      ],
+      [
+        29715,
+        "2026-04-22 22:03:00",
+        "Susan Moore",
+        "delivered"
+      ],
+      [
+        29709,
+        "2026-04-22 14:33:00",
+        "Rosa Navarro",
+        "delivered"
+      ],
+      [
+        29572,
+        "2026-04-19 19:20:00",
+        "Teresa Alvarez",
+        "delivered"
+      ],
+      [
+        29303,
+        "2026-04-16 22:06:00",
+        "Alejandro Delgado",
+        "delivered"
+      ],
+      [
+        29004,
+        "2026-04-11 13:26:00",
+        "Steven Thomas",
+        "delivered"
+      ],
+      [
+        29000,
+        "2026-04-11 10:42:00",
+        "Diego Torres",
+        "delivered"
+      ],
+      [
+        28841,
+        "2026-04-09 11:10:00",
+        "Alberto Guerrero",
+        "delivered"
+      ],
+      [
+        28734,
+        "2026-04-07 17:37:00",
+        "Emilio Vargas",
+        "delivered"
+      ],
+      [
+        28705,
+        "2026-04-06 10:45:00",
+        "George King",
+        "delivered"
+      ],
+      [
+        28697,
+        "2026-04-06 10:34:00",
+        "William Smith",
+        "delivered"
+      ],
+      [
+        28663,
+        "2026-04-05 12:24:00",
+        "Diego Bravo",
+        "delivered"
+      ],
+      [
+        28608,
+        "2026-04-04 11:19:00",
+        "Ivan Gutierrez",
+        "delivered"
+      ],
+      [
+        28319,
+        "2026-03-31 10:56:00",
+        "Sergio Morales",
+        "delivered"
+      ],
+      [
+        28153,
+        "2026-03-29 18:17:00",
+        "Gustavo Ortiz",
+        "delivered"
+      ],
+      [
+        28103,
+        "2026-03-28 14:21:00",
+        "Mario Hernandez",
+        "delivered"
+      ],
+      [
+        27957,
+        "2026-03-26 12:54:00",
+        "Ivan Ramos",
+        "delivered"
+      ],
+      [
+        27790,
+        "2026-03-24 12:44:00",
+        "Luis Vega",
+        "delivered"
+      ],
+      [
+        27678,
+        "2026-03-22 17:23:00",
+        "Adriana Ortiz",
+        "delivered"
+      ],
+      [
+        27596,
+        "2026-03-21 09:00:00",
+        "Luis Vega",
+        "delivered"
+      ],
+      [
+        27495,
+        "2026-03-20 21:58:00",
+        "Alberto Espinoza",
+        "delivered"
+      ],
+      [
+        27274,
+        "2026-03-16 12:19:00",
+        "Diego Aguilar",
+        "delivered"
+      ],
+      [
+        27183,
+        "2026-03-15 22:00:00",
+        "Laura Jones",
+        "delivered"
+      ],
+      [
+        27126,
+        "2026-03-14 10:39:00",
+        "Alberto Pena",
+        "delivered"
+      ],
+      [
+        27069,
+        "2026-03-13 13:36:00",
+        "Sharon Johnson",
+        "delivered"
+      ],
+      [
+        26897,
+        "2026-03-11 19:37:00",
+        "Santiago Ramirez",
+        "delivered"
+      ],
+      [
+        26833,
+        "2026-03-10 10:33:00",
+        "Gabriela Soto",
+        "delivered"
+      ],
+      [
+        26737,
+        "2026-03-09 08:56:00",
+        "Amanda Johnson",
+        "delivered"
+      ],
+      [
+        26671,
+        "2026-03-08 18:53:00",
+        "Nicolas Alvarez",
+        "delivered"
+      ],
+      [
+        26691,
+        "2026-03-08 09:51:00",
+        "Oscar Espinoza",
+        "delivered"
+      ],
+      [
+        26511,
+        "2026-03-06 19:07:00",
+        "Daniel Jackson",
+        "delivered"
+      ]
+    ],
+    "expected_row_count_approx": 333,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Ejercicio 07",
+    "briefing_ref": "Briefing 4.7",
+    "lesson_ref": "Lección 7",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country\nFROM customers c\nWHERE c.customer_id IN (\n    -- compraron en Q3 2025\n    SELECT DISTINCT o.customer_id\n    FROM orders o\n    WHERE o.ordered_at >= '2025-07-01'\n      AND o.ordered_at <  '2025-10-01'\n      AND o.status     <> 'cancelled'\n\n    EXCEPT\n\n    -- pero NO en Q4 2025\n    SELECT DISTINCT o.customer_id\n    FROM orders o\n    WHERE o.ordered_at >= '2025-10-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n)\nORDER BY c.country, c.last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        16,
+        "Lorena",
+        "Soto",
+        "lorena.soto@outlook.com",
+        "Argentina"
+      ],
+      [
+        195,
+        "Carmen",
+        "Vargas",
+        "carmen.vargas@outlook.com",
+        "Bolivia"
+      ],
+      [
+        297,
+        "Nicolas",
+        "Alvarez",
+        "nicolas.alvarez@icloud.com",
+        "Ecuador"
+      ],
+      [
+        466,
+        "Mario",
+        "Gonzalez",
+        "mario.gonzalez@gmail.com",
+        "Ecuador"
+      ],
+      [
+        113,
+        "Ivan",
+        "Cruz",
+        "ivan.cruz@outlook.com",
+        "El Salvador"
+      ],
+      [
+        200,
+        "Andres",
+        "Medina",
+        "andres.medina@icloud.com",
+        "Paraguay"
+      ],
+      [
+        121,
+        "Elena",
+        "Aguilar",
+        "elena.aguilar@yahoo.com",
+        "USA"
+      ],
+      [
+        103,
+        "Oscar",
+        "Garcia",
+        "oscar.garcia@yahoo.com",
+        "USA"
+      ],
+      [
+        18,
+        "Ashley",
+        "Thomas",
+        "ashley.thomas@outlook.com",
+        "USA"
+      ],
+      [
+        260,
+        "Ivan",
+        "Flores",
+        "ivan.flores@hotmail.com",
+        "Venezuela"
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Ejercicio 08",
+    "briefing_ref": "Briefing 4.8",
+    "lesson_ref": "Lección 8",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country\nFROM customers c\nWHERE c.customer_id IN (\n    -- compraron en Q3 2025\n    SELECT DISTINCT o.customer_id\n    FROM orders o\n    WHERE o.ordered_at >= '2025-07-01'\n      AND o.ordered_at <  '2025-10-01'\n      AND o.status     <> 'cancelled'\n\n    INTERSECT\n\n    -- Y también en Q4 2025\n    SELECT DISTINCT o.customer_id\n    FROM orders o\n    WHERE o.ordered_at >= '2025-10-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n)\nORDER BY c.country, c.last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        368,
+        "Silvia",
+        "Aguilar",
+        "silvia.aguilar@protonmail.com",
+        "Argentina"
+      ],
+      [
+        188,
+        "Ivan",
+        "Alvarez",
+        "ivan.alvarez@outlook.com",
+        "Argentina"
+      ],
+      [
+        64,
+        "Pedro",
+        "Bravo",
+        "pedro.bravo@protonmail.com",
+        "Argentina"
+      ],
+      [
+        78,
+        "Emilio",
+        "Bravo",
+        "emilio.bravo@icloud.com",
+        "Argentina"
+      ],
+      [
+        529,
+        "Sofia",
+        "Castillo",
+        "sofia.castillo529@outlook.com",
+        "Argentina"
+      ],
+      [
+        310,
+        "Kenneth",
+        "Clark",
+        "kenneth.clark@protonmail.com",
+        "Argentina"
+      ],
+      [
+        144,
+        "Mario",
+        "Delgado",
+        "mario.delgado@hotmail.com",
+        "Argentina"
+      ],
+      [
+        412,
+        "Beatriz",
+        "Dominguez",
+        "beatriz.dominguez@icloud.com",
+        "Argentina"
+      ],
+      [
+        171,
+        "Oscar",
+        "Espinoza",
+        "oscar.espinoza@gmail.com",
+        "Argentina"
+      ],
+      [
+        355,
+        "Alberto",
+        "Espinoza",
+        "alberto.espinoza@icloud.com",
+        "Argentina"
+      ],
+      [
+        523,
+        "Andres",
+        "Espinoza",
+        "andres.espinoza523@outlook.com",
+        "Argentina"
+      ],
+      [
+        544,
+        "Ana",
+        "Espinoza",
+        "ana.espinoza544@outlook.com",
+        "Argentina"
+      ],
+      [
+        494,
+        "Sofia",
+        "Gonzalez",
+        "sofia.gonzalez@gmail.com",
+        "Argentina"
+      ],
+      [
+        84,
+        "Susan",
+        "Green",
+        "susan.green@icloud.com",
+        "Argentina"
+      ],
+      [
+        104,
+        "Melissa",
+        "Green",
+        "melissa.green@icloud.com",
+        "Argentina"
+      ],
+      [
+        440,
+        "Elena",
+        "Gutierrez",
+        "elena.gutierrez@yahoo.com",
+        "Argentina"
+      ],
+      [
+        334,
+        "Lorena",
+        "Hernandez",
+        "lorena.hernandez@icloud.com",
+        "Argentina"
+      ],
+      [
+        369,
+        "Alicia",
+        "Hernandez",
+        "alicia.hernandez@protonmail.com",
+        "Argentina"
+      ],
+      [
+        25,
+        "Raul",
+        "Herrera",
+        "raul.herrera@icloud.com",
+        "Argentina"
+      ],
+      [
+        48,
+        "Patricia",
+        "Herrera",
+        "patricia.herrera@yahoo.com",
+        "Argentina"
+      ],
+      [
+        259,
+        "Thomas",
+        "Jackson",
+        "thomas.jackson@icloud.com",
+        "Argentina"
+      ],
+      [
+        266,
+        "Laura",
+        "Jackson",
+        "laura.jackson@icloud.com",
+        "Argentina"
+      ],
+      [
+        357,
+        "Veronica",
+        "Jimenez",
+        "veronica.jimenez@yahoo.com",
+        "Argentina"
+      ],
+      [
+        530,
+        "Laura",
+        "Jimenez",
+        "laura.jimenez530@outlook.com",
+        "Argentina"
+      ],
+      [
+        343,
+        "Natalia",
+        "Lopez",
+        "natalia.lopez@hotmail.com",
+        "Argentina"
+      ],
+      [
+        175,
+        "Marcela",
+        "Martinez",
+        "marcela.martinez@outlook.com",
+        "Argentina"
+      ],
+      [
+        332,
+        "Adriana",
+        "Medina",
+        "adriana.medina@protonmail.com",
+        "Argentina"
+      ],
+      [
+        548,
+        "Ana",
+        "Mendoza",
+        "ana.mendoza548@outlook.com",
+        "Argentina"
+      ],
+      [
+        414,
+        "Linda",
+        "Miller",
+        "linda.miller@protonmail.com",
+        "Argentina"
+      ],
+      [
+        240,
+        "Mario",
+        "Moreno",
+        "mario.moreno@outlook.com",
+        "Argentina"
+      ],
+      [
+        115,
+        "Gloria",
+        "Navarro",
+        "gloria.navarro@yahoo.com",
+        "Argentina"
+      ],
+      [
+        247,
+        "Rodrigo",
+        "Ortiz",
+        "rodrigo.ortiz@gmail.com",
+        "Argentina"
+      ],
+      [
+        543,
+        "Valentina",
+        "Ortiz",
+        "valentina.ortiz543@outlook.com",
+        "Argentina"
+      ],
+      [
+        190,
+        "Gabriela",
+        "Pena",
+        "gabriela.pena@protonmail.com",
+        "Argentina"
+      ],
+      [
+        379,
+        "Alberto",
+        "Pena",
+        "alberto.pena@outlook.com",
+        "Argentina"
+      ],
+      [
+        342,
+        "Pedro",
+        "Perez",
+        "pedro.perez@icloud.com",
+        "Argentina"
+      ],
+      [
+        60,
+        "Isabella",
+        "Ramirez",
+        "isabella.ramirez@yahoo.com",
+        "Argentina"
+      ],
+      [
+        187,
+        "Ivan",
+        "Ramos",
+        "ivan.ramos@icloud.com",
+        "Argentina"
+      ],
+      [
+        241,
+        "Roberto",
+        "Ramos",
+        "roberto.ramos@protonmail.com",
+        "Argentina"
+      ],
+      [
+        487,
+        "Ivan",
+        "Reyes",
+        "ivan.reyes@gmail.com",
+        "Argentina"
+      ],
+      [
+        166,
+        "Laura",
+        "Robinson",
+        "laura.robinson@gmail.com",
+        "Argentina"
+      ],
+      [
+        222,
+        "Melissa",
+        "Robinson",
+        "melissa.robinson@icloud.com",
+        "Argentina"
+      ],
+      [
+        227,
+        "Alberto",
+        "Romero",
+        "alberto.romero@yahoo.com",
+        "Argentina"
+      ],
+      [
+        541,
+        "Andres",
+        "Romero",
+        "andres.romero541@outlook.com",
+        "Argentina"
+      ],
+      [
+        459,
+        "Alicia",
+        "Ruiz",
+        "alicia.ruiz@yahoo.com",
+        "Argentina"
+      ],
+      [
+        293,
+        "Lorena",
+        "Sanchez",
+        "lorena.sanchez@hotmail.com",
+        "Argentina"
+      ],
+      [
+        234,
+        "Mark",
+        "Taylor",
+        "mark.taylor@yahoo.com",
+        "Argentina"
+      ],
+      [
+        309,
+        "Ronald",
+        "Thomas",
+        "ronald.thomas@yahoo.com",
+        "Argentina"
+      ],
+      [
+        319,
+        "Amanda",
+        "Thomas",
+        "amanda.thomas@hotmail.com",
+        "Argentina"
+      ],
+      [
+        312,
+        "Marcela",
+        "Vargas",
+        "marcela.vargas@gmail.com",
+        "Argentina"
+      ]
+    ],
+    "expected_row_count_approx": 533,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Ejercicio 09",
+    "briefing_ref": "Briefing 4.9",
+    "lesson_ref": "Lección 9",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country,\n    'retenido' AS segmento\nFROM customers c\nWHERE c.customer_id IN (\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-07-01' AND o.ordered_at < '2025-10-01'\n      AND o.status <> 'cancelled'\n    INTERSECT\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01'\n      AND o.status <> 'cancelled'\n)\n\nUNION ALL\n\nSELECT\n    c.customer_id,\n    c.first_name,\n    c.last_name,\n    c.email,\n    c.country,\n    'perdido' AS segmento\nFROM customers c\nWHERE c.customer_id IN (\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-07-01' AND o.ordered_at < '2025-10-01'\n      AND o.status <> 'cancelled'\n    EXCEPT\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01'\n      AND o.status <> 'cancelled'\n)\n\nORDER BY segmento, last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country",
+      "segmento"
+    ],
+    "sample_rows": [
+      [
+        121,
+        "Elena",
+        "Aguilar",
+        "elena.aguilar@yahoo.com",
+        "USA",
+        "perdido"
+      ],
+      [
+        297,
+        "Nicolas",
+        "Alvarez",
+        "nicolas.alvarez@icloud.com",
+        "Ecuador",
+        "perdido"
+      ],
+      [
+        113,
+        "Ivan",
+        "Cruz",
+        "ivan.cruz@outlook.com",
+        "El Salvador",
+        "perdido"
+      ],
+      [
+        260,
+        "Ivan",
+        "Flores",
+        "ivan.flores@hotmail.com",
+        "Venezuela",
+        "perdido"
+      ],
+      [
+        103,
+        "Oscar",
+        "Garcia",
+        "oscar.garcia@yahoo.com",
+        "USA",
+        "perdido"
+      ],
+      [
+        466,
+        "Mario",
+        "Gonzalez",
+        "mario.gonzalez@gmail.com",
+        "Ecuador",
+        "perdido"
+      ],
+      [
+        200,
+        "Andres",
+        "Medina",
+        "andres.medina@icloud.com",
+        "Paraguay",
+        "perdido"
+      ],
+      [
+        16,
+        "Lorena",
+        "Soto",
+        "lorena.soto@outlook.com",
+        "Argentina",
+        "perdido"
+      ],
+      [
+        18,
+        "Ashley",
+        "Thomas",
+        "ashley.thomas@outlook.com",
+        "USA",
+        "perdido"
+      ],
+      [
+        195,
+        "Carmen",
+        "Vargas",
+        "carmen.vargas@outlook.com",
+        "Bolivia",
+        "perdido"
+      ],
+      [
+        22,
+        "Pablo",
+        "Aguilar",
+        "pablo.aguilar@gmail.com",
+        "Mexico",
+        "retenido"
+      ],
+      [
+        24,
+        "Ricardo",
+        "Aguilar",
+        "ricardo.aguilar@outlook.com",
+        "Bolivia",
+        "retenido"
+      ],
+      [
+        27,
+        "Marcela",
+        "Aguilar",
+        "marcela.aguilar@icloud.com",
+        "Peru",
+        "retenido"
+      ],
+      [
+        34,
+        "Marcela",
+        "Aguilar",
+        "marcela.aguilar@gmail.com",
+        "Ecuador",
+        "retenido"
+      ],
+      [
+        130,
+        "Silvia",
+        "Aguilar",
+        "silvia.aguilar@hotmail.com",
+        "Paraguay",
+        "retenido"
+      ],
+      [
+        233,
+        "Teresa",
+        "Aguilar",
+        "teresa.aguilar@outlook.com",
+        "Chile",
+        "retenido"
+      ],
+      [
+        337,
+        "Adriana",
+        "Aguilar",
+        "adriana.aguilar@hotmail.com",
+        "Ecuador",
+        "retenido"
+      ],
+      [
+        368,
+        "Silvia",
+        "Aguilar",
+        "silvia.aguilar@protonmail.com",
+        "Argentina",
+        "retenido"
+      ],
+      [
+        372,
+        "Carlos",
+        "Aguilar",
+        "carlos.aguilar@icloud.com",
+        "Bolivia",
+        "retenido"
+      ],
+      [
+        428,
+        "Rosa",
+        "Aguilar",
+        "rosa.aguilar@hotmail.com",
+        "Uruguay",
+        "retenido"
+      ],
+      [
+        435,
+        "Ana",
+        "Aguilar",
+        "ana.aguilar@protonmail.com",
+        "Mexico",
+        "retenido"
+      ],
+      [
+        449,
+        "Fernanda",
+        "Aguilar",
+        "fernanda.aguilar@hotmail.com",
+        "Venezuela",
+        "retenido"
+      ],
+      [
+        501,
+        "Miguel",
+        "Aguilar",
+        "miguel.aguilar501@gmail.com",
+        "Peru",
+        "retenido"
+      ],
+      [
+        512,
+        "Sofia",
+        "Aguilar",
+        "sofia.aguilar512@gmail.com",
+        "Peru",
+        "retenido"
+      ],
+      [
+        527,
+        "Camila",
+        "Aguilar",
+        "camila.aguilar527@outlook.com",
+        "Chile",
+        "retenido"
+      ],
+      [
+        538,
+        "Camila",
+        "Aguilar",
+        "camila.aguilar538@outlook.com",
+        "Mexico",
+        "retenido"
+      ],
+      [
+        540,
+        "Luis",
+        "Aguilar",
+        "luis.aguilar540@outlook.com",
+        "Colombia",
+        "retenido"
+      ],
+      [
+        542,
+        "Diego",
+        "Aguilar",
+        "diego.aguilar542@outlook.com",
+        "Colombia",
+        "retenido"
+      ],
+      [
+        545,
+        "Fernando",
+        "Aguilar",
+        "fernando.aguilar545@outlook.com",
+        "Chile",
+        "retenido"
+      ],
+      [
+        29,
+        "Susan",
+        "Allen",
+        "susan.allen@hotmail.com",
+        "Honduras",
+        "retenido"
+      ],
+      [
+        219,
+        "Sharon",
+        "Allen",
+        "sharon.allen@icloud.com",
+        "USA",
+        "retenido"
+      ],
+      [
+        316,
+        "James",
+        "Allen",
+        "james.allen@yahoo.com",
+        "Chile",
+        "retenido"
+      ],
+      [
+        358,
+        "Joseph",
+        "Allen",
+        "joseph.allen@outlook.com",
+        "Peru",
+        "retenido"
+      ],
+      [
+        44,
+        "Gustavo",
+        "Alvarez",
+        "gustavo.alvarez@protonmail.com",
+        "Mexico",
+        "retenido"
+      ],
+      [
+        111,
+        "Carlos",
+        "Alvarez",
+        "carlos.alvarez@yahoo.com",
+        "USA",
+        "retenido"
+      ],
+      [
+        125,
+        "Diego",
+        "Alvarez",
+        "diego.alvarez@yahoo.com",
+        "Chile",
+        "retenido"
+      ],
+      [
+        128,
+        "Teresa",
+        "Alvarez",
+        "teresa.alvarez@protonmail.com",
+        "Venezuela",
+        "retenido"
+      ],
+      [
+        188,
+        "Ivan",
+        "Alvarez",
+        "ivan.alvarez@outlook.com",
+        "Argentina",
+        "retenido"
+      ],
+      [
+        322,
+        "Diego",
+        "Alvarez",
+        "diego.alvarez2@yahoo.com",
+        "Mexico",
+        "retenido"
+      ],
+      [
+        417,
+        "Oscar",
+        "Alvarez",
+        "oscar.alvarez@protonmail.com",
+        "Spain",
+        "retenido"
+      ],
+      [
+        431,
+        "Fernando",
+        "Alvarez",
+        "fernando.alvarez@icloud.com",
+        "Mexico",
+        "retenido"
+      ],
+      [
+        460,
+        "Elena",
+        "Alvarez",
+        "elena.alvarez@gmail.com",
+        "Colombia",
+        "retenido"
+      ],
+      [
+        500,
+        "Camila",
+        "Alvarez",
+        "camila.alvarez@gmail.com",
+        "Uruguay",
+        "retenido"
+      ],
+      [
+        33,
+        "Elizabeth",
+        "Anderson",
+        "elizabeth.anderson@outlook.com",
+        "Chile",
+        "retenido"
+      ],
+      [
+        47,
+        "David",
+        "Anderson",
+        "david.anderson@outlook.com",
+        "Peru",
+        "retenido"
+      ],
+      [
+        122,
+        "Daniel",
+        "Anderson",
+        "daniel.anderson@outlook.com",
+        "Chile",
+        "retenido"
+      ],
+      [
+        321,
+        "James",
+        "Anderson",
+        "james.anderson@protonmail.com",
+        "Uruguay",
+        "retenido"
+      ],
+      [
+        87,
+        "Karen",
+        "Baker",
+        "karen.baker@protonmail.com",
+        "USA",
+        "retenido"
+      ],
+      [
+        14,
+        "Claudia",
+        "Bravo",
+        "claudia.bravo@hotmail.com",
+        "Paraguay",
+        "retenido"
+      ],
+      [
+        64,
+        "Pedro",
+        "Bravo",
+        "pedro.bravo@protonmail.com",
+        "Argentina",
+        "retenido"
+      ]
+    ],
+    "expected_row_count_approx": 543,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Ejercicio 10",
+    "briefing_ref": "Briefing 4.10",
+    "lesson_ref": "Lección 10",
+    "reference_query": "-- Estrategia: crear los dos conjuntos con etiquetas, hacer UNION ALL,\n-- luego agregar para detectar los que aparecen en ambos.\n--\n-- NOTA IMP-13: MAX(motivo) retorna el valor lexicográficamente mayor del conjunto.\n-- Esta lógica asume que 'devolucion_julio' es el valor más alto en orden ASCII\n-- dentro del dominio posible {'devolucion_julio', 'inactivo_6m'}.\n-- Si se agregan nuevos valores de motivo al sistema (por ejemplo 'fraude', que\n-- lexicográficamente es mayor a 'devolucion_julio'), la lógica producirá\n-- resultados silenciosamente incorrectos sin ningún error visible.\n-- Una alternativa más robusta y explícita es:\n--   BOOL_OR(motivo = 'devolucion_julio')  -- TRUE si alguna fila tiene ese motivo\n-- o: COUNT(CASE WHEN motivo = 'devolucion_julio' THEN 1 END) > 0\n-- La solución con MAX es válida para este dataset específico pero frágil en general.\nSELECT\n    customer_id,\n    first_name,\n    last_name,\n    email,\n    country,\n    CASE WHEN COUNT(*) = 2 THEN 'ambos'\n         WHEN MAX(motivo) = 'devolucion_julio' THEN 'devolucion_julio'\n         ELSE 'inactivo_6m'\n    END AS segmento\nFROM (\n    -- Conjunto 1: devolvieron en julio 2025\n    SELECT\n        c.customer_id, c.first_name, c.last_name, c.email, c.country,\n        'devolucion_julio' AS motivo\n    FROM customers c\n    WHERE EXISTS (\n        SELECT 1 FROM returns r\n        INNER JOIN orders o ON o.order_id = r.order_id\n        WHERE o.customer_id = c.customer_id\n          AND r.returned_at >= '2025-07-01'\n          AND r.returned_at <  '2025-08-01'\n    )\n\n    UNION ALL\n\n    -- Conjunto 2: inactivos últimos 6 meses (ene-jun 2026)\n    SELECT\n        c.customer_id, c.first_name, c.last_name, c.email, c.country,\n        'inactivo_6m' AS motivo\n    FROM customers c\n    WHERE NOT EXISTS (\n        SELECT 1 FROM orders o\n        WHERE o.customer_id = c.customer_id\n          AND o.ordered_at >= '2026-01-01'\n          AND o.ordered_at <  '2026-07-01'\n          AND o.status     <> 'cancelled'\n    )\n) AS combinado\nGROUP BY customer_id, first_name, last_name, email, country\nORDER BY segmento, last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "email",
+      "country",
+      "segmento"
+    ],
+    "sample_rows": [
+      [
+        22,
+        "Pablo",
+        "Aguilar",
+        "pablo.aguilar@gmail.com",
+        "Mexico",
+        "devolucion_julio"
+      ],
+      [
+        368,
+        "Silvia",
+        "Aguilar",
+        "silvia.aguilar@protonmail.com",
+        "Argentina",
+        "devolucion_julio"
+      ],
+      [
+        501,
+        "Miguel",
+        "Aguilar",
+        "miguel.aguilar501@gmail.com",
+        "Peru",
+        "devolucion_julio"
+      ],
+      [
+        358,
+        "Joseph",
+        "Allen",
+        "joseph.allen@outlook.com",
+        "Peru",
+        "devolucion_julio"
+      ],
+      [
+        297,
+        "Nicolas",
+        "Alvarez",
+        "nicolas.alvarez@icloud.com",
+        "Ecuador",
+        "devolucion_julio"
+      ],
+      [
+        417,
+        "Oscar",
+        "Alvarez",
+        "oscar.alvarez@protonmail.com",
+        "Spain",
+        "devolucion_julio"
+      ],
+      [
+        460,
+        "Elena",
+        "Alvarez",
+        "elena.alvarez@gmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        500,
+        "Camila",
+        "Alvarez",
+        "camila.alvarez@gmail.com",
+        "Uruguay",
+        "devolucion_julio"
+      ],
+      [
+        14,
+        "Claudia",
+        "Bravo",
+        "claudia.bravo@hotmail.com",
+        "Paraguay",
+        "devolucion_julio"
+      ],
+      [
+        9,
+        "Elena",
+        "Campos",
+        "elena.campos@icloud.com",
+        "Venezuela",
+        "devolucion_julio"
+      ],
+      [
+        356,
+        "Ximena",
+        "Campos",
+        "ximena.campos@protonmail.com",
+        "USA",
+        "devolucion_julio"
+      ],
+      [
+        120,
+        "Hector",
+        "Castillo",
+        "hector.castillo@protonmail.com",
+        "Bolivia",
+        "devolucion_julio"
+      ],
+      [
+        497,
+        "Carolina",
+        "Castillo",
+        "carolina.castillo@yahoo.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        63,
+        "Juan",
+        "Chavez",
+        "juan.chavez@outlook.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        353,
+        "Rafael",
+        "Chavez",
+        "rafael.chavez@hotmail.com",
+        "Ecuador",
+        "devolucion_julio"
+      ],
+      [
+        310,
+        "Kenneth",
+        "Clark",
+        "kenneth.clark@protonmail.com",
+        "Argentina",
+        "devolucion_julio"
+      ],
+      [
+        135,
+        "Rodrigo",
+        "Cruz",
+        "rodrigo.cruz@gmail.com",
+        "Honduras",
+        "devolucion_julio"
+      ],
+      [
+        144,
+        "Mario",
+        "Delgado",
+        "mario.delgado@hotmail.com",
+        "Argentina",
+        "devolucion_julio"
+      ],
+      [
+        395,
+        "Camila",
+        "Delgado",
+        "camila.delgado@outlook.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        450,
+        "Rodrigo",
+        "Delgado",
+        "rodrigo.delgado@protonmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        89,
+        "Camila",
+        "Dominguez",
+        "camila.dominguez@gmail.com",
+        "Peru",
+        "devolucion_julio"
+      ],
+      [
+        256,
+        "Lucia",
+        "Dominguez",
+        "lucia.dominguez@icloud.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        412,
+        "Beatriz",
+        "Dominguez",
+        "beatriz.dominguez@icloud.com",
+        "Argentina",
+        "devolucion_julio"
+      ],
+      [
+        50,
+        "Silvia",
+        "Espinoza",
+        "silvia.espinoza@protonmail.com",
+        "Chile",
+        "devolucion_julio"
+      ],
+      [
+        286,
+        "Jorge",
+        "Espinoza",
+        "jorge.espinoza@icloud.com",
+        "Mexico",
+        "devolucion_julio"
+      ],
+      [
+        221,
+        "Claudia",
+        "Fuentes",
+        "claudia.fuentes@outlook.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        154,
+        "Andres",
+        "Garcia",
+        "andres.garcia@outlook.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        504,
+        "Valeria",
+        "Garcia",
+        "valeria.garcia504@gmail.com",
+        "Peru",
+        "devolucion_julio"
+      ],
+      [
+        15,
+        "Jorge",
+        "Gonzalez",
+        "jorge.gonzalez@gmail.com",
+        "Costa Rica",
+        "devolucion_julio"
+      ],
+      [
+        41,
+        "Jason",
+        "Green",
+        "jason.green@protonmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        374,
+        "Lorena",
+        "Guerrero",
+        "lorena.guerrero@hotmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        461,
+        "Carlos",
+        "Guerrero",
+        "carlos.guerrero@hotmail.com",
+        "Mexico",
+        "devolucion_julio"
+      ],
+      [
+        73,
+        "Isabella",
+        "Gutierrez",
+        "isabella.gutierrez@protonmail.com",
+        "Mexico",
+        "devolucion_julio"
+      ],
+      [
+        140,
+        "Joseph",
+        "Hall",
+        "joseph.hall@gmail.com",
+        "Mexico",
+        "devolucion_julio"
+      ],
+      [
+        251,
+        "Patricia",
+        "Hall",
+        "patricia.hall@yahoo.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        189,
+        "Hector",
+        "Hernandez",
+        "hector.hernandez@protonmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        225,
+        "Gustavo",
+        "Hernandez",
+        "gustavo.hernandez@icloud.com",
+        "USA",
+        "devolucion_julio"
+      ],
+      [
+        96,
+        "Isabella",
+        "Herrera",
+        "isabella.herrera@outlook.com",
+        "Venezuela",
+        "devolucion_julio"
+      ],
+      [
+        464,
+        "Kenneth",
+        "Jackson",
+        "kenneth.jackson@protonmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        479,
+        "Laura",
+        "Jackson",
+        "laura.jackson@yahoo.com",
+        "USA",
+        "devolucion_julio"
+      ],
+      [
+        81,
+        "Raul",
+        "Jimenez",
+        "raul.jimenez@yahoo.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        74,
+        "William",
+        "Johnson",
+        "william.johnson@hotmail.com",
+        "Venezuela",
+        "devolucion_julio"
+      ],
+      [
+        335,
+        "Amanda",
+        "Johnson",
+        "amanda.johnson@yahoo.com",
+        "Bolivia",
+        "devolucion_julio"
+      ],
+      [
+        36,
+        "Emily",
+        "Jones",
+        "emily.jones@hotmail.com",
+        "Mexico",
+        "devolucion_julio"
+      ],
+      [
+        186,
+        "Patricia",
+        "Jones",
+        "patricia.jones@outlook.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        404,
+        "Ashley",
+        "Jones",
+        "ashley.jones@yahoo.com",
+        "Venezuela",
+        "devolucion_julio"
+      ],
+      [
+        326,
+        "George",
+        "King",
+        "george.king@hotmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        68,
+        "Paola",
+        "Lopez",
+        "paola.lopez@icloud.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        167,
+        "Paola",
+        "Lopez",
+        "paola.lopez@protonmail.com",
+        "Colombia",
+        "devolucion_julio"
+      ],
+      [
+        192,
+        "Jorge",
+        "Lopez",
+        "jorge.lopez@outlook.com",
+        "Colombia",
+        "devolucion_julio"
+      ]
+    ],
+    "expected_row_count_approx": 104,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Ejercicio 11",
+    "briefing_ref": "Briefing 4.11",
+    "lesson_ref": "Lección 11",
+    "reference_query": "SELECT r.product_id\nFROM returns r\n\nEXCEPT\n\nSELECT p.product_id\nFROM products p;\n\n-- Si retorna 0 filas: todos los product_id en returns tienen\n-- un producto válido en la tabla products (integridad correcta).",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "product_id"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Integrador de Bloque B",
+    "briefing_ref": "Briefing 4.12",
+    "lesson_ref": "Lección 12",
+    "reference_query": "SELECT 'solo_q3'           AS segmento,\n       COUNT(*)            AS cantidad_clientes\nFROM (\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-07-01' AND o.ordered_at < '2025-10-01'\n      AND o.status <> 'cancelled'\n    EXCEPT\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01'\n      AND o.status <> 'cancelled'\n) AS solo_q3\n\nUNION ALL\n\nSELECT 'solo_q4',\n       COUNT(*)\nFROM (\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01'\n      AND o.status <> 'cancelled'\n    EXCEPT\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-07-01' AND o.ordered_at < '2025-10-01'\n      AND o.status <> 'cancelled'\n) AS solo_q4\n\nUNION ALL\n\nSELECT 'ambos_trimestres',\n       COUNT(*)\nFROM (\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-07-01' AND o.ordered_at < '2025-10-01'\n      AND o.status <> 'cancelled'\n    INTERSECT\n    SELECT DISTINCT o.customer_id FROM orders o\n    WHERE o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01'\n      AND o.status <> 'cancelled'\n) AS ambos;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "segmento",
+      "cantidad_clientes"
+    ],
+    "sample_rows": [
+      [
+        "solo_q3",
+        10
+      ],
+      [
+        "solo_q4",
+        7
+      ],
+      [
+        "ambos_trimestres",
+        533
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 13,
+    "title": "Ejercicio 13",
+    "briefing_ref": "Briefing 4.13",
+    "lesson_ref": "Lección 13",
+    "reference_query": "SELECT\n    r.return_id,\n    r.order_id,\n    r.product_id,\n    r.returned_at,\n    r.status,\n    COALESCE(r.reason, 'Sin motivo registrado') AS motivo\nFROM returns r\nORDER BY r.returned_at DESC\nLIMIT 30;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "return_id",
+      "order_id",
+      "product_id",
+      "returned_at",
+      "status",
+      "motivo"
+    ],
+    "sample_rows": [
+      [
+        2198,
+        31127,
+        65,
+        "2026-05-27",
+        "pending",
+        "defective"
+      ],
+      [
+        2196,
+        31121,
+        29,
+        "2026-05-26",
+        "approved",
+        "changed_mind"
+      ],
+      [
+        2207,
+        31256,
+        44,
+        "2026-05-26",
+        "approved",
+        "defective"
+      ],
+      [
+        2209,
+        31258,
+        90,
+        "2026-05-26",
+        "approved",
+        "defective"
+      ],
+      [
+        2210,
+        31313,
+        36,
+        "2026-05-26",
+        "pending",
+        "wrong_size"
+      ],
+      [
+        2190,
+        30990,
+        90,
+        "2026-05-25",
+        "approved",
+        "defective"
+      ],
+      [
+        2195,
+        31114,
+        41,
+        "2026-05-25",
+        "pending",
+        "not_as_described"
+      ],
+      [
+        2202,
+        31205,
+        28,
+        "2026-05-25",
+        "approved",
+        "not_as_described"
+      ],
+      [
+        2212,
+        31328,
+        68,
+        "2026-05-25",
+        "approved",
+        "defective"
+      ],
+      [
+        2206,
+        31244,
+        57,
+        "2026-05-24",
+        "pending",
+        "defective"
+      ],
+      [
+        2208,
+        31258,
+        76,
+        "2026-05-24",
+        "approved",
+        "defective"
+      ],
+      [
+        2213,
+        31329,
+        5,
+        "2026-05-23",
+        "approved",
+        "wrong_size"
+      ],
+      [
+        2182,
+        30881,
+        71,
+        "2026-05-22",
+        "approved",
+        "defective"
+      ],
+      [
+        2173,
+        30775,
+        50,
+        "2026-05-21",
+        "approved",
+        "not_as_described"
+      ],
+      [
+        2178,
+        30841,
+        53,
+        "2026-05-21",
+        "approved",
+        "defective"
+      ],
+      [
+        2191,
+        31019,
+        61,
+        "2026-05-20",
+        "approved",
+        "wrong_size"
+      ],
+      [
+        2193,
+        31062,
+        57,
+        "2026-05-20",
+        "approved",
+        "wrong_size"
+      ],
+      [
+        2199,
+        31132,
+        49,
+        "2026-05-20",
+        "pending",
+        "changed_mind"
+      ],
+      [
+        2200,
+        31181,
+        11,
+        "2026-05-20",
+        "approved",
+        "changed_mind"
+      ],
+      [
+        2203,
+        31217,
+        89,
+        "2026-05-20",
+        "approved",
+        "changed_mind"
+      ],
+      [
+        2204,
+        31234,
+        66,
+        "2026-05-20",
+        "pending",
+        "not_as_described"
+      ],
+      [
+        2205,
+        31239,
+        48,
+        "2026-05-20",
+        "approved",
+        "defective"
+      ],
+      [
+        2168,
+        30716,
+        53,
+        "2026-05-19",
+        "approved",
+        "defective"
+      ],
+      [
+        2179,
+        30863,
+        73,
+        "2026-05-19",
+        "pending",
+        "defective"
+      ],
+      [
+        2192,
+        31059,
+        32,
+        "2026-05-19",
+        "approved",
+        "changed_mind"
+      ],
+      [
+        2201,
+        31196,
+        77,
+        "2026-05-19",
+        "refunded",
+        "defective"
+      ],
+      [
+        2157,
+        30568,
+        36,
+        "2026-05-18",
+        "rejected",
+        "defective"
+      ],
+      [
+        2165,
+        30682,
+        41,
+        "2026-05-18",
+        "pending",
+        "defective"
+      ],
+      [
+        2185,
+        30888,
+        40,
+        "2026-05-18",
+        "rejected",
+        "wrong_size"
+      ],
+      [
+        2189,
+        30982,
+        85,
+        "2026-05-18",
+        "refunded",
+        "changed_mind"
+      ]
+    ],
+    "expected_row_count_approx": 30,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 14,
+    "title": "Ejercicio 14",
+    "briefing_ref": "Briefing 4.14",
+    "lesson_ref": "Lección 14",
+    "reference_query": "SELECT\n    COUNT(*)                                                    AS total_devoluciones,\n    COUNT(reason)                                               AS con_motivo,\n    COUNT(*) - COUNT(reason)                                    AS sin_motivo,\n    ROUND(\n        (COUNT(*) - COUNT(reason)) * 100.0\n        / NULLIF(COUNT(*), 0),\n        1\n    )                                                           AS pct_sin_motivo\nFROM returns;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "total_devoluciones",
+      "con_motivo",
+      "sin_motivo",
+      "pct_sin_motivo"
+    ],
+    "sample_rows": [
+      [
+        2213,
+        2213,
+        0,
+        0.0
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 15,
+    "title": "Ejercicio 15",
+    "briefing_ref": "Briefing 4.15",
+    "lesson_ref": "Lección 15",
+    "reference_query": "SELECT\n    cat.name                                            AS categoria,\n    COUNT(DISTINCT oi.item_id)                          AS items_vendidos,\n    COUNT(DISTINCT r.return_id)                         AS items_devueltos,\n    ROUND(\n        COUNT(DISTINCT r.return_id) * 100.0\n        / NULLIF(COUNT(DISTINCT oi.item_id), 0),\n        2\n    )                                                   AS tasa_devolucion_pct\nFROM categories cat\nLEFT JOIN products    p  ON p.category_id  = cat.category_id\nLEFT JOIN order_items oi ON oi.product_id  = p.product_id\nLEFT JOIN returns     r  ON r.product_id   = p.product_id\n                         AND r.order_id    = oi.order_id\nGROUP BY cat.category_id, cat.name\nORDER BY tasa_devolucion_pct DESC NULLS LAST;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "categoria",
+      "items_vendidos",
+      "items_devueltos",
+      "tasa_devolucion_pct"
+    ],
+    "sample_rows": [
+      [
+        "Clothing",
+        7181,
+        295,
+        4.11
+      ],
+      [
+        "Wearables",
+        5404,
+        207,
+        3.83
+      ],
+      [
+        "Beauty",
+        4314,
+        165,
+        3.82
+      ],
+      [
+        "Office",
+        2994,
+        111,
+        3.71
+      ],
+      [
+        "Electronics",
+        13473,
+        492,
+        3.65
+      ],
+      [
+        "Home Appliances",
+        11593,
+        410,
+        3.54
+      ],
+      [
+        "Toys & Games",
+        3688,
+        125,
+        3.39
+      ],
+      [
+        "Books",
+        3776,
+        126,
+        3.34
+      ],
+      [
+        "Sports",
+        4799,
+        142,
+        2.96
+      ],
+      [
+        "Audio",
+        4858,
+        140,
+        2.88
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 16,
+    "title": "Ejercicio 16",
+    "briefing_ref": "Briefing 4.16",
+    "lesson_ref": "Lección 16",
+    "reference_query": "SELECT\n    r.return_id,\n    r.returned_at,\n    c.first_name || ' ' || c.last_name          AS nombre_cliente,\n    p.name                                       AS nombre_producto,\n    COALESCE(r.reason, 'No especificado')        AS motivo,\n    CASE\n        WHEN r.status = 'pending'  THEN 'Pendiente de revisión'\n        WHEN r.status = 'approved' THEN 'Aprobada'\n        WHEN r.status = 'rejected' THEN 'Rechazada'\n        WHEN r.status = 'refunded' THEN 'Reembolsada'\n        ELSE 'Estado desconocido'\n    END                                          AS status_legible\nFROM returns r\nINNER JOIN orders    o   ON o.order_id    = r.order_id\nINNER JOIN customers c   ON c.customer_id = o.customer_id\nINNER JOIN products  p   ON p.product_id  = r.product_id\nORDER BY r.returned_at DESC\nLIMIT 20;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "return_id",
+      "returned_at",
+      "nombre_cliente",
+      "nombre_producto",
+      "motivo",
+      "status_legible"
+    ],
+    "sample_rows": [
+      [
+        2198,
+        "2026-05-27",
+        "Gustavo Alvarez",
+        "Set Maquillaje Rimmel London",
+        "defective",
+        "Pendiente de revisión"
+      ],
+      [
+        2196,
+        "2026-05-26",
+        "Marcela Ramirez",
+        "Pulsera Actividad Huawei Band 7",
+        "changed_mind",
+        "Aprobada"
+      ],
+      [
+        2207,
+        "2026-05-26",
+        "Claudia Hernandez",
+        "Zapatillas Adidas Duramo 10",
+        "defective",
+        "Aprobada"
+      ],
+      [
+        2209,
+        "2026-05-26",
+        "Veronica Ramos",
+        "Vela Aromatica Luxury Pack x3",
+        "defective",
+        "Aprobada"
+      ],
+      [
+        2210,
+        "2026-05-26",
+        "Paola Lopez",
+        "Plancha de Vapor Oster",
+        "wrong_size",
+        "Pendiente de revisión"
+      ],
+      [
+        2190,
+        "2026-05-25",
+        "Thomas Martin",
+        "Vela Aromatica Luxury Pack x3",
+        "defective",
+        "Aprobada"
+      ],
+      [
+        2195,
+        "2026-05-25",
+        "George Robinson",
+        "Zapatillas Nike Revolution 6",
+        "not_as_described",
+        "Pendiente de revisión"
+      ],
+      [
+        2202,
+        "2026-05-25",
+        "Mario Pena",
+        "Fitness Tracker Fitbit Inspire 3",
+        "not_as_described",
+        "Aprobada"
+      ],
+      [
+        2212,
+        "2026-05-25",
+        "James White",
+        "Mascarilla Facial Sheet Pack x10",
+        "defective",
+        "Aprobada"
+      ],
+      [
+        2206,
+        "2026-05-24",
+        "Gustavo Herrera",
+        "Atomic Habits - James Clear",
+        "defective",
+        "Pendiente de revisión"
+      ],
+      [
+        2208,
+        "2026-05-24",
+        "Veronica Ramos",
+        "Silla de Oficina Ergonomica MiDesk",
+        "defective",
+        "Aprobada"
+      ],
+      [
+        2213,
+        "2026-05-23",
+        "Gloria Gutierrez",
+        "Cargador Inalambrico 15W",
+        "wrong_size",
+        "Aprobada"
+      ],
+      [
+        2182,
+        "2026-05-22",
+        "Claudia Espinoza",
+        "Monopoly Clasico Hasbro",
+        "defective",
+        "Aprobada"
+      ],
+      [
+        2173,
+        "2026-05-21",
+        "Rosa Flores",
+        "Mancuernas Fijas 5kg par",
+        "not_as_described",
+        "Aprobada"
+      ],
+      [
+        2178,
+        "2026-05-21",
+        "Brian Wright",
+        "Casco Bici Urbano Giro Ember",
+        "defective",
+        "Aprobada"
+      ],
+      [
+        2191,
+        "2026-05-20",
+        "Ricardo Fuentes",
+        "Clean Code - Robert C Martin",
+        "wrong_size",
+        "Aprobada"
+      ],
+      [
+        2193,
+        "2026-05-20",
+        "Mario Mendoza",
+        "Atomic Habits - James Clear",
+        "wrong_size",
+        "Aprobada"
+      ],
+      [
+        2199,
+        "2026-05-20",
+        "David Harris",
+        "Colchoneta Yoga 6mm Domyos",
+        "changed_mind",
+        "Pendiente de revisión"
+      ],
+      [
+        2200,
+        "2026-05-20",
+        "Jorge Chavez",
+        "Teclado Inalambrico Logitech K380",
+        "changed_mind",
+        "Aprobada"
+      ],
+      [
+        2203,
+        "2026-05-20",
+        "Richard Jones",
+        "Organizador Cocina Bambu Set 5pz",
+        "changed_mind",
+        "Aprobada"
+      ]
+    ],
+    "expected_row_count_approx": 20,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 17,
+    "title": "Ejercicio 17",
+    "briefing_ref": "Briefing 4.17",
+    "lesson_ref": "Lección 17",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name || ' ' || c.last_name                       AS nombre_completo,\n    c.email,\n    MAX(o.ordered_at)                                         AS ultima_compra,\n    CASE\n        WHEN MAX(o.ordered_at) IS NOT NULL\n        THEN CAST('2026-06-01' AS DATE) - CAST(MAX(o.ordered_at) AS DATE)\n    END                                                       AS dias_sin_comprar\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.customer_id\nGROUP BY c.customer_id, c.first_name, c.last_name, c.email\nORDER BY dias_sin_comprar DESC NULLS LAST;\n\n-- Nota: la diferencia de fechas en PostgreSQL puede usarse directamente\n-- entre tipos DATE (retorna INTEGER de días). Si ordered_at es TIMESTAMP,\n-- CAST a DATE primero para obtener días completos.",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "nombre_completo",
+      "email",
+      "ultima_compra",
+      "dias_sin_comprar"
+    ],
+    "sample_rows": [
+      [
+        337,
+        "Adriana Aguilar",
+        "adriana.aguilar@hotmail.com",
+        "2026-05-13 09:52:00",
+        0
+      ],
+      [
+        170,
+        "Adriana Campos",
+        "adriana.campos@outlook.com",
+        "2026-05-04 20:04:00",
+        0
+      ],
+      [
+        332,
+        "Adriana Medina",
+        "adriana.medina@protonmail.com",
+        "2026-04-20 20:42:00",
+        0
+      ],
+      [
+        245,
+        "Adriana Mendoza",
+        "adriana.mendoza@yahoo.com",
+        "2026-04-25 17:28:00",
+        0
+      ],
+      [
+        10,
+        "Adriana Morales",
+        "adriana.morales@icloud.com",
+        "2026-05-15 13:27:00",
+        0
+      ],
+      [
+        207,
+        "Adriana Ortiz",
+        "adriana.ortiz@outlook.com",
+        "2026-05-09 08:29:00",
+        0
+      ],
+      [
+        118,
+        "Adriana Ramirez",
+        "adriana.ramirez@protonmail.com",
+        "2026-05-06 08:18:00",
+        0
+      ],
+      [
+        355,
+        "Alberto Espinoza",
+        "alberto.espinoza@icloud.com",
+        "2026-04-28 09:20:00",
+        0
+      ],
+      [
+        390,
+        "Alberto Guerrero",
+        "alberto.guerrero@hotmail.com",
+        "2026-05-14 14:03:00",
+        0
+      ],
+      [
+        454,
+        "Alberto Mendoza",
+        "alberto.mendoza@gmail.com",
+        "2026-05-01 13:04:00",
+        0
+      ],
+      [
+        248,
+        "Alberto Pena",
+        "alberto.pena@gmail.com",
+        "2026-05-13 19:09:00",
+        0
+      ],
+      [
+        379,
+        "Alberto Pena",
+        "alberto.pena@outlook.com",
+        "2026-04-16 10:50:00",
+        0
+      ],
+      [
+        227,
+        "Alberto Romero",
+        "alberto.romero@yahoo.com",
+        "2026-04-26 08:50:00",
+        0
+      ],
+      [
+        392,
+        "Alberto Torres",
+        "alberto.torres@protonmail.com",
+        "2026-05-14 18:53:00",
+        0
+      ],
+      [
+        314,
+        "Alejandro Delgado",
+        "alejandro.delgado@outlook.com",
+        "2026-05-02 09:04:00",
+        0
+      ],
+      [
+        436,
+        "Alejandro Reyes",
+        "alejandro.reyes@yahoo.com",
+        "2026-04-26 14:42:00",
+        0
+      ],
+      [
+        383,
+        "Alicia Castillo",
+        "alicia.castillo@gmail.com",
+        "2026-05-14 10:59:00",
+        0
+      ],
+      [
+        250,
+        "Alicia Hernandez",
+        "alicia.hernandez@outlook.com",
+        "2026-05-14 11:53:00",
+        0
+      ],
+      [
+        369,
+        "Alicia Hernandez",
+        "alicia.hernandez@protonmail.com",
+        "2026-05-13 12:48:00",
+        0
+      ],
+      [
+        204,
+        "Alicia Perez",
+        "alicia.perez@icloud.com",
+        "2026-05-12 13:17:00",
+        0
+      ],
+      [
+        279,
+        "Alicia Perez",
+        "alicia.perez@outlook.com",
+        "2026-05-14 09:11:00",
+        0
+      ],
+      [
+        459,
+        "Alicia Ruiz",
+        "alicia.ruiz@yahoo.com",
+        "2026-05-02 20:39:00",
+        0
+      ],
+      [
+        329,
+        "Alicia Soto",
+        "alicia.soto@outlook.com",
+        "2026-05-14 22:27:00",
+        0
+      ],
+      [
+        139,
+        "Alicia Torres",
+        "alicia.torres@hotmail.com",
+        "2026-05-03 11:48:00",
+        0
+      ],
+      [
+        335,
+        "Amanda Johnson",
+        "amanda.johnson@yahoo.com",
+        "2026-05-09 17:26:00",
+        0
+      ],
+      [
+        319,
+        "Amanda Thomas",
+        "amanda.thomas@hotmail.com",
+        "2026-05-13 13:49:00",
+        0
+      ],
+      [
+        435,
+        "Ana Aguilar",
+        "ana.aguilar@protonmail.com",
+        "2026-05-15 10:16:00",
+        0
+      ],
+      [
+        544,
+        "Ana Espinoza",
+        "ana.espinoza544@outlook.com",
+        "2026-05-11 13:15:00",
+        0
+      ],
+      [
+        278,
+        "Ana Espinoza",
+        "ana.espinoza@protonmail.com",
+        "2026-05-06 19:48:00",
+        0
+      ],
+      [
+        173,
+        "Ana Guerrero",
+        "ana.guerrero@hotmail.com",
+        "2026-05-13 22:03:00",
+        0
+      ],
+      [
+        539,
+        "Ana Jimenez",
+        "ana.jimenez539@outlook.com",
+        "2026-04-21 16:18:00",
+        0
+      ],
+      [
+        548,
+        "Ana Mendoza",
+        "ana.mendoza548@outlook.com",
+        "2026-05-11 10:26:00",
+        0
+      ],
+      [
+        399,
+        "Ana Torres",
+        "ana.torres@gmail.com",
+        "2026-05-14 21:09:00",
+        0
+      ],
+      [
+        83,
+        "Andres Castillo",
+        "andres.castillo@yahoo.com",
+        "2026-05-13 22:58:00",
+        0
+      ],
+      [
+        510,
+        "Andres Cruz",
+        "andres.cruz510@gmail.com",
+        "2026-05-14 11:37:00",
+        0
+      ],
+      [
+        523,
+        "Andres Espinoza",
+        "andres.espinoza523@outlook.com",
+        "2026-05-14 08:23:00",
+        0
+      ],
+      [
+        546,
+        "Andres Espinoza",
+        "andres.espinoza546@outlook.com",
+        "2026-03-28 20:27:00",
+        0
+      ],
+      [
+        109,
+        "Andres Fuentes",
+        "andres.fuentes@outlook.com",
+        "2026-05-14 08:50:00",
+        0
+      ],
+      [
+        503,
+        "Andres Garcia",
+        "andres.garcia503@gmail.com",
+        "2026-05-13 17:45:00",
+        0
+      ],
+      [
+        154,
+        "Andres Garcia",
+        "andres.garcia@outlook.com",
+        "2026-05-11 15:01:00",
+        0
+      ],
+      [
+        393,
+        "Andres Gonzalez",
+        "andres.gonzalez@yahoo.com",
+        "2026-05-13 16:33:00",
+        0
+      ],
+      [
+        486,
+        "Andres Guerrero",
+        "andres.guerrero@gmail.com",
+        "2026-05-11 17:05:00",
+        0
+      ],
+      [
+        255,
+        "Andres Hernandez",
+        "andres.hernandez@yahoo.com",
+        "2026-05-05 13:38:00",
+        0
+      ],
+      [
+        200,
+        "Andres Medina",
+        "andres.medina@icloud.com",
+        "2026-05-11 22:12:00",
+        0
+      ],
+      [
+        318,
+        "Andres Navarro",
+        "andres.navarro@protonmail.com",
+        "2026-05-15 20:51:00",
+        0
+      ],
+      [
+        468,
+        "Andres Perez",
+        "andres.perez@gmail.com",
+        "2026-05-03 10:58:00",
+        0
+      ],
+      [
+        541,
+        "Andres Romero",
+        "andres.romero541@outlook.com",
+        "2026-04-16 14:21:00",
+        0
+      ],
+      [
+        198,
+        "Ashley Green",
+        "ashley.green@hotmail.com",
+        "2026-04-28 15:54:00",
+        0
+      ],
+      [
+        404,
+        "Ashley Jones",
+        "ashley.jones@yahoo.com",
+        "2026-04-28 22:31:00",
+        0
+      ],
+      [
+        325,
+        "Ashley Moore",
+        "ashley.moore@outlook.com",
+        "2026-05-10 16:34:00",
+        0
+      ]
+    ],
+    "expected_row_count_approx": 550,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 18,
+    "title": "Ejercicio 18",
+    "briefing_ref": "Briefing 4.18",
+    "lesson_ref": "Lección 18",
+    "reference_query": "SELECT\n    c.customer_id,\n    c.first_name || ' ' || c.last_name          AS nombre_completo,\n    COUNT(o.order_id)                            AS pedidos_entregados,\n    ROUND(AVG(oi.quantity * oi.unit_price), 2)  AS ticket_promedio,\n    CASE\n        WHEN COUNT(o.order_id) > 0 THEN 'Si'\n        ELSE 'No'\n    END                                          AS tiene_historial\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.customer_id\n                   AND o.status = 'delivered'   -- filtro en el ON preserva todos los clientes\nLEFT JOIN order_items oi ON oi.order_id = o.order_id\nGROUP BY c.customer_id, c.first_name, c.last_name\nORDER BY ticket_promedio DESC NULLS LAST;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "nombre_completo",
+      "pedidos_entregados",
+      "ticket_promedio",
+      "tiene_historial"
+    ],
+    "sample_rows": [
+      [
+        448,
+        "Santiago Morales",
+        21,
+        323.32,
+        "Si"
+      ],
+      [
+        547,
+        "Miguel Ortiz",
+        50,
+        300.36,
+        "Si"
+      ],
+      [
+        525,
+        "Maria Guerrero",
+        50,
+        297.04,
+        "Si"
+      ],
+      [
+        475,
+        "Jason Davis",
+        25,
+        287.98,
+        "Si"
+      ],
+      [
+        549,
+        "Valentina Morales",
+        73,
+        287.82,
+        "Si"
+      ],
+      [
+        441,
+        "Hector Flores",
+        31,
+        272.22,
+        "Si"
+      ],
+      [
+        436,
+        "Alejandro Reyes",
+        36,
+        270.26,
+        "Si"
+      ],
+      [
+        531,
+        "Sofia Mendoza",
+        50,
+        270.24,
+        "Si"
+      ],
+      [
+        352,
+        "Sharon Jackson",
+        16,
+        265.27,
+        "Si"
+      ],
+      [
+        216,
+        "Pablo Perez",
+        23,
+        264.55,
+        "Si"
+      ],
+      [
+        49,
+        "Paul White",
+        36,
+        261.04,
+        "Si"
+      ],
+      [
+        60,
+        "Isabella Ramirez",
+        46,
+        258.46,
+        "Si"
+      ],
+      [
+        524,
+        "Carlos Mendoza",
+        57,
+        248.26,
+        "Si"
+      ],
+      [
+        259,
+        "Thomas Jackson",
+        71,
+        246.24,
+        "Si"
+      ],
+      [
+        444,
+        "Roberto Perez",
+        32,
+        245.53,
+        "Si"
+      ],
+      [
+        526,
+        "Luis Reyes",
+        62,
+        243.75,
+        "Si"
+      ],
+      [
+        539,
+        "Ana Jimenez",
+        55,
+        238.6,
+        "Si"
+      ],
+      [
+        543,
+        "Valentina Ortiz",
+        72,
+        237.45,
+        "Si"
+      ],
+      [
+        548,
+        "Ana Mendoza",
+        50,
+        237.4,
+        "Si"
+      ],
+      [
+        534,
+        "Valentina Navarro",
+        62,
+        234.5,
+        "Si"
+      ],
+      [
+        538,
+        "Camila Aguilar",
+        52,
+        234.04,
+        "Si"
+      ],
+      [
+        312,
+        "Marcela Vargas",
+        38,
+        233.47,
+        "Si"
+      ],
+      [
+        150,
+        "Elena Sanchez",
+        27,
+        231.51,
+        "Si"
+      ],
+      [
+        540,
+        "Luis Aguilar",
+        55,
+        231.28,
+        "Si"
+      ],
+      [
+        492,
+        "Sofia Romero",
+        36,
+        230.76,
+        "Si"
+      ],
+      [
+        513,
+        "Isabella Huanca",
+        69,
+        229.16,
+        "Si"
+      ],
+      [
+        93,
+        "Brian King",
+        38,
+        228.6,
+        "Si"
+      ],
+      [
+        293,
+        "Lorena Sanchez",
+        45,
+        228.58,
+        "Si"
+      ],
+      [
+        23,
+        "Lorena Torres",
+        44,
+        228.45,
+        "Si"
+      ],
+      [
+        127,
+        "Silvia Pena",
+        60,
+        227.68,
+        "Si"
+      ],
+      [
+        149,
+        "Stephanie Taylor",
+        28,
+        225.97,
+        "Si"
+      ],
+      [
+        214,
+        "Linda Nelson",
+        21,
+        225.36,
+        "Si"
+      ],
+      [
+        272,
+        "Sergio Sanchez",
+        31,
+        225.22,
+        "Si"
+      ],
+      [
+        522,
+        "Roberto Reyes",
+        79,
+        224.26,
+        "Si"
+      ],
+      [
+        280,
+        "Susan Moore",
+        44,
+        223.8,
+        "Si"
+      ],
+      [
+        542,
+        "Diego Aguilar",
+        56,
+        223.45,
+        "Si"
+      ],
+      [
+        357,
+        "Veronica Jimenez",
+        62,
+        223.05,
+        "Si"
+      ],
+      [
+        260,
+        "Ivan Flores",
+        23,
+        222.34,
+        "Si"
+      ],
+      [
+        274,
+        "Daniel Scott",
+        26,
+        220.76,
+        "Si"
+      ],
+      [
+        505,
+        "Lucia Fuentes",
+        57,
+        220.35,
+        "Si"
+      ],
+      [
+        412,
+        "Beatriz Dominguez",
+        63,
+        218.7,
+        "Si"
+      ],
+      [
+        521,
+        "Natalia Chavez",
+        56,
+        217.44,
+        "Si"
+      ],
+      [
+        194,
+        "Mario Mendoza",
+        24,
+        216.95,
+        "Si"
+      ],
+      [
+        355,
+        "Alberto Espinoza",
+        42,
+        216.01,
+        "Si"
+      ],
+      [
+        78,
+        "Emilio Bravo",
+        62,
+        215.89,
+        "Si"
+      ],
+      [
+        316,
+        "James Allen",
+        72,
+        215.58,
+        "Si"
+      ],
+      [
+        92,
+        "Jorge Herrera",
+        33,
+        215.42,
+        "Si"
+      ],
+      [
+        529,
+        "Sofia Castillo",
+        52,
+        214.71,
+        "Si"
+      ],
+      [
+        536,
+        "Juan Mendoza",
+        61,
+        214.7,
+        "Si"
+      ],
+      [
+        166,
+        "Laura Robinson",
+        43,
+        214.66,
+        "Si"
+      ]
+    ],
+    "expected_row_count_approx": 550,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 19,
+    "title": "Integrador de Bloque C",
+    "briefing_ref": "Briefing 4.19",
+    "lesson_ref": "Lección 19",
+    "reference_query": "SELECT\n    'reason'         AS campo,\n    COUNT(*)         AS total_registros,\n    COUNT(reason)    AS con_valor,\n    COUNT(*) - COUNT(reason) AS sin_valor,\n    ROUND(COUNT(reason) * 100.0 / NULLIF(COUNT(*), 0), 1) AS pct_completitud\nFROM returns\n\nUNION ALL\n\nSELECT\n    'status',\n    COUNT(*),\n    COUNT(status),\n    COUNT(*) - COUNT(status),\n    ROUND(COUNT(status) * 100.0 / NULLIF(COUNT(*), 0), 1)\nFROM returns\n\nUNION ALL\n\nSELECT\n    'returned_at',\n    COUNT(*),\n    COUNT(returned_at),\n    COUNT(*) - COUNT(returned_at),\n    ROUND(COUNT(returned_at) * 100.0 / NULLIF(COUNT(*), 0), 1)\nFROM returns;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "campo",
+      "total_registros",
+      "con_valor",
+      "sin_valor",
+      "pct_completitud"
+    ],
+    "sample_rows": [
+      [
+        "reason",
+        2213,
+        2213,
+        0,
+        100.0
+      ],
+      [
+        "status",
+        2213,
+        2213,
+        0,
+        100.0
+      ],
+      [
+        "returned_at",
+        2213,
+        2213,
+        0,
+        100.0
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 20,
+    "title": "Ejercicio 20",
+    "briefing_ref": "Briefing 4.20",
+    "lesson_ref": "Lección 20",
+    "reference_query": "SELECT\n    c.first_name || ' ' || c.last_name   AS nombre_cliente,\n    c.email,\n    c.country,\n    COUNT(r.return_id)                   AS devoluciones_julio\nFROM customers c\nINNER JOIN orders  o ON o.customer_id = c.customer_id\nINNER JOIN returns r ON r.order_id    = o.order_id\nWHERE r.returned_at >= '2025-07-01'\n  AND r.returned_at <  '2025-08-01'\nGROUP BY c.customer_id, c.first_name, c.last_name, c.email, c.country\nORDER BY devoluciones_julio DESC, c.last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_cliente",
+      "email",
+      "country",
+      "devoluciones_julio"
+    ],
+    "sample_rows": [
+      [
+        "Kenneth Jackson",
+        "kenneth.jackson@protonmail.com",
+        "Colombia",
+        7
+      ],
+      [
+        "George King",
+        "george.king@hotmail.com",
+        "Colombia",
+        7
+      ],
+      [
+        "Linda Wilson",
+        "linda.wilson@protonmail.com",
+        "Colombia",
+        6
+      ],
+      [
+        "Elena Alvarez",
+        "elena.alvarez@gmail.com",
+        "Colombia",
+        5
+      ],
+      [
+        "Rodrigo Delgado",
+        "rodrigo.delgado@protonmail.com",
+        "Colombia",
+        5
+      ],
+      [
+        "Jason Green",
+        "jason.green@protonmail.com",
+        "Colombia",
+        4
+      ],
+      [
+        "Lorena Guerrero",
+        "lorena.guerrero@hotmail.com",
+        "Colombia",
+        4
+      ],
+      [
+        "Patricia Jones",
+        "patricia.jones@outlook.com",
+        "Colombia",
+        4
+      ],
+      [
+        "Gustavo Ortiz",
+        "gustavo.ortiz@outlook.com",
+        "Colombia",
+        4
+      ],
+      [
+        "Sofia Ruiz",
+        "sofia.ruiz@outlook.com",
+        "Colombia",
+        4
+      ],
+      [
+        "Alicia Soto",
+        "alicia.soto@outlook.com",
+        "Colombia",
+        4
+      ],
+      [
+        "Brian Wright",
+        "brian.wright@outlook.com",
+        "Colombia",
+        4
+      ],
+      [
+        "Camila Delgado",
+        "camila.delgado@outlook.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Lucia Dominguez",
+        "lucia.dominguez@icloud.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Andres Garcia",
+        "andres.garcia@outlook.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Jorge Lopez",
+        "jorge.lopez@outlook.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Mario Mendoza",
+        "mario.mendoza@yahoo.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Carlos Morales",
+        "carlos.morales@icloud.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Adriana Ramirez",
+        "adriana.ramirez@protonmail.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Marcela Ramirez",
+        "marcela.ramirez@protonmail.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Patricia Robinson",
+        "patricia.robinson@hotmail.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Rebecca Robinson",
+        "rebecca.robinson@protonmail.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Maria Romero",
+        "maria.romero@icloud.com",
+        "Colombia",
+        3
+      ],
+      [
+        "William Smith",
+        "william.smith@icloud.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Ashley Taylor",
+        "ashley.taylor@yahoo.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Claudia Vargas",
+        "claudia.vargas@hotmail.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Paola Vargas",
+        "paola.vargas@hotmail.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Jorge Vega",
+        "jorge.vega@hotmail.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Jennifer Wright",
+        "jennifer.wright@outlook.com",
+        "Colombia",
+        3
+      ],
+      [
+        "Miguel Aguilar",
+        "miguel.aguilar501@gmail.com",
+        "Peru",
+        2
+      ],
+      [
+        "Nicolas Alvarez",
+        "nicolas.alvarez@icloud.com",
+        "Ecuador",
+        2
+      ],
+      [
+        "Carolina Castillo",
+        "carolina.castillo@yahoo.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Juan Chavez",
+        "juan.chavez@outlook.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Jorge Gonzalez",
+        "jorge.gonzalez@gmail.com",
+        "Costa Rica",
+        2
+      ],
+      [
+        "Patricia Hall",
+        "patricia.hall@yahoo.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Hector Hernandez",
+        "hector.hernandez@protonmail.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Raul Jimenez",
+        "raul.jimenez@yahoo.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Emily Jones",
+        "emily.jones@hotmail.com",
+        "Mexico",
+        2
+      ],
+      [
+        "Ashley Jones",
+        "ashley.jones@yahoo.com",
+        "Venezuela",
+        2
+      ],
+      [
+        "Paola Lopez",
+        "paola.lopez@icloud.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Paola Lopez",
+        "paola.lopez@protonmail.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Alberto Mendoza",
+        "alberto.mendoza@gmail.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Luis Romero",
+        "luis.romero@yahoo.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Rafael Ruiz",
+        "rafael.ruiz@protonmail.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Rosa Soto",
+        "rosa.soto@yahoo.com",
+        "Colombia",
+        2
+      ],
+      [
+        "Ricardo Vega",
+        "ricardo.vega@gmail.com",
+        "Mexico",
+        2
+      ],
+      [
+        "Pablo Aguilar",
+        "pablo.aguilar@gmail.com",
+        "Mexico",
+        1
+      ],
+      [
+        "Silvia Aguilar",
+        "silvia.aguilar@protonmail.com",
+        "Argentina",
+        1
+      ],
+      [
+        "Joseph Allen",
+        "joseph.allen@outlook.com",
+        "Peru",
+        1
+      ],
+      [
+        "Oscar Alvarez",
+        "oscar.alvarez@protonmail.com",
+        "Spain",
+        1
+      ]
+    ],
+    "expected_row_count_approx": 103,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 21,
+    "title": "Ejercicio 21",
+    "briefing_ref": "Briefing 4.21",
+    "lesson_ref": "Lección 21",
+    "reference_query": "SELECT\n    r.return_id,\n    r.order_id,\n    r.product_id,\n    r.returned_at,\n    r.status,\n    (SELECT COUNT(*) FROM returns WHERE reason IS NULL) AS total_sin_motivo\nFROM returns r\nWHERE r.reason IS NULL\nORDER BY r.returned_at DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "return_id",
+      "order_id",
+      "product_id",
+      "returned_at",
+      "status",
+      "total_sin_motivo"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 22,
+    "title": "Ejercicio 22",
+    "briefing_ref": "Briefing 4.22",
+    "lesson_ref": "Lección 22",
+    "reference_query": "-- CORRECCIÓN CRIT-09: SUM debe usar CASE WHEN para distinguir filas con devolución\n-- de filas sin devolución. Sin el CASE, categorías sin reembolsos suman el revenue\n-- total de ventas (todas las filas de order_items), no el revenue reembolsado —\n-- un número que parece plausible pero es numéricamente falso.\nSELECT\n    cat.name                                                   AS categoria,\n    ROUND(\n        SUM(CASE WHEN r.return_id IS NOT NULL\n                 THEN oi.quantity * oi.unit_price\n                 ELSE 0\n            END),\n        2\n    )                                                          AS revenue_reembolsado_q3\nFROM categories cat\nINNER JOIN products    p  ON p.category_id  = cat.category_id\nLEFT JOIN  order_items oi ON oi.product_id  = p.product_id\nLEFT JOIN  returns     r  ON r.product_id   = p.product_id\n                          AND r.order_id    = oi.order_id\n                          AND r.status      = 'refunded'\n                          AND r.returned_at >= '2025-07-01'\n                          AND r.returned_at <  '2025-10-01'\nGROUP BY cat.category_id, cat.name\nORDER BY revenue_reembolsado_q3 DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "categoria",
+      "revenue_reembolsado_q3"
+    ],
+    "sample_rows": [
+      [
+        "Home Appliances",
+        7054.49
+      ],
+      [
+        "Electronics",
+        4381.59
+      ],
+      [
+        "Clothing",
+        3784.45
+      ],
+      [
+        "Wearables",
+        1589.83
+      ],
+      [
+        "Sports",
+        1019.78
+      ],
+      [
+        "Toys & Games",
+        929.8
+      ],
+      [
+        "Books",
+        477.85
+      ],
+      [
+        "Beauty",
+        452.84
+      ],
+      [
+        "Office",
+        174.93
+      ],
+      [
+        "Audio",
+        139.97
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 23,
+    "title": "Ejercicio 23",
+    "briefing_ref": "Briefing 4.23",
+    "lesson_ref": "Lección 23",
+    "reference_query": "SELECT\n    c.first_name || ' ' || c.last_name   AS nombre_completo,\n    c.email,\n    c.country,\n    COUNT(o.order_id)                    AS total_pedidos_entregados\nFROM customers c\nINNER JOIN orders o ON o.customer_id = c.customer_id\n                    AND o.status = 'delivered'\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM returns r\n    INNER JOIN orders o2 ON o2.order_id = r.order_id\n    WHERE o2.customer_id = c.customer_id\n)\nGROUP BY c.customer_id, c.first_name, c.last_name, c.email, c.country\nHAVING COUNT(o.order_id) > 0\nORDER BY total_pedidos_entregados DESC, c.last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_completo",
+      "email",
+      "country",
+      "total_pedidos_entregados"
+    ],
+    "sample_rows": [
+      [
+        "Susan Williams",
+        "susan.williams@outlook.com",
+        "Chile",
+        37
+      ],
+      [
+        "Valentina Huanca",
+        "valentina.huanca516@gmail.com",
+        "Peru",
+        36
+      ],
+      [
+        "Melissa Smith",
+        "melissa.smith@gmail.com",
+        "Bolivia",
+        29
+      ],
+      [
+        "Ronald Thomas",
+        "ronald.thomas@yahoo.com",
+        "Argentina",
+        26
+      ],
+      [
+        "Ricardo Gonzalez",
+        "ricardo.gonzalez@outlook.com",
+        "USA",
+        24
+      ],
+      [
+        "Alicia Ruiz",
+        "alicia.ruiz@yahoo.com",
+        "Argentina",
+        24
+      ],
+      [
+        "Alicia Castillo",
+        "alicia.castillo@gmail.com",
+        "Peru",
+        23
+      ],
+      [
+        "Ana Mendoza",
+        "ana.mendoza548@outlook.com",
+        "Argentina",
+        23
+      ],
+      [
+        "Natalia Guerrero",
+        "natalia.guerrero@gmail.com",
+        "USA",
+        22
+      ],
+      [
+        "Sharon King",
+        "sharon.king@icloud.com",
+        "USA",
+        22
+      ],
+      [
+        "Gloria Fuentes",
+        "gloria.fuentes@hotmail.com",
+        "Guatemala",
+        20
+      ],
+      [
+        "Camila Garcia",
+        "camila.garcia@icloud.com",
+        "Venezuela",
+        20
+      ],
+      [
+        "Andres Guerrero",
+        "andres.guerrero@gmail.com",
+        "Honduras",
+        20
+      ],
+      [
+        "Ivan Cruz",
+        "ivan.cruz@outlook.com",
+        "El Salvador",
+        19
+      ],
+      [
+        "Eduardo Garcia",
+        "eduardo.garcia@hotmail.com",
+        "Peru",
+        19
+      ],
+      [
+        "Lorena Ramirez",
+        "lorena.ramirez@protonmail.com",
+        "USA",
+        18
+      ],
+      [
+        "Rafael Ramos",
+        "rafael.ramos@icloud.com",
+        "USA",
+        18
+      ],
+      [
+        "Natalia Romero",
+        "natalia.romero@gmail.com",
+        "Spain",
+        18
+      ],
+      [
+        "Juan Vargas",
+        "juan.vargas@outlook.com",
+        "Bolivia",
+        18
+      ],
+      [
+        "Silvia Gutierrez",
+        "silvia.gutierrez@outlook.com",
+        "Ecuador",
+        16
+      ],
+      [
+        "Lorena Hernandez",
+        "lorena.hernandez@icloud.com",
+        "Argentina",
+        16
+      ],
+      [
+        "Monica Jimenez",
+        "monica.jimenez@yahoo.com",
+        "USA",
+        16
+      ],
+      [
+        "Diego Chavez",
+        "diego.chavez@protonmail.com",
+        "USA",
+        15
+      ],
+      [
+        "Gabriela Reyes",
+        "gabriela.reyes@protonmail.com",
+        "Costa Rica",
+        15
+      ],
+      [
+        "Sarah Young",
+        "sarah.young@hotmail.com",
+        "El Salvador",
+        15
+      ],
+      [
+        "Jessica Moore",
+        "jessica.moore@outlook.com",
+        "Guatemala",
+        14
+      ],
+      [
+        "Miguel Ramirez",
+        "miguel.ramirez@protonmail.com",
+        "Ecuador",
+        14
+      ],
+      [
+        "Sergio Sanchez",
+        "sergio.sanchez@yahoo.com",
+        "Guatemala",
+        14
+      ],
+      [
+        "Jessica Scott",
+        "jessica.scott@outlook.com",
+        "El Salvador",
+        14
+      ],
+      [
+        "Melissa Williams",
+        "melissa.williams@icloud.com",
+        "Guatemala",
+        14
+      ],
+      [
+        "Emilio Delgado",
+        "emilio.delgado@icloud.com",
+        "Ecuador",
+        13
+      ],
+      [
+        "Diego Dominguez",
+        "diego.dominguez@yahoo.com",
+        "Costa Rica",
+        13
+      ],
+      [
+        "Paola Espinoza",
+        "paola.espinoza@yahoo.com",
+        "Spain",
+        13
+      ],
+      [
+        "Sofia Morales",
+        "sofia.morales@hotmail.com",
+        "USA",
+        13
+      ],
+      [
+        "Silvia Aguilar",
+        "silvia.aguilar@hotmail.com",
+        "Paraguay",
+        12
+      ],
+      [
+        "Sebastian Chavez",
+        "sebastian.chavez@gmail.com",
+        "Spain",
+        12
+      ],
+      [
+        "Sergio Jimenez",
+        "sergio.jimenez@hotmail.com",
+        "Uruguay",
+        12
+      ],
+      [
+        "Ashley Moore",
+        "ashley.moore@outlook.com",
+        "USA",
+        12
+      ],
+      [
+        "Linda Nelson",
+        "linda.nelson@gmail.com",
+        "Bolivia",
+        12
+      ],
+      [
+        "John Taylor",
+        "john.taylor@outlook.com",
+        "USA",
+        12
+      ],
+      [
+        "Daniel White",
+        "daniel.white@yahoo.com",
+        "USA",
+        12
+      ],
+      [
+        "Carmen Dominguez",
+        "carmen.dominguez@hotmail.com",
+        "Venezuela",
+        11
+      ],
+      [
+        "Raul Espinoza",
+        "raul.espinoza@hotmail.com",
+        "Spain",
+        11
+      ],
+      [
+        "Pablo Perez",
+        "pablo.perez@protonmail.com",
+        "Ecuador",
+        11
+      ],
+      [
+        "Ivan Sanchez",
+        "ivan.sanchez@hotmail.com",
+        "Uruguay",
+        11
+      ],
+      [
+        "Rafael Cruz",
+        "rafael.cruz@icloud.com",
+        "USA",
+        10
+      ],
+      [
+        "Ximena Delgado",
+        "ximena.delgado@gmail.com",
+        "Ecuador",
+        10
+      ],
+      [
+        "Sharon Jackson",
+        "sharon.jackson@outlook.com",
+        "USA",
+        10
+      ],
+      [
+        "Richard Thompson",
+        "richard.thompson@hotmail.com",
+        "Venezuela",
+        10
+      ],
+      [
+        "Pedro Chavez",
+        "pedro.chavez@protonmail.com",
+        "Spain",
+        9
+      ]
+    ],
+    "expected_row_count_approx": 55,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 24,
+    "title": "Ejercicio 24",
+    "briefing_ref": "Briefing 4.24",
+    "lesson_ref": "Lección 24",
+    "reference_query": "-- Bloque 1: devolvieron y NO volvieron a comprar\nSELECT\n    c.customer_id,\n    c.first_name || ' ' || c.last_name  AS nombre_cliente,\n    c.email,\n    c.country,\n    'no_volvio'                          AS segmento\nFROM customers c\nWHERE EXISTS (\n    SELECT 1 FROM returns r\n    INNER JOIN orders o ON o.order_id = r.order_id\n    WHERE o.customer_id  = c.customer_id\n      AND r.returned_at >= '2024-07-01'\n)\nAND NOT EXISTS (\n    SELECT 1 FROM orders o2\n    WHERE o2.customer_id = c.customer_id\n      AND o2.status     <> 'cancelled'\n      AND o2.ordered_at > (\n          SELECT MAX(r2.returned_at)\n          FROM returns r2\n          INNER JOIN orders o3 ON o3.order_id = r2.order_id\n          WHERE o3.customer_id = c.customer_id\n            AND r2.returned_at >= '2024-07-01'\n      )\n)\n\nUNION ALL\n\n-- Bloque 2: devolvieron y SÍ volvieron a comprar\nSELECT\n    c.customer_id,\n    c.first_name || ' ' || c.last_name,\n    c.email,\n    c.country,\n    'si_volvio'\nFROM customers c\nWHERE EXISTS (\n    SELECT 1 FROM returns r\n    INNER JOIN orders o ON o.order_id = r.order_id\n    WHERE o.customer_id  = c.customer_id\n      AND r.returned_at >= '2024-07-01'\n)\nAND EXISTS (\n    SELECT 1 FROM orders o2\n    WHERE o2.customer_id = c.customer_id\n      AND o2.status     <> 'cancelled'\n      AND o2.ordered_at > (\n          SELECT MAX(r2.returned_at)\n          FROM returns r2\n          INNER JOIN orders o3 ON o3.order_id = r2.order_id\n          WHERE o3.customer_id = c.customer_id\n            AND r2.returned_at >= '2024-07-01'\n      )\n)\n\nORDER BY segmento, country;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "nombre_cliente",
+      "email",
+      "country",
+      "segmento"
+    ],
+    "sample_rows": [
+      [
+        310,
+        "Kenneth Clark",
+        "kenneth.clark@protonmail.com",
+        "Argentina",
+        "no_volvio"
+      ],
+      [
+        379,
+        "Alberto Pena",
+        "alberto.pena@outlook.com",
+        "Argentina",
+        "no_volvio"
+      ],
+      [
+        177,
+        "Jessica Taylor",
+        "jessica.taylor@gmail.com",
+        "Bolivia",
+        "no_volvio"
+      ],
+      [
+        195,
+        "Carmen Vargas",
+        "carmen.vargas@outlook.com",
+        "Bolivia",
+        "no_volvio"
+      ],
+      [
+        311,
+        "Gloria Reyes",
+        "gloria.reyes@gmail.com",
+        "Bolivia",
+        "no_volvio"
+      ],
+      [
+        317,
+        "Mark Miller",
+        "mark.miller@icloud.com",
+        "Bolivia",
+        "no_volvio"
+      ],
+      [
+        364,
+        "Beatriz Campos",
+        "beatriz.campos@icloud.com",
+        "Bolivia",
+        "no_volvio"
+      ],
+      [
+        50,
+        "Silvia Espinoza",
+        "silvia.espinoza@protonmail.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        58,
+        "Gabriela Soto",
+        "gabriela.soto@icloud.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        90,
+        "Diego Torres",
+        "diego.torres@outlook.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        299,
+        "Ivan Gutierrez",
+        "ivan.gutierrez@yahoo.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        316,
+        "James Allen",
+        "james.allen@yahoo.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        323,
+        "Jason Young",
+        "jason.young@gmail.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        427,
+        "Natalia Morales",
+        "natalia.morales@hotmail.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        474,
+        "Rafael Pena",
+        "rafael.pena@icloud.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        545,
+        "Fernando Aguilar",
+        "fernando.aguilar545@outlook.com",
+        "Chile",
+        "no_volvio"
+      ],
+      [
+        4,
+        "Mark Moore",
+        "mark.moore@outlook.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        68,
+        "Paola Lopez",
+        "paola.lopez@icloud.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        105,
+        "Claudia Vargas",
+        "claudia.vargas@hotmail.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        186,
+        "Patricia Jones",
+        "patricia.jones@outlook.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        282,
+        "Mario Pena",
+        "mario.pena@yahoo.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        289,
+        "Luis Romero",
+        "luis.romero@yahoo.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        376,
+        "Brian Wright",
+        "brian.wright@outlook.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        386,
+        "Marcela Ramirez",
+        "marcela.ramirez@protonmail.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        391,
+        "Paola Vargas",
+        "paola.vargas@hotmail.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        395,
+        "Camila Delgado",
+        "camila.delgado@outlook.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        421,
+        "Mario Mendoza",
+        "mario.mendoza@yahoo.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        450,
+        "Rodrigo Delgado",
+        "rodrigo.delgado@protonmail.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        480,
+        "William Smith",
+        "william.smith@icloud.com",
+        "Colombia",
+        "no_volvio"
+      ],
+      [
+        485,
+        "Claudia Hernandez",
+        "claudia.hernandez@yahoo.com",
+        "Costa Rica",
+        "no_volvio"
+      ],
+      [
+        182,
+        "Sofia Cruz",
+        "sofia.cruz@yahoo.com",
+        "Ecuador",
+        "no_volvio"
+      ],
+      [
+        402,
+        "Ivan Gonzalez",
+        "ivan.gonzalez@outlook.com",
+        "Ecuador",
+        "no_volvio"
+      ],
+      [
+        19,
+        "Sharon Thompson",
+        "sharon.thompson@hotmail.com",
+        "El Salvador",
+        "no_volvio"
+      ],
+      [
+        145,
+        "Monica Rodriguez",
+        "monica.rodriguez@gmail.com",
+        "El Salvador",
+        "no_volvio"
+      ],
+      [
+        420,
+        "Sergio Morales",
+        "sergio.morales@icloud.com",
+        "El Salvador",
+        "no_volvio"
+      ],
+      [
+        168,
+        "Roberto Ruiz",
+        "roberto.ruiz@icloud.com",
+        "Guatemala",
+        "no_volvio"
+      ],
+      [
+        44,
+        "Gustavo Alvarez",
+        "gustavo.alvarez@protonmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        59,
+        "Ronald Wilson",
+        "ronald.wilson@yahoo.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        73,
+        "Isabella Gutierrez",
+        "isabella.gutierrez@protonmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        88,
+        "Claudia Espinoza",
+        "claudia.espinoza@hotmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        173,
+        "Ana Guerrero",
+        "ana.guerrero@hotmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        183,
+        "Jorge Chavez",
+        "jorge.chavez@hotmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        193,
+        "David Harris",
+        "david.harris@protonmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        210,
+        "Raul Flores",
+        "raul.flores@hotmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        242,
+        "Susan Moore",
+        "susan.moore@icloud.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        286,
+        "Jorge Espinoza",
+        "jorge.espinoza@icloud.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        298,
+        "Edward Robinson",
+        "edward.robinson@outlook.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        344,
+        "Isabella Morales",
+        "isabella.morales@gmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        351,
+        "Emilio Medina",
+        "emilio.medina@protonmail.com",
+        "Mexico",
+        "no_volvio"
+      ],
+      [
+        370,
+        "Gloria Gutierrez",
+        "gloria.gutierrez@gmail.com",
+        "Mexico",
+        "no_volvio"
+      ]
+    ],
+    "expected_row_count_approx": 484,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 25,
+    "title": "Integrador del Nivel 4",
+    "briefing_ref": "Briefing 4.25",
+    "lesson_ref": "Lección 25",
+    "reference_query": "SELECT\n    cat.name                                                AS nombre_categoria,\n    COUNT(DISTINCT CASE\n        WHEN o.ordered_at >= '2025-07-01'\n         AND o.ordered_at <  '2025-08-01'\n         AND o.status     <> 'cancelled'\n        THEN oi.item_id END)                               AS items_vendidos_julio,\n    COUNT(DISTINCT CASE\n        WHEN r.returned_at >= '2025-07-01'\n         AND r.returned_at <  '2025-08-01'\n        THEN r.return_id END)                              AS items_devueltos_julio,\n    ROUND(\n        COUNT(DISTINCT CASE\n            WHEN r.returned_at >= '2025-07-01'\n             AND r.returned_at <  '2025-08-01'\n            THEN r.return_id END) * 100.0\n        / NULLIF(\n            COUNT(DISTINCT CASE\n                WHEN o.ordered_at >= '2025-07-01'\n                 AND o.ordered_at <  '2025-08-01'\n                 AND o.status     <> 'cancelled'\n                THEN oi.item_id END),\n            0\n        ),\n        2\n    )                                                      AS tasa_devolucion_pct,\n    COALESCE(ROUND(\n        SUM(CASE\n            WHEN r.status      = 'refunded'\n             AND r.returned_at >= '2025-07-01'\n             AND r.returned_at <  '2025-08-01'\n            THEN oi.quantity * oi.unit_price\n            ELSE 0\n        END), 2), 0.00)                                   AS revenue_reembolsado_julio,\n    -- Top producto devuelto en julio 2025 para esta categoría (subquery correlacionada)\n    (SELECT p2.name\n     FROM products p2\n     INNER JOIN order_items oi2 ON oi2.product_id  = p2.product_id\n     LEFT JOIN  returns     r2  ON r2.product_id   = p2.product_id\n                                AND r2.order_id    = oi2.order_id\n                                AND r2.returned_at >= '2025-07-01'\n                                AND r2.returned_at <  '2025-08-01'\n     WHERE p2.category_id = cat.category_id\n     GROUP BY p2.product_id, p2.name\n     ORDER BY COUNT(r2.return_id) DESC\n     LIMIT 1)                                             AS top_producto_devuelto\nFROM categories cat\nINNER JOIN products    p  ON p.category_id  = cat.category_id\nINNER JOIN order_items oi ON oi.product_id  = p.product_id\nINNER JOIN orders      o  ON o.order_id     = oi.order_id\nLEFT JOIN  returns     r  ON r.product_id   = p.product_id\n                          AND r.order_id    = oi.order_id\nGROUP BY cat.category_id, cat.name\nHAVING COUNT(DISTINCT CASE\n    WHEN o.ordered_at >= '2025-07-01'\n     AND o.ordered_at <  '2025-08-01'\n     AND o.status     <> 'cancelled'\n    THEN oi.item_id END) > 0\nORDER BY tasa_devolucion_pct DESC NULLS LAST;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_categoria",
+      "items_vendidos_julio",
+      "items_devueltos_julio",
+      "tasa_devolucion_pct",
+      "revenue_reembolsado_julio",
+      "top_producto_devuelto"
+    ],
+    "sample_rows": [
+      [
+        "Toys & Games",
+        128,
+        13,
+        10.16,
+        164.92,
+        "Funko Pop Harry Potter"
+      ],
+      [
+        "Books",
+        126,
+        11,
+        8.73,
+        199.95,
+        "Clean Code - Robert C Martin"
+      ],
+      [
+        "Home Appliances",
+        346,
+        28,
+        8.09,
+        1054.86,
+        "Ventilador Torre Liliana 45cm"
+      ],
+      [
+        "Electronics",
+        332,
+        25,
+        7.53,
+        352.9,
+        "Teclado Inalambrico Logitech K380"
+      ],
+      [
+        "Sports",
+        176,
+        13,
+        7.39,
+        944.81,
+        "Colchoneta Yoga 6mm Domyos"
+      ],
+      [
+        "Wearables",
+        153,
+        11,
+        7.19,
+        709.92,
+        "Smartwatch Samsung Galaxy Watch 4"
+      ],
+      [
+        "Clothing",
+        1084,
+        72,
+        6.64,
+        2109.68,
+        "Campera Invierno ThermoShield"
+      ],
+      [
+        "Audio",
+        189,
+        12,
+        6.35,
+        39.99,
+        "Audifonos Sony WH-CH520"
+      ],
+      [
+        "Office",
+        111,
+        7,
+        6.31,
+        34.99,
+        "Soporte Laptop Aluminio Ajustable"
+      ],
+      [
+        "Beauty",
+        142,
+        8,
+        5.63,
+        274.89,
+        "Set Maquillaje Rimmel London"
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  }
+]

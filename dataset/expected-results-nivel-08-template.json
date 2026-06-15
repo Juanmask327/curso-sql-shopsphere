@@ -1,0 +1,196 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Revenue neto Q1 2026 por pais — pagos completados menos reembolsos",
+    "briefing_ref": "Briefing 8.1 — Ana Castillo: Revenue neto Q1 2026 desagregado por pais",
+    "lesson_ref": "Leccion 1 — Revenue neto con tabla payments: SUM condicional por status",
+    "reference_query": "WITH pagos_q1 AS ( SELECT p.payment_id, p.order_id, p.amount, p.status, c.country FROM payments p INNER JOIN orders o ON o.order_id = p.order_id INNER JOIN customers c ON c.customer_id = o.customer_id WHERE p.paid_at >= '2026-01-01' AND p.paid_at < '2026-04-01' ), revenue_por_pais AS ( SELECT country, SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) AS total_cobrado, SUM(CASE WHEN status = 'refunded' THEN amount ELSE 0 END) AS total_reembolsado FROM pagos_q1 GROUP BY country ) SELECT country AS pais, ROUND(total_cobrado, 2) AS total_cobrado, ROUND(total_reembolsado, 2) AS total_reembolsado, ROUND(total_cobrado - total_reembolsado, 2) AS revenue_neto, ROUND(total_reembolsado * 100.0 / NULLIF(total_cobrado, 0), 2) AS pct_reembolsado FROM revenue_por_pais ORDER BY revenue_neto DESC;",
+    "tables_used": ["payments", "orders", "customers"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["pais", "total_cobrado", "total_reembolsado", "revenue_neto", "pct_reembolsado"],
+    "sample_rows": [
+      ["PLACEHOLDER — pais con mayor revenue neto Q1 2026", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["Chile", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — posiblemente bajo por anomalia", "PLACEHOLDER — posiblemente > 5% umbral de Ana"]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "TEMPLATE — valores reales pendientes. El seed tiene clientes de Argentina, Chile, Colombia, Mexico y Peru (5 paises). El resultado deberia tener 5 filas si todos tienen pagos en Q1 2026. Si algun pais no tiene pagos en ese periodo, puede tener menos filas. UMBRAL DEL BRIEFING: si pct_reembolsado > 5% para algun pais, Ana pide incluirlo como nota. El teacher puede implementar esto con una CTE adicional que filtre WHERE pct_reembolsado > 5, o simplemente mencionarlo en la interpretacion del resultado. PAGOS SIN paid_at EN Q1 2026: algunos pagos pueden tener paid_at = NULL (ver EJ3). Estos quedan excluidos del WHERE paid_at >= '2026-01-01'. El teacher debe mencionar esta exclusion — si muchos pagos de Q1 tienen paid_at NULL, el revenue neto calculado es una subestimacion. PUNTO PEDAGOGICO CENTRAL: el revenue neto (completed - refunded) es la metrica financiera mas importante del nivel. El teacher debe contrastarla con el revenue bruto (solo completed) para mostrar la diferencia y por que importa a la junta. RELACION CON LA ANOMALIA: si Chile tiene el mayor pct_reembolsado, confirma la narrativa del Q1."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Anomalia Chile — tasa de fallo por metodo de pago vs resto de paises (marzo-abril 2026)",
+    "briefing_ref": "Briefing 8.2 — Ana Castillo: Tasa de pagos fallidos en Chile vs otros paises por metodo",
+    "lesson_ref": "Leccion 1 — Analisis comparativo con CASE WHEN y segmentacion geografica",
+    "reference_query": "WITH pagos_periodo AS ( SELECT p.payment_id, p.amount, p.method, p.status, CASE WHEN c.country = 'Chile' THEN 'Chile' ELSE 'Resto de paises' END AS grupo_pais FROM payments p INNER JOIN orders o ON o.order_id = p.order_id INNER JOIN customers c ON c.customer_id = o.customer_id WHERE p.paid_at >= '2026-03-01' AND p.paid_at < '2026-05-01' ) SELECT grupo_pais, method AS metodo, COUNT(*) AS total_pagos, SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS pagos_fallidos, ROUND( SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 2 ) AS tasa_fallo_pct FROM pagos_periodo GROUP BY grupo_pais, method ORDER BY grupo_pais, tasa_fallo_pct DESC;",
+    "tables_used": ["payments", "orders", "customers"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["grupo_pais", "metodo", "total_pagos", "pagos_fallidos", "tasa_fallo_pct"],
+    "sample_rows": [
+      ["Chile", "credit_card", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera el mas alto segun narrativa"],
+      ["Chile", "paypal", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["Chile", "bank_transfer", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["Chile", "crypto", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["Resto de paises", "credit_card", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera notablemente menor que Chile"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado tiene hasta 8 filas: 4 metodos para Chile + 4 metodos para Resto de paises. Si algun metodo no tiene pagos en ese periodo para alguno de los dos grupos, habra menos filas. HALLAZGO NARRATIVO ESPERADO: el seed debe mostrar una tasa de fallo notablemente mayor en un metodo especifico de Chile (credit_card segun la narrativa del briefing). Si la tasa de Chile en credit_card es mas del doble que en el resto, confirma la hipotesis del problema de infraestructura. El teacher debe incluir esta interpretacion en la leccion. PUNTO PEDAGOGICO: el CASE WHEN para crear el grupo_pais ('Chile' vs 'Resto de paises') es un patron de analisis comparativo muy comun. El teacher puede mostrar la alternativa de usar dos CTEs separadas (una para Chile, otra para el resto) y comparar la legibilidad. EXTENSION AVANZADA: para ver el ratio exacto (tasa Chile / tasa resto), se puede hacer un self-join sobre el resultado agrupado por metodo. El teacher puede proponer esto como ejercicio adicional."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Integridad de pagos — completed con paid_at NULL: monto impacto potencial",
+    "briefing_ref": "Briefing 8.3 — Ana Castillo: Registros con status completed y paid_at IS NULL antes del cierre",
+    "lesson_ref": "Leccion 2 — Auditoria de datos: detectar inconsistencias logicas con IS NULL",
+    "reference_query": "SELECT COUNT(*) AS registros_problematicos, COUNT(DISTINCT p.order_id) AS pedidos_afectados, ROUND(SUM(p.amount), 2) AS monto_total_impactado FROM payments p WHERE p.status = 'completed' AND p.paid_at IS NULL;",
+    "tables_used": ["payments"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["registros_problematicos", "pedidos_afectados", "monto_total_impactado"],
+    "sample_rows": [
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado es una sola fila. Si el seed no tiene registros con status='completed' y paid_at=NULL, el resultado sera (0, 0, 0.00) — lo que es tecnicamente correcto pero pedagogicamente poco interesante. El teacher debe verificar si el seed tiene este tipo de registros y, si no los tiene, agregar algunos manualmente para que el ejercicio sea demostrable. PUNTO PEDAGOGICO CENTRAL: un pago 'completado' sin fecha es incoherente a nivel de negocio. Este ejercicio enseña que la auditoria de datos no busca solo NULLs aislados, sino inconsistencias logicas entre columnas — el problema no es que paid_at sea NULL (a veces es valido para pagos pendientes), sino que sea NULL cuando status = 'completed'. EXTENSION: el teacher puede expandir la query para mostrar los paises donde estan concentrados estos registros (con JOIN a customers). Este detalle es lo que Ana pide en el briefing. UMBRALES: si monto_total_impactado > 1% del revenue neto del Q1 (calculado en EJ01), el informe debe incluir advertencia. El teacher puede mostrar como comparar el monto con el revenue total usando una subconsulta o CTE."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Distribucion de metodos de pago por rango de monto — concentracion de riesgo en tickets altos",
+    "briefing_ref": "Briefing 8.4 — Ana Castillo: Metodos de pago por rango de ticket para seccion de riesgos",
+    "lesson_ref": "Leccion 1 — CASE WHEN para rangos de monto y analisis de concentracion",
+    "reference_query": "WITH pagos_clasificados AS ( SELECT p.payment_id, p.amount, p.method, CASE WHEN p.amount < 50 THEN 'bajo (< 50)' WHEN p.amount BETWEEN 50 AND 200 THEN 'medio (50-200)' WHEN p.amount > 200 THEN 'alto (> 200)' END AS rango_monto FROM payments p WHERE p.status = 'completed' ), totales_por_rango AS ( SELECT rango_monto, COUNT(*) AS total_rango FROM pagos_clasificados GROUP BY rango_monto ) SELECT pc.rango_monto, pc.method AS metodo, COUNT(*) AS transacciones, t.total_rango, ROUND(COUNT(*) * 100.0 / NULLIF(t.total_rango, 0), 2) AS pct_en_rango, ROUND(AVG(pc.amount), 2) AS monto_promedio FROM pagos_clasificados pc INNER JOIN totales_por_rango t ON t.rango_monto = pc.rango_monto GROUP BY pc.rango_monto, pc.method, t.total_rango ORDER BY CASE pc.rango_monto WHEN 'bajo (< 50)' THEN 1 WHEN 'medio (50-200)' THEN 2 WHEN 'alto (> 200)' THEN 3 END, pct_en_rango DESC;",
+    "tables_used": ["payments"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["rango_monto", "metodo", "transacciones", "total_rango", "pct_en_rango", "monto_promedio"],
+    "sample_rows": [
+      ["alto (> 200)", "credit_card", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — si > 60% confirma riesgo de concentracion", "PLACEHOLDER"],
+      ["alto (> 200)", "bank_transfer", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["bajo (< 50)", "paypal", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado tiene hasta 12 filas (3 rangos x 4 metodos), menos si algun metodo no aparece en algun rango. PUNTO NARRATIVO: la hipotesis de Ana es que los tickets altos se concentran en credit_card o bank_transfer. Si la suma de ambos supera el 60% en el rango 'alto', se confirma el riesgo de concentracion. El teacher puede implementar un filtro adicional que muestre solo los metodos con pct > 60% en tickets altos como alerta automatica. PUNTO PEDAGOGICO: la columna total_rango se obtiene con un JOIN a una CTE auxiliar (totales_por_rango). El teacher debe mostrar por que no se puede calcular el porcentaje directamente en el GROUP BY principal sin esta tecnica — un error comun es intentar dividir COUNT(*) / SUM(COUNT(*)) OVER (PARTITION BY rango_monto) con window functions, lo que es valido pero mas avanzado. ALTERNATIVA CON WINDOW FUNCTION: ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY rango_monto), 2) AS pct_en_rango — el teacher puede mostrar ambas variantes."
+  },
+  {
+    "exercise_number": 5,
+    "title": "EXPLAIN ANALYZE — optimizacion de query lenta de payments x orders x customers",
+    "briefing_ref": "Briefing 8.5 — Valentina Torres: La query de revenue tarda 45 segundos — identificar y crear indices",
+    "lesson_ref": "Leccion 3 — EXPLAIN ANALYZE: leer el plan de ejecucion y detectar Seq Scans evitables",
+    "reference_query": "-- FASE 1: identificar el plan sin indices\nEXPLAIN ANALYZE\nSELECT c.country, SUM(p.amount) AS revenue_bruto\nFROM payments p\nINNER JOIN orders o ON o.order_id = p.order_id\nINNER JOIN customers c ON c.customer_id = o.customer_id\nWHERE p.paid_at >= '2026-01-01'\n  AND p.paid_at < '2026-04-01'\n  AND p.status = 'completed'\nGROUP BY c.country;\n\n-- FASE 2: crear los indices identificados\nCREATE INDEX IF NOT EXISTS idx_payments_order_id ON payments(order_id);\nCREATE INDEX IF NOT EXISTS idx_payments_paid_at ON payments(paid_at);\nCREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);\n\n-- FASE 3: verificar nuevo plan\nEXPLAIN ANALYZE\nSELECT c.country, SUM(p.amount) AS revenue_bruto\nFROM payments p\nINNER JOIN orders o ON o.order_id = p.order_id\nINNER JOIN customers c ON c.customer_id = o.customer_id\nWHERE p.paid_at >= '2026-01-01'\n  AND p.paid_at < '2026-04-01'\n  AND p.status = 'completed'\nGROUP BY c.country;",
+    "tables_used": ["payments", "orders", "customers"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "manual_review",
+    "expected_columns": [],
+    "sample_rows": [],
+    "expected_row_count_approx": null,
+    "notes": "EJERCICIO DE REVISION MANUAL — EXPLAIN ANALYZE no puede auto-validarse porque su output es texto de plan de ejecucion, no filas de datos. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe ejecutar EXPLAIN ANALYZE antes de crear los indices y copiar el output al entregable. El plan debe mostrar al menos un 'Seq Scan on payments' con Filter. (2) Despues de crear los indices, el nuevo plan debe mostrar 'Index Scan' o 'Bitmap Index Scan' en lugar de 'Seq Scan' para al menos la columna paid_at. (3) El estimated cost del nodo raiz (primer numero en 'cost=X..Y') debe ser materialmente menor en el plan post-indice. Si el costo bajo a menos del 50% del original, es una mejora significativa. (4) El estudiante debe explicar en un comentario por que eligio indexar paid_at en lugar de (o ademas de) status: paid_at es una columna de rango con alta cardinalidad (muchos valores distintos) — un indice de rango es mas selectivo que un indice en status (que solo tiene 4 valores posibles). DIALECTAL: EXPLAIN ANALYZE es PostgreSQL y algunos dialectos similares. En SQLite el equivalente es EXPLAIN QUERY PLAN (sin el ANALYZE). El teacher debe adaptar segun el motor del curso. NOTA DE PRODUCCION: en produccion, no se crea un indice por cada columna del WHERE indiscriminadamente — hay un trade-off con el costo de escritura. El teacher debe mencionar que para este volumen (1481 pagos) el impacto es casi imperceptible, pero el ejercicio enseña el proceso correcto para datasets de millones de filas."
+  },
+  {
+    "exercise_number": 6,
+    "title": "EXPLAIN ANALYZE sobre query de cohortes — detectar Seq Scans y proponer indice optimo",
+    "briefing_ref": "Briefing 8.6 — Valentina Torres: Optimizacion de la query de cohortes de clientes",
+    "lesson_ref": "Leccion 3 — Interpretacion de EXPLAIN ANALYZE: Hash Join, Seq Scan, Index Scan",
+    "reference_query": "-- Query de cohortes del Nivel 6 (retencion mensual)\nEXPLAIN ANALYZE\nWITH primera_compra AS (\n    SELECT o.customer_id,\n           DATE_TRUNC('month', MIN(o.ordered_at))::DATE AS mes_primera_compra\n    FROM orders o\n    WHERE o.status = 'delivered'\n    GROUP BY o.customer_id\n)\nSELECT pc.mes_primera_compra AS cohorte,\n       COUNT(DISTINCT pc.customer_id) AS clientes_nuevos,\n       COUNT(DISTINCT CASE WHEN EXISTS (\n           SELECT 1 FROM orders o2\n           WHERE o2.customer_id = pc.customer_id\n             AND o2.status = 'delivered'\n             AND o2.ordered_at >= pc.mes_primera_compra + INTERVAL '1 month'\n             AND o2.ordered_at <  pc.mes_primera_compra + INTERVAL '2 months'\n       ) THEN pc.customer_id END) AS retenidos_mes2\nFROM primera_compra pc\nGROUP BY pc.mes_primera_compra\nORDER BY pc.mes_primera_compra;",
+    "tables_used": ["orders"],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": [],
+    "sample_rows": [],
+    "expected_row_count_approx": null,
+    "notes": "EJERCICIO DE REVISION MANUAL — EXPLAIN ANALYZE no auto-validable. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe identificar si hay un Seq Scan sobre orders — con 2000 ordenes en el seed este puede ser aceptable, pero el estudiante debe argumentar que con 2 millones de ordenes seria un problema. (2) El estudiante debe identificar si la subconsulta EXISTS genera un scan por cada fila del resultado externo — si hay 36 cohortes mensuales y 500 clientes por cohorte, eso son 18000 evaluaciones del EXISTS. (3) El indice propuesto debe ser sobre orders(customer_id, ordered_at, status) en ese orden — un indice compuesto que cubre los tres predicados del WHERE del EXISTS. El estudiante debe argumentar por que este orden especifico (no status primero). (4) La explicacion del razonamiento vale mas que el indice en si — el teacher califica la justificacion, no solo el CREATE INDEX. PUNTO PEDAGOGICO: con el seed de 2000 ordenes, la diferencia de performance es imperceptible. El teacher debe simular el escenario de produccion mencionando que la misma query sobre 31345 ordenes (el seed original) o millones de ordenes si importa. La discusion del plan de ejecucion es conceptual en este nivel."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Indice parcial para pagos fallidos de Chile — eficiencia en queries repetitivas",
+    "briefing_ref": "Briefing 8.7 — Valentina Torres: Indice parcial sobre payments para acelerar consultas de Chile",
+    "lesson_ref": "Leccion 3 — Indices parciales: indexar solo un subconjunto de filas",
+    "reference_query": "-- Un indice parcial indexa solo las filas que cumplen la condicion WHERE\n-- Es mas eficiente que un indice general en status porque:\n-- (a) ocupa menos espacio en disco: solo indexa filas donde status='failed' (una fraccion del total)\n-- (b) el optimizador puede descartar el indice inmediatamente para queries sobre otros status\n-- (c) para el caso especifico de Chile + failed, el indice es extremadamente selectivo\n\n-- Primero necesitamos identificar los order_ids de Chile para el indice parcial\n-- En PostgreSQL, un indice parcial puede referenciar otras tablas con una subconsulta\n-- La forma mas practica es indexar sobre payments(order_id) WHERE status = 'failed'\n-- y dejar el filtro de Chile al optimizador via el JOIN con customers\n\nCREATE INDEX IF NOT EXISTS idx_payments_failed\n    ON payments(order_id, paid_at)\n    WHERE status = 'failed';\n\n-- Verificar que el indice existe\nSELECT indexname, indexdef\nFROM pg_indexes\nWHERE tablename = 'payments'\n  AND indexname = 'idx_payments_failed';",
+    "tables_used": ["payments"],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": ["indexname", "indexdef"],
+    "sample_rows": [],
+    "expected_row_count_approx": 1,
+    "notes": "EJERCICIO DE REVISION MANUAL — la creacion del indice no auto-validable en el contexto del sistema de ejercicios. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe incluir un comentario SQL explicando por que un indice parcial es mejor que un indice general en status. Los puntos clave son: (a) la tabla payments tiene 4 valores posibles en status — un indice general en status es de baja selectividad, (b) un indice parcial WHERE status = 'failed' solo indexa un subconjunto de filas (ej: 20% si la tasa de fallo es 20%), siendo mucho mas compacto, (c) para la consulta especifica de Ana (pagos fallidos de Chile), el indice parcial es optimo. (2) El estudiante debe ejecutar el SELECT de verificacion y confirmar que el indice fue creado. (3) El estudiante puede proponer un indice alternativo mas especifico si argumenta correctamente. DIALECTAL: CREATE INDEX ... WHERE es una caracteristica de PostgreSQL (indice parcial). SQLite tambien soporta indices parciales con la misma sintaxis. MySQL NO soporta indices parciales — si el curso usa MySQL, esta funcionalidad no esta disponible y el teacher debe adaptarlo. pg_indexes es una vista del catalogo de sistema de PostgreSQL — en SQLite usar sqlite_master WHERE type = 'index'."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Transaccion atomica — INSERT en orders y UPDATE en inventory con SAVEPOINT",
+    "briefing_ref": "Briefing 8.8 — Diego Morales: Transaccion que envuelve INSERT en orders y UPDATE en inventory con ROLLBACK en fallo",
+    "lesson_ref": "Leccion 4 — Transacciones: BEGIN, COMMIT, ROLLBACK y SAVEPOINT",
+    "reference_query": "BEGIN;\n\n-- Paso 1: insertar el nuevo pedido\nINSERT INTO orders (order_id, customer_id, ordered_at, status)\nVALUES (99001, 42, '2026-06-01 10:00:00', 'pending');\n\n-- Punto de restauracion: podemos revertir solo el UPDATE de inventory\n-- sin perder el INSERT del pedido (segun Diego, para casos especificos)\nSAVEPOINT antes_del_descuento;\n\n-- Paso 2: descontar el stock del producto\nUPDATE inventory\nSET stock = stock - 1,\n    updated_at = '2026-06-01 10:00:00'\nWHERE product_id = 1\n  AND stock >= 1;  -- condicion de negocio: solo descontar si hay stock\n\n-- Verificacion: si stock era 0, el UPDATE no afecto ninguna fila\n-- En produccion, el codigo de aplicacion verificaria GET DIAGNOSTICS rows_affected\n-- y ejecutaria ROLLBACK TO SAVEPOINT si rows_affected = 0\n\n-- Si todo esta bien:\nCOMMIT;\n\n-- Si el UPDATE de stock fallo (stock insuficiente):\n-- ROLLBACK TO SAVEPOINT antes_del_descuento;  -- solo revierte el UPDATE\n-- ROLLBACK;  -- revierte todo incluyendo el INSERT",
+    "tables_used": ["orders", "inventory"],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": [],
+    "sample_rows": [],
+    "expected_row_count_approx": null,
+    "notes": "EJERCICIO DE REVISION MANUAL — las transacciones no pueden auto-validarse porque su comportamiento depende del estado de la base de datos en tiempo de ejecucion. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) La transaccion debe comenzar con BEGIN (o START TRANSACTION). (2) El INSERT en orders debe ir antes del SAVEPOINT. (3) El SAVEPOINT debe estar entre el INSERT y el UPDATE — no al principio ni al final. (4) El UPDATE en inventory debe incluir una condicion de stock suficiente (stock >= cantidad_a_descontar) para el caso de stock insuficiente. (5) El estudiante debe mostrar tres variantes: (a) el flujo normal con COMMIT, (b) el ROLLBACK TO SAVEPOINT para revertir solo el descuento, (c) el ROLLBACK completo para revertir todo. (6) Los comentarios deben explicar en que caso de negocio se usa cada variante. ADVERTENCIA SOBRE EL SEED: ejecutar este ejercicio modifica la tabla orders con un order_id ficticio (99001). El teacher debe indicar que este ejercicio se ejecuta en un entorno de prueba o que el estudiante debe hacer ROLLBACK al final para no contaminar los datos del curso. PUNTO PEDAGOGICO: la atomicidad es la 'A' de ACID. Si el sistema falla entre el INSERT y el UPDATE, la transaccion se revierte completa — el estado inconsistente (pedido sin descuento de stock) nunca queda en la base de datos."
+  },
+  {
+    "exercise_number": 9,
+    "title": "INSERT ... ON CONFLICT DO UPDATE — upsert de inventario idempotente",
+    "briefing_ref": "Briefing 8.9 — Diego Morales: INSERT en inventory con manejo automatico de conflicto por product_id duplicado",
+    "lesson_ref": "Leccion 4 — Idempotencia: INSERT ... ON CONFLICT para operaciones de escritura seguras",
+    "reference_query": "-- Insertar nuevo registro de inventario\n-- Si el product_id ya existe, actualizar el stock en lugar de fallar\nINSERT INTO inventory (inventory_id, product_id, stock, updated_at)\nVALUES (9001, 1, 150, NOW())\nON CONFLICT (product_id)\nDO UPDATE SET\n    stock = EXCLUDED.stock,\n    updated_at = EXCLUDED.updated_at;\n\n-- Verificar que el stock fue actualizado\nSELECT inventory_id, product_id, stock, updated_at\nFROM inventory\nWHERE product_id = 1;",
+    "tables_used": ["inventory"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["inventory_id", "product_id", "stock", "updated_at"],
+    "sample_rows": [
+      ["PLACEHOLDER — inventory_id original del seed", 1, 150, "PLACEHOLDER — fecha de ejecucion"]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — validacion parcialmente automatizable. El SELECT de verificacion retorna 1 fila para product_id = 1. El valor esperado de stock es 150 (el valor del INSERT). El inventory_id debe ser el original (el que tenia el registro antes del conflicto) — NO 9001, porque el ON CONFLICT DO UPDATE no inserta una nueva fila, actualiza la existente. PUNTO PEDAGOGICO CENTRAL: EXCLUDED es una pseudo-tabla que referencia los valores que se intentaron insertar (los del VALUES). Esto permite actualizar con el nuevo valor de forma elegante. El teacher debe mostrar que sin ON CONFLICT, el segundo INSERT falla con: ERROR duplicate key value violates unique constraint. IDEMPOTENCIA: si se ejecuta el mismo INSERT dos veces, el resultado es el mismo (stock = 150). Si se ejecuta una tercera vez con otro valor de stock, el stock se actualiza de nuevo. Esta propiedad es crucial para sistemas que pueden enviar el mismo mensaje dos veces. PREREQUISITO: ON CONFLICT (product_id) requiere que product_id tenga un constraint UNIQUE o sea PRIMARY KEY en la tabla inventory. El schema canonico tiene inventory_id como PK pero product_id no tiene UNIQUE constraint explicito. El teacher debe verificar si esto funciona o si necesita agregar UNIQUE constraint a product_id. DIALECTAL: INSERT ... ON CONFLICT es PostgreSQL y SQLite (desde 3.24.0). En MySQL el equivalente es INSERT ... ON DUPLICATE KEY UPDATE."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Revenue neto historico por pais y trimestre — para presentacion a inversores",
+    "briefing_ref": "Briefing 8.10 — Marco Jimenez y Valentina Torres: Revenue neto por pais y trimestre en los ultimos 12 meses",
+    "lesson_ref": "Leccion 1 — Revenue neto con desagregacion temporal por trimestre",
+    "reference_query": "WITH pagos_anuales AS ( SELECT p.payment_id, p.amount, p.status, p.paid_at, c.country, EXTRACT(YEAR FROM p.paid_at) AS anio, EXTRACT(QUARTER FROM p.paid_at) AS trimestre FROM payments p INNER JOIN orders o ON o.order_id = p.order_id INNER JOIN customers c ON c.customer_id = o.customer_id WHERE p.paid_at >= CURRENT_DATE - INTERVAL '12 months' AND p.paid_at IS NOT NULL ), revenue_por_pais_trimestre AS ( SELECT country, anio, trimestre, SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) AS cobrado, SUM(CASE WHEN status = 'refunded' THEN amount ELSE 0 END) AS reembolsado FROM pagos_anuales GROUP BY country, anio, trimestre ), totales AS ( SELECT anio, trimestre, SUM(cobrado - reembolsado) AS revenue_neto_global FROM revenue_por_pais_trimestre GROUP BY anio, trimestre ) SELECT r.country AS pais, r.anio, r.trimestre, ROUND(r.cobrado, 2) AS cobrado, ROUND(r.reembolsado, 2) AS reembolsado, ROUND(r.cobrado - r.reembolsado, 2) AS revenue_neto, ROUND((r.cobrado - r.reembolsado) * 100.0 / NULLIF(t.revenue_neto_global, 0), 2) AS pct_del_total FROM revenue_por_pais_trimestre r INNER JOIN totales t ON t.anio = r.anio AND t.trimestre = r.trimestre ORDER BY r.anio, r.trimestre, revenue_neto DESC;",
+    "tables_used": ["payments", "orders", "customers"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["pais", "anio", "trimestre", "cobrado", "reembolsado", "revenue_neto", "pct_del_total"],
+    "sample_rows": [
+      ["PLACEHOLDER — pais lider en revenue", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["Chile", "2026", "1", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — posiblemente el mas bajo por anomalia", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado tendra una fila por cada combinacion pais + trimestre que tenga pagos en los ultimos 12 meses. El numero exacto depende de cuantos paises y trimestres tienen datos en el seed. NOTA SOBRE CURRENT_DATE: el uso de CURRENT_DATE hace la query no determinista — el resultado cambia segun la fecha de ejecucion. Para el curso, el teacher puede fijar la fecha ('2026-06-01') para que el resultado sea reproducible entre estudiantes. Alternativamente, puede usar CURRENT_DATE pero documentar el comportamiento esperado en un rango de fechas. DIALECTAL: EXTRACT(QUARTER FROM ...) es PostgreSQL. En SQLite no existe QUARTER — el teacher puede usar CASE WHEN strftime('%m', paid_at) BETWEEN '01' AND '03' THEN 1 ... etc. CHILE EN Q1 2026: si el seed tiene la anomalia de pagos fallidos plantada, Chile en Q1 2026 deberia mostrar revenue_neto notablemente inferior al resto de paises en proporcion. El teacher puede usar este dato como el 'algo raro en Chile' que Marco necesita mencionar en la junta."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Evolucion mensual de revenue neto Q1 2026 — variacion MoM para apertura del dashboard",
+    "briefing_ref": "Proyecto Nivel 8 — Punto 4: Evolucion mensual del revenue neto Q1 2026 con variacion porcentual",
+    "lesson_ref": "Leccion 1 — Revenue neto mensual con LAG() para variacion MoM",
+    "reference_query": "WITH revenue_mensual AS ( SELECT EXTRACT(MONTH FROM p.paid_at) AS nro_mes, CASE EXTRACT(MONTH FROM p.paid_at) WHEN 1 THEN 'Enero 2026' WHEN 2 THEN 'Febrero 2026' WHEN 3 THEN 'Marzo 2026' END AS mes_nombre, SUM(CASE WHEN p.status = 'completed' THEN p.amount ELSE 0 END) AS cobrado, SUM(CASE WHEN p.status = 'refunded' THEN p.amount ELSE 0 END) AS reembolsado FROM payments p WHERE p.paid_at >= '2026-01-01' AND p.paid_at < '2026-04-01' AND p.paid_at IS NOT NULL GROUP BY EXTRACT(MONTH FROM p.paid_at) ) SELECT mes_nombre, ROUND(cobrado - reembolsado, 2) AS revenue_neto, LAG(ROUND(cobrado - reembolsado, 2)) OVER (ORDER BY nro_mes) AS revenue_neto_mes_anterior, ROUND( (cobrado - reembolsado - LAG(cobrado - reembolsado) OVER (ORDER BY nro_mes)) * 100.0 / NULLIF(LAG(cobrado - reembolsado) OVER (ORDER BY nro_mes), 0), 2 ) AS variacion_pct FROM revenue_mensual ORDER BY nro_mes;",
+    "tables_used": ["payments"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["mes_nombre", "revenue_neto", "revenue_neto_mes_anterior", "variacion_pct"],
+    "sample_rows": [
+      ["Enero 2026", "PLACEHOLDER", null, null],
+      ["Febrero 2026", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["Marzo 2026", "PLACEHOLDER — posiblemente el mas bajo por anomalia Chile", "PLACEHOLDER", "PLACEHOLDER — posiblemente negativo"]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 3 filas (enero, febrero, marzo 2026) si el seed tiene pagos en esos tres meses. NARRATIVA ESPERADA: si la anomalia de Chile en marzo-abril 2026 esta plantada en el seed, el revenue de marzo 2026 puede ser menor que febrero — la variacion_pct de marzo seria negativa. Esto es el dato principal del grafico de tendencia que abre la presentacion de Ana. PUNTO PEDAGOGICO: la formula de variacion usa LAG(cobrado - reembolsado) pero la CTE ya calculo por separado cobrado y reembolsado. Se podria refactorizar para que la CTE tenga una columna revenue_neto calculada y entonces LAG opere sobre esa columna. El teacher puede mostrar ambas versiones y discutir cuala es mas legible. DEPENDENCIA DEL EJERCICIO: este ejercicio puede ver datos incompletos si hay pagos de Q1 2026 con paid_at NULL (ver EJ03). El teacher debe mencionar que los resultados de este ejercicio son los mismos que podrian estar subestimados por los datos sucios del EJ03."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Transaccion de ajuste contable — UPDATE de pagos duplicados con verificacion y COMMIT condicional",
+    "briefing_ref": "Proyecto Nivel 8 — Punto 6: Transaccion de ajuste: 3 pagos duplicados del 15 de febrero marcados como refunded",
+    "lesson_ref": "Leccion 4 — Transacciones con verificacion intermedia: SELECT dentro de una transaccion",
+    "reference_query": "-- Transaccion de ajuste contable documentada\n-- Objetivo: marcar como 'refunded' tres pagos duplicados del 15 de febrero 2026\n-- Estos payment_ids deben identificarse previamente con:\n-- SELECT payment_id, order_id, amount, status, paid_at\n-- FROM payments\n-- WHERE paid_at::DATE = '2026-02-15'\n-- AND status = 'completed'\n-- ORDER BY amount DESC LIMIT 5;\n\nBEGIN;\n\n-- Paso 1: ejecutar el ajuste\nUPDATE payments\nSET status = 'refunded'\nWHERE payment_id IN (PLACEHOLDER_ID_1, PLACEHOLDER_ID_2, PLACEHOLDER_ID_3)\n  AND status = 'completed';  -- condicion de seguridad: no actualizar si ya fue revertido\n\n-- Paso 2: verificar que exactamente 3 filas fueron afectadas\nSELECT COUNT(*) AS registros_actualizados\nFROM payments\nWHERE payment_id IN (PLACEHOLDER_ID_1, PLACEHOLDER_ID_2, PLACEHOLDER_ID_3)\n  AND status = 'refunded';\n\n-- Paso 3: si registros_actualizados = 3, continuar con COMMIT\n-- Si registros_actualizados != 3, ejecutar ROLLBACK\n-- (La verificacion es manual en SQL puro; en codigo de aplicacion seria automatica)\n\nCOMMIT;  -- o ROLLBACK si la verificacion falla",
+    "tables_used": ["payments"],
+    "join_types": [],
+    "validation_mode": "manual_review",
+    "expected_columns": ["registros_actualizados"],
+    "sample_rows": [
+      [3]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "EJERCICIO DE REVISION MANUAL — la transaccion no puede auto-validarse. CRITERIO DE EVALUACION MANUAL PARA EL INSTRUCTOR: (1) El estudiante debe incluir un SELECT previo que identifique los payment_ids de los pagos duplicados del 15 de febrero 2026. Si el seed no tiene pagos en esa fecha exacta, el student debe adaptar la fecha a una que si tenga pagos completados. (2) La transaccion debe tener: BEGIN, UPDATE con condicion de seguridad (status = 'completed'), SELECT de verificacion, y COMMIT o ROLLBACK segun el resultado. (3) La condicion de seguridad en el UPDATE es crucial — si el UPDATE se ejecuta sobre un pago que ya fue marcado como 'refunded' anteriormente, la condicion AND status = 'completed' lo protege de doble-reversion. (4) El estudiante debe documentar en un comentario que sucederia si el SELECT de verificacion retornara un numero diferente a 3 (ej: porque uno de los payment_ids no existia o ya estaba en otro status). (5) La transaccion debe poder revertirse (el estudiante puede incluir ROLLBACK al final del entregable para no modificar permanentemente el seed del curso). PUNTO PEDAGOGICO: un SELECT dentro de una transaccion abierta ve los datos modificados por el UPDATE anterior (los cambios son visibles dentro de la misma transaccion antes del COMMIT). Esto es lo que permite la verificacion intermedia. Si el ROLLBACK sucede, el SELECT externo volveria a ver el estado original."
+  }
+]

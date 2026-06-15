@@ -1,0 +1,50 @@
+version: "3.9"
+
+# ============================================================
+# ShopSphere — Docker Compose Override (desarrollo local)
+# Docker Compose aplica este archivo automáticamente sobre
+# docker-compose.yml cuando corres `docker-compose up`.
+#
+# Este archivo agrega:
+#   - Adminer con puerto expuesto (solo en dev)
+#   - Variables de debug para backend y frontend
+#   - Configuraciones de hot-reload
+#
+# NO commitear con credenciales reales.
+# ============================================================
+
+services:
+
+  backend:
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      TSX_WATCH_POLL: "true"
+    # El volumen y el puerto ya están definidos en el compose base.
+    # build target=dev ya incluye tsx watch.
+
+  frontend:
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+
+  adminer:
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    # Adminer solo tiene puerto expuesto en dev.
+    # En producción, este servicio no se despliega.
+
+  # ── Mailpit — servidor SMTP local para dev ──────────────────
+  # Captura todos los emails enviados por el backend sin mandarlos realmente.
+  # UI: http://localhost:8025
+  # Para activar: configurar SMTP_HOST=mailpit en el .env y levantar con:
+  #   docker-compose up -d mailpit
+  # El backend detecta SMTP_HOST y usará Mailpit automáticamente.
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"   # Web UI
+      - "1025:1025"   # SMTP
+    restart: unless-stopped
+    profiles:
+      - mail

@@ -1,0 +1,22 @@
+﻿EJ01: 'SELECT\r\n    c.customer_id,\r\n    c.first_name,\r\n    c.last_name,\r\n    c.email,\r\n    c.country\r\nFROM c'
+EJ02: 'SELECT\r\n    p.product_id,\r\n    p.name      AS producto,\r\n    cat.name    AS categoria,\r\n    p.price '
+EJ03: 'SELECT\r\n    c.customer_id,\r\n    c.first_name,\r\n    c.last_name,\r\n    c.email,\r\n    c.country\r\nFROM c'
+EJ04: 'SELECT\r\n    c.customer_id,\r\n    c.first_name,\r\n    c.last_name,\r\n    c.email,\r\n    c.country\r\nFROM c'
+EJ05: 'SELECT\r\n    c.customer_id,\r\n    c.first_name,\r\n    c.last_name,\r\n    c.email,\r\n    c.country,\r\n    R'
+EJ06: "SELECT\r\n    o.order_id,\r\n    o.ordered_at,\r\n    c.first_name || ' ' || c.last_name AS nombre_cliente"
+EJ07: 'SELECT\r\n    c.customer_id,\r\n    c.first_name,\r\n    c.last_name,\r\n    c.email,\r\n    c.country\r\nFROM c'
+EJ08: 'SELECT\r\n    c.customer_id,\r\n    c.first_name,\r\n    c.last_name,\r\n    c.email,\r\n    c.country\r\nFROM c'
+EJ09: "SELECT\r\n    c.customer_id,\r\n    c.first_name,\r\n    c.last_name,\r\n    c.email,\r\n    c.country,\r\n    '"
+EJ10: '-- Estrategia: crear los dos conjuntos con etiquetas, hacer UNION ALL,\r\n-- luego agregar para detect'
+EJ11: 'SELECT r.product_id\r\nFROM returns r\r\n\r\nEXCEPT\r\n\r\nSELECT p.product_id\r\nFROM products p;\r\n\r\n-- Si reto'
+EJ13: 'SELECT\r\n    r.return_id,\r\n    r.order_id,\r\n    r.product_id,\r\n    r.returned_at,\r\n    r.status,\r\n   '
+EJ14: 'SELECT\r\n    COUNT(*)                                                    AS total_devoluciones,\r\n    '
+EJ15: 'SELECT\r\n    cat.name                                            AS categoria,\r\n    COUNT(DISTINCT oi'
+EJ16: "SELECT\r\n    r.return_id,\r\n    r.returned_at,\r\n    c.first_name || ' ' || c.last_name          AS nom"
+EJ17: "SELECT\r\n    c.customer_id,\r\n    c.first_name || ' ' || c.last_name                       AS nombre_c"
+EJ18: "SELECT\r\n    c.customer_id,\r\n    c.first_name || ' ' || c.last_name          AS nombre_completo,\r\n   "
+EJ20: "SELECT\r\n    c.first_name || ' ' || c.last_name   AS nombre_cliente,\r\n    c.email,\r\n    c.country,\r\n "
+EJ21: 'SELECT\r\n    r.return_id,\r\n    r.order_id,\r\n    r.product_id,\r\n    r.returned_at,\r\n    r.status,\r\n   '
+EJ22: '-- CORRECCIËN CRIT-09: SUM debe usar CASE WHEN para distinguir filas con devoluci¾n\r\n-- de filas sin'
+EJ23: "SELECT\r\n    c.first_name || ' ' || c.last_name   AS nombre_completo,\r\n    c.email,\r\n    c.country,\r\n"
+EJ24: "-- Bloque 1: devolvieron y NO volvieron a comprar\r\nSELECT\r\n    c.customer_id,\r\n    c.first_name || '"

@@ -1,0 +1,274 @@
+
+============================================================
+  Nivel 0 — Fundamentos SELECT
+============================================================
+  OK  N0 EJ01 EJERCICIO 1: Ver todos los clientes
+  OK  N0 EJ02 EJERCICIO 2: Ver columnas específicas de clie
+  OK  N0 EJ03 EJERCICIO 3: Usar alias AS para renombrar col
+  OK  N0 EJ04 EJERCICIO 4: Limitar resultados con LIMIT
+  OK  N0 EJ05 EJERCICIO 5: WHERE para filtrar por país
+  OK  N0 EJ06 filtrar por status de pedido
+  OK  N0 EJ07 productos que NO son de una categoría
+  OK  N0 EJ08 filtro combinado
+  OK  N0 EJ09 pedidos de múltiples canales
+  OK  N0 EJ10 clientes fuera de un país
+  OK  N0 EJ11 productos caros
+  OK  N0 EJ12 EJERCICIO 12: WHERE combinado AND/OR con paré
+  OK  N0 EJ13 clientes en orden alfabético
+  OK  N0 EJ14 productos más caros primero
+  OK  N0 EJ15 pedidos por fecha y status
+  OK  N0 EJ16 top 5 más caros
+  OK  N0 EJ17 notación tabla.columna
+  OK  N0 EJ18 nombre completo
+  OK  N0 EJ19 productos en rango de precio
+  OK  N0 EJ20 SELECT + WHERE + ORDER BY + LIMIT + Alias
+
+============================================================
+  Nivel 1 — Filtrado y Texto
+============================================================
+  OK  N1 EJ01 Ejercicio 01
+  OK  N1 EJ02 Ejercicio 02
+  OK  N1 EJ03 Ejercicio 03
+  OK  N1 EJ04 Ejercicio 04
+  OK  N1 EJ05 Ejercicio 05
+  OK  N1 EJ06 Ejercicio 06
+  OK  N1 EJ07 Ejercicio 07
+  OK  N1 EJ08 Ejercicio 08
+  OK  N1 EJ09 Ejercicio 09
+  OK  N1 EJ10 Ejercicio 10
+  OK  N1 EJ11 Ejercicio 11
+  OK  N1 EJ12 Ejercicio 12
+  OK  N1 EJ13 Ejercicio 13
+  OK  N1 EJ14 Ejercicio 14
+  OK  N1 EJ15 Ejercicio 15
+  OK  N1 EJ16 Ejercicio 16
+  OK  N1 EJ17 Ejercicio 17
+  OK  N1 EJ18 Ejercicio 18
+  OK  N1 EJ19 Ejercicio 19
+  OK  N1 EJ20 Ejercicio 20
+
+============================================================
+  Nivel 2 — Agregaciones
+============================================================
+  OK  N2 EJ01 Ejercicio 01
+  OK  N2 EJ02 Ejercicio 02
+  OK  N2 EJ03 Ejercicio 03
+  OK  N2 EJ04 Ejercicio 04
+  OK  N2 EJ05 Ejercicio 05
+  OK  N2 EJ06 Ejercicio 06
+  OK  N2 EJ07 Ejercicio 07
+  OK  N2 EJ08 Ejercicio 08
+  OK  N2 EJ09 Ejercicio 09
+  OK  N2 EJ10 Ejercicio 10
+  OK  N2 EJ11 Ejercicio 11
+  OK  N2 EJ12 Ejercicio 12
+  OK  N2 EJ13 Ejercicio 13
+  OK  N2 EJ14 Ejercicio 14
+  OK  N2 EJ15 Ejercicio 15
+  OK  N2 EJ16 Ejercicio 16
+  OK  N2 EJ17 Ejercicio 17
+  OK  N2 EJ18 Ejercicio 18
+  OK  N2 EJ19 Ejercicio 19
+  OK  N2 EJ20 Ejercicio 20
+  OK  N2 EJ21 Ejercicio 21
+  OK  N2 EJ22 Ejercicio 22
+  OK  N2 EJ23 Ejercicio 23
+  OK  N2 EJ24 Ejercicio 24
+
+============================================================
+  Nivel 3 — JOINs
+============================================================
+  OK  N3 EJ01 Ejercicio 01
+  OK  N3 EJ02 Ejercicio 02
+  OK  N3 EJ03 Ejercicio 03
+  OK  N3 EJ04 Ejercicio 04
+  OK  N3 EJ05 Ejercicio 05
+  OK  N3 EJ06 Ejercicio 06
+  OK  N3 EJ07 Ejercicio 07
+  OK  N3 EJ08 Ejercicio 08
+  OK  N3 EJ09 Ejercicio 09
+  OK  N3 EJ10 Ejercicio 10
+  OK  N3 EJ11 Ejercicio 11
+  OK  N3 EJ12 Ejercicio 12
+  OK  N3 EJ13 Ejercicio 13
+  OK  N3 EJ14 Ejercicio 14
+  OK  N3 EJ15 Ejercicio 15
+  OK  N3 EJ16 Ejercicio 16
+  OK  N3 EJ17 Ejercicio 17
+  OK  N3 EJ18 Ejercicio 18
+  OK  N3 EJ19 Ejercicio 19
+  OK  N3 EJ20 Ejercicio 20
+  OK  N3 EJ21 Ejercicio 21
+  OK  N3 EJ22 Ejercicio 22
+  OK  N3 EJ23 Ejercicio 23
+  OK  N3 EJ24 Ejercicio 24
+
+============================================================
+  Nivel 4 — Análisis de Clientes
+============================================================
+  OK  N4 EJ01 Ejercicio 01
+  OK  N4 EJ02 Ejercicio 02
+  OK  N4 EJ03 Ejercicio 03
+  OK  N4 EJ04 Ejercicio 04
+  OK  N4 EJ05 Ejercicio 05
+  OK  N4 EJ06 Ejercicio 06
+  OK  N4 EJ07 Ejercicio 07
+  OK  N4 EJ08 Ejercicio 08
+  OK  N4 EJ09 Ejercicio 09
+  OK  N4 EJ10 Ejercicio 10
+  OK  N4 EJ11 Ejercicio 11
+  OK  N4 EJ13 Ejercicio 13
+  OK  N4 EJ14 Ejercicio 14
+  OK  N4 EJ15 Ejercicio 15
+  OK  N4 EJ16 Ejercicio 16
+  OK  N4 EJ17 Ejercicio 17
+  OK  N4 EJ18 Ejercicio 18
+  OK  N4 EJ20 Ejercicio 20
+  OK  N4 EJ21 Ejercicio 21
+  OK  N4 EJ22 Ejercicio 22
+  OK  N4 EJ23 Ejercicio 23
+  OK  N4 EJ24 Ejercicio 24
+
+============================================================
+  Nivel 5 — CTEs y Window Functions
+============================================================
+  OK  N5 EJ01 Ejercicio 01
+  OK  N5 EJ02 Ejercicio 02
+  OK  N5 EJ03 Ejercicio 03
+  OK  N5 EJ04 Ejercicio 04
+  OK  N5 EJ05 Ejercicio 05
+  OK  N5 EJ06 Ejercicio 06
+  OK  N5 EJ07 Ejercicio 07
+  OK  N5 EJ08 Ejercicio 08
+  OK  N5 EJ09 Ejercicio 09
+  OK  N5 EJ10 Ejercicio 10
+  OK  N5 EJ11 Ejercicio 11
+  OK  N5 EJ12 Ejercicio 12
+  OK  N5 EJ13 Ejercicio 13
+  OK  N5 EJ14 Ejercicio 14
+  OK  N5 EJ15 Ejercicio 15
+  OK  N5 EJ16 Ejercicio 16
+  OK  N5 EJ17 Ejercicio 17
+  OK  N5 EJ18 Ejercicio 18
+  OK  N5 EJ19 Ejercicio 19
+  OK  N5 EJ20 Ejercicio 20
+  OK  N5 EJ21 Ejercicio 21
+  OK  N5 EJ22 Ejercicio 22
+  OK  N5 EJ23 Ejercicio 23
+  OK  N5 EJ24 Ejercicio 24
+
+============================================================
+  Nivel 6 — Analítica de Negocio
+============================================================
+  OK  N6 EJ01 Revenue mensual 2025 con variacion MoM — LAG(
+  OK  N6 EJ02 Revenue por canal por mes en 2025 con revenue
+  OK  N6 EJ03 ROI de todas las campanas de los ultimos 12 m
+  OK  N6 EJ04 Cohote septiembre 2025 — retencion en los 3 m
+  OK  N6 EJ05 Analisis de cohortes mensual 2025 — retencion
+  OK  N6 EJ07 Revenue neto mensual Q1 2026 vs Q1 2025 — com
+  OK  N6 EJ08 Tasa de devolucion mensual con LAG — serie en
+  OK  N6 EJ09 Revenue por canal en cada campana activa — ga
+  OK  N6 EJ10 Crecimiento YoY por pais — revenue 2024 vs 20
+  OK  N6 EJ11 Estacionalidad — revenue promedio por mes del
+  OK  N6 EJ13 Ejercicio 13
+  OK  N6 EJ14 Ejercicio 14
+  OK  N6 EJ15 Ejercicio 15
+  OK  N6 EJ16 Ejercicio 16
+  OK  N6 EJ17 Ejercicio 17
+  OK  N6 EJ18 Ejercicio 18
+  OK  N6 EJ20 Ejercicio 20
+  OK  N6 EJ21 Ejercicio 21
+  OK  N6 EJ22 Ejercicio 22
+  OK  N6 EJ23 Ejercicio 23
+  OK  N6 EJ24 Ejercicio 24
+
+============================================================
+  Nivel 7 — SQL para Business Intelligence
+============================================================
+  OK  N7 EJ01 Tasa de conversion por campana en periodo esp
+  OK  N7 EJ02 Tasa de conversion por canal historica — rank
+  OK  N7 EJ03 Funnel completo Q1 2026: sesiones -> conversi
+  OK  N7 EJ04 Tasa de conversion y engagement por dispositi
+  OK  N7 EJ05 CREATE VIEW v_funnel_adquisicion — vista base
+  OK  N7 EJ06 CREATE VIEW v_clientes_perfil — perfil comple
+  OK  N7 EJ07 Segmentacion de sesiones por engagement — CAS
+  OK  N7 EJ08 Revenue atribuido por campana — canal de orig
+  OK  N7 EJ09 Sesiones previas al primer pedido — promedio 
+  OK  N7 EJ10 Funnel financiero Chile marzo-abril 2026 — se
+  OK  N7 EJ11 Segmentacion de clientes por revenue — CASE W
+  OK  N7 EJ12 Tasa de devolucion por canal de adquisicion —
+  OK  N7 EJ13 Ejercicio 13
+  OK  N7 EJ14 Ejercicio 14
+  OK  N7 EJ15 Ejercicio 15
+  OK  N7 EJ16 Ejercicio 16
+  OK  N7 EJ17 Ejercicio 17
+  OK  N7 EJ18 Ejercicio 18
+  OK  N7 EJ19 Ejercicio 19
+  OK  N7 EJ20 Ejercicio 20
+  OK  N7 EJ21 Ejercicio 21
+  OK  N7 EJ22 Ejercicio 22
+  OK  N7 EJ23 Ejercicio 23
+  OK  N7 EJ24 Ejercicio 24
+
+============================================================
+  Nivel 8 — SQL Profesional
+============================================================
+  OK  N8 EJ01 Revenue neto Q1 2026 por pais — pagos complet
+  OK  N8 EJ02 Anomalia Chile — tasa de fallo por metodo de 
+  OK  N8 EJ03 Integridad de pagos — completed con paid_at N
+  OK  N8 EJ04 Distribucion de metodos de pago por rango de 
+  OK  N8 EJ05 EXPLAIN ANALYZE — optimizacion de query lenta
+  OK  N8 EJ06 EXPLAIN ANALYZE sobre query de cohortes — det
+  OK  N8 EJ07 Indice parcial para pagos fallidos de Chile —
+  OK  N8 EJ08 Transaccion atomica — INSERT en orders y UPDA
+  OK  N8 EJ09 INSERT ... ON CONFLICT DO UPDATE — upsert de 
+  OK  N8 EJ10 Revenue neto historico por pais y trimestre —
+  OK  N8 EJ11 Evolucion mensual de revenue neto Q1 2026 — v
+  OK  N8 EJ12 Transaccion de ajuste contable — UPDATE de pa
+  OK  N8 EJ13 Ejercicio 13
+  OK  N8 EJ14 Ejercicio 14
+  OK  N8 EJ15 Ejercicio 15
+  OK  N8 EJ16 Ejercicio 16
+  OK  N8 EJ17 Ejercicio 17
+  OK  N8 EJ18 Ejercicio 18
+  OK  N8 EJ19 Ejercicio 19
+  OK  N8 EJ20 Ejercicio 20
+  OK  N8 EJ21 Ejercicio 21
+  OK  N8 EJ22 Ejercicio 22
+  OK  N8 EJ23 Ejercicio 23
+  OK  N8 EJ24 Ejercicio 24
+
+============================================================
+  Nivel 9 — Capstone — ShopSphere
+============================================================
+  OK  N9 EJ01 Revenue neto de los ultimos 12 meses desagreg
+  OK  N9 EJ02 Segmentacion de clientes en 4 niveles de valo
+  OK  N9 EJ03 Revenue historico y tasa de conversion por ca
+  OK  N9 EJ04 Funnel completo por pais en Q1 2026 con tasa 
+  OK  N9 EJ05 Cohorte Q3 2025 — retencion mensual en octubr
+  OK  N9 EJ06 Top 10 productos por revenue neto descontando
+  OK  N9 EJ07 Analisis de la anomalia de pagos de Chile en 
+  OK  N9 EJ08 Auditoria de integridad de la tabla payments
+  OK  N9 EJ09 Clientes en riesgo de churn: ventana de 60-90
+  OK  N9 EJ10 Clientes de alto valor: distribución por país
+  OK  N9 EJ11 LTV real: revenue acumulado por mes de vida d
+  OK  N9 EJ12 Net Revenue por cliente: bruto menos impacto 
+  OK  N9 EJ13 ROI por canal: first-touch attribution en H1 
+  OK  N9 EJ14 Tasa de conversión y CPA por canal en H1 2026
+  OK  N9 EJ15 Campañas: ranking por ROI dentro de cada cana
+  OK  N9 EJ16 Funnel de conversión por canal: sesiones → re
+  OK  N9 EJ18 Stock crítico: productos con inventario bajo 
+  OK  N9 EJ19 Análisis de devoluciones por categoría con te
+  OK  N9 EJ20 Auditoría de integridad: pedidos sin pago y p
+  OK  N9 EJ21 Productos zombie y catálogo obsoleto
+  OK  N9 EJ22 Dashboard ejecutivo H1 2026 vs. H1 2025
+  OK  N9 EJ23 Vista reutilizable: resumen de salud del nego
+  OK  N9 EJ24 Score card de la anomalía Chile: impacto cuan
+
+============================================================
+RESUMEN: 226 ejercicios | ✓ 226 ok | ✗ 0 fallos | ⚠ 0 errores
+============================================================
+
+Todos los ejercicios pasan validacion.
+
+[exit 0]

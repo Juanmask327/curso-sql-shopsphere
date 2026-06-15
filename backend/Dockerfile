@@ -1,0 +1,77 @@
+# ============================================================
+# ShopSphere Backend — Dockerfile multistage
+# Node.js 22 Alpine
+#
+# Stages:
+#   base   — imagen común con dependencias de producción
+#   dev    — hot-reload con tsx watch (usado en docker-compose)
+#   build  — compila TypeScript a JS
+#   prod   — imagen mínima para producción
+# ============================================================
+
+# ── Stage: base ─────────────────────────────────────────────
+# Tag fijo para reproducibilidad: actualizar deliberadamente, nunca con :latest
+FROM node:22.15-alpine3.21 AS base
+
+WORKDIR /app
+
+# Instalar dependencias del sistema necesarias para módulos nativos
+# python3 + make + g++ son requeridos por better-sqlite3 (node-gyp) en Alpine/musl
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Copiar manifiestos de dependencias primero (aprovecha cache de capas)
+COPY package.json package-lock.json* ./
+
+# ── Stage: dev ──────────────────────────────────────────────
+FROM base AS dev
+
+# Instalar TODAS las dependencias (incluyendo devDependencies para tsx, tsc, etc.)
+RUN npm ci
+
+COPY . .
+
+# tsx watch — hot-reload sin compilar
+CMD ["npm", "run", "dev"]
+
+# ── Stage: build ────────────────────────────────────────────
+FROM base AS build
+
+# Instalar todas las dependencias para poder compilar
+RUN npm ci
+
+COPY . .
+
+# Compilar TypeScript → JavaScript
+RUN npm run build
+
+# ── Stage: prod ─────────────────────────────────────────────
+FROM node:22.15-alpine3.21 AS prod
+
+WORKDIR /app
+
+# python3/make/g++ necesarios para better-sqlite3 en Alpine
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Solo dependencias de producción
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Copiar build compilado
+COPY --from=build /app/dist ./dist
+
+# Copiar dataset del playground si existe
+COPY --from=build /app/data ./data 2>/dev/null || true
+
+# Usuario no-root por seguridad
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chown -R nodejs:nodejs /app
+USER nodejs
+
+EXPOSE 3001
+
+# Health check interno al contenedor
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3001/health || exit 1
+
+CMD ["node", "dist/server.js"]

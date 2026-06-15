@@ -1,0 +1,25 @@
+﻿=== ShopSphere Expected Results Generator ===
+Dataset path: C:\Users\Juanm\Desktop\Curso SQL\data\dataset.db
+Modulos path: C:\Users\Juanm\Desktop\Curso SQL\modulos
+EJ01: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ02: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ03: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ04: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ05: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ06: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ07: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ08: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ09: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ10: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ11: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ13: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ14: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ15: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ16: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ17: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ18: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ20: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ21: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ22: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ23: ERROR SQLite objects created in a thread can only be used in that same thread. The obj
+EJ24: ERROR SQLite objects created in a thread can only be used in that same thread. The obj

@@ -1,0 +1,218 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Revenue mensual 2025 con variacion MoM — LAG() sobre revenue del mes anterior",
+    "briefing_ref": "Briefing 6.5 — Valentina Torres: Revenue mensual 2025 con variacion porcentual MoM",
+    "lesson_ref": "Leccion 1 — LAG() para comparacion periodo anterior",
+    "reference_query": "WITH revenue_mensual AS ( SELECT DATE_TRUNC('month', o.ordered_at)::DATE AS mes, SUM(oi.quantity * oi.unit_price) AS revenue FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status = 'delivered' AND o.ordered_at >= '2025-01-01' AND o.ordered_at < '2026-01-01' GROUP BY DATE_TRUNC('month', o.ordered_at) ) SELECT mes, ROUND(revenue, 2) AS revenue, ROUND(LAG(revenue) OVER (ORDER BY mes), 2) AS revenue_mes_anterior, ROUND( (revenue - LAG(revenue) OVER (ORDER BY mes)) * 100.0 / NULLIF(LAG(revenue) OVER (ORDER BY mes), 0), 2 ) AS variacion_pct FROM revenue_mensual ORDER BY mes;",
+    "tables_used": ["orders", "order_items"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["mes", "revenue", "revenue_mes_anterior", "variacion_pct"],
+    "sample_rows": [
+      ["2025-01-01", "PLACEHOLDER", null, null],
+      ["2025-02-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-03-01", "PLACEHOLDER — se espera variacion negativa (campana fallida)", "PLACEHOLDER", "PLACEHOLDER — negativo"],
+      ["2025-04-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-05-01", "PLACEHOLDER — pico Mayo Conectados 2025", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-07-01", "PLACEHOLDER — spike devoluciones afecta net revenue?", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-11-01", "PLACEHOLDER — Black Friday 2025", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-12-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 12 filas (enero a diciembre 2025). El mes de enero tendra revenue_mes_anterior = NULL y variacion_pct = NULL (primer mes de la serie). ATENCION DIALECTAL: DATE_TRUNC es PostgreSQL. En SQLite usar strftime('%Y-%m-01', ordered_at). El teacher debe adaptar segun el dialecto del curso. PUNTO PEDAGOGICO CENTRAL: LAG() sin argumento de offset usa el valor inmediatamente anterior en la ventana. La formula de variacion porcentual usa NULLIF para evitar division por cero. NARRATIVA ESPERADA: marzo 2025 deberia mostrar variacion negativa (campana 'Regreso a Clases' fallida), mayo 2025 deberia mostrar pico positivo, noviembre 2025 deberia ser el mes mas alto (Black Friday). El teacher puede usar estos eventos narrativos para darle contexto al ejercicio."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Revenue por canal por mes en 2025 con revenue del mes anterior — LAG() con PARTITION BY canal",
+    "briefing_ref": "Briefing 6.2 — Sofia Ramirez: Evolucion de revenue por canal de marketing mes a mes durante 2025",
+    "lesson_ref": "Leccion 1 — LAG() con PARTITION BY: comparacion dentro de grupos",
+    "reference_query": "WITH revenue_canal_mes AS ( SELECT mc.channel, DATE_TRUNC('month', o.ordered_at)::DATE AS mes, ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue FROM marketing_campaigns mc INNER JOIN orders o ON o.ordered_at::DATE BETWEEN mc.started_at AND COALESCE(mc.ended_at, CURRENT_DATE) INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.ordered_at >= '2025-01-01' AND o.ordered_at < '2026-01-01' AND o.status <> 'cancelled' GROUP BY mc.channel, DATE_TRUNC('month', o.ordered_at) ) SELECT channel AS canal, mes, revenue, LAG(revenue) OVER (PARTITION BY channel ORDER BY mes) AS revenue_mes_anterior FROM revenue_canal_mes ORDER BY canal, mes;",
+    "tables_used": ["marketing_campaigns", "orders", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["canal", "mes", "revenue", "revenue_mes_anterior"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, null],
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. CORRECCION IMP-N6-02 (2026-06-03): website_sessions pertenece al Nivel 7. La query fue reformulada para usar marketing_campaigns JOIN orders JOIN order_items, atribuyendo revenue a cada canal segun las campanas activas en el periodo del pedido. El LAG() usa PARTITION BY channel para comparar cada canal con su propio mes anterior. POSIBLE FILAS FALTANTES: si una campana no tuvo pedidos en un mes particular, ese mes no aparece para ese canal. El teacher debe mencionar que la ausencia de filas tambien es informacion. TABLAS USADAS: marketing_campaigns, orders, order_items — todas disponibles en Nivel 6."
+  },
+  {
+    "exercise_number": 3,
+    "title": "ROI de todas las campanas de los ultimos 12 meses — revenue atribuido durante el periodo activo",
+    "briefing_ref": "Briefing 6.3 — Sofia Ramirez: ROI de cada campana del ultimo anio",
+    "lesson_ref": "Leccion 1 — Metricas de negocio calculadas con JOINs temporales",
+    "reference_query": "WITH revenue_campanas AS ( SELECT mc.campaign_id, mc.name AS campana, mc.channel, mc.spent, ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_atribuible FROM marketing_campaigns mc INNER JOIN orders o ON o.ordered_at::DATE BETWEEN mc.started_at AND COALESCE(mc.ended_at, CURRENT_DATE) INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status <> 'cancelled' AND mc.started_at >= '2025-01-01' AND mc.started_at < '2026-01-01' GROUP BY mc.campaign_id, mc.name, mc.channel, mc.spent ) SELECT campana, channel AS canal, spent, revenue_atribuible, ROUND( (revenue_atribuible - spent) * 100.0 / NULLIF(spent, 0), 2 ) AS roi_pct, CASE WHEN revenue_atribuible < spent THEN 'ROI NEGATIVO' ELSE '' END AS alerta FROM revenue_campanas ORDER BY roi_pct DESC NULLS LAST;",
+    "tables_used": ["marketing_campaigns", "orders", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["campana", "canal", "spent", "revenue_atribuible", "roi_pct", "alerta"],
+    "sample_rows": [
+      ["Black Friday 2025", "email", 94000.00, "PLACEHOLDER", "PLACEHOLDER", ""],
+      ["Regreso a Clases MX-CO-CL 2025", "paid_search", 9800.00, "PLACEHOLDER — se espera ROI negativo o bajo", "PLACEHOLDER", "ROI NEGATIVO"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. CORRECCION IMP-N6-03 (2026-06-03): website_sessions pertenece al Nivel 7. La query fue reformulada para atribuir revenue a campanas via JOIN temporal directo con orders (o.ordered_at::DATE BETWEEN mc.started_at AND COALESCE(mc.ended_at, CURRENT_DATE)). Este modelo es el que usa el ejercicio EJ13 de la solucion SQL del nivel. FORMULA ROI: (revenue_atribuible - spent) * 100 / spent. ROI positivo = campana rentable. CAMPANAS ESPERADAS: campanas de 2025 del seed. La campana Regreso a Clases (spent=9800) deberia mostrar ROI negativo o muy bajo, confirmando la narrativa del briefing. TABLAS USADAS: marketing_campaigns, orders, order_items — todas disponibles en Nivel 6."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Cohote septiembre 2025 — retencion en los 3 meses siguientes",
+    "briefing_ref": "Briefing 6.4 — Sofia Ramirez: Clientes de la campana de septiembre 2025 que volvieron a comprar",
+    "lesson_ref": "Leccion 2 — Analisis de cohortes con DATE_TRUNC y self-join temporal",
+    "reference_query": "WITH cohorte_sep25 AS ( SELECT DISTINCT o.customer_id FROM orders o WHERE o.ordered_at >= '2025-09-01' AND o.ordered_at < '2025-10-01' AND o.status = 'delivered' AND NOT EXISTS ( SELECT 1 FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.ordered_at < '2025-09-01' AND o2.status = 'delivered' ) ), retencion AS ( SELECT cs.customer_id, MAX(CASE WHEN o.ordered_at >= '2025-10-01' AND o.ordered_at < '2025-11-01' THEN 1 ELSE 0 END) AS compro_oct, MAX(CASE WHEN o.ordered_at >= '2025-11-01' AND o.ordered_at < '2025-12-01' THEN 1 ELSE 0 END) AS compro_nov, MAX(CASE WHEN o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01' THEN 1 ELSE 0 END) AS compro_q4 FROM cohorte_sep25 cs LEFT JOIN orders o ON o.customer_id = cs.customer_id AND o.status = 'delivered' GROUP BY cs.customer_id ) SELECT COUNT(*) AS total_cohorte, SUM(compro_oct) AS retuvo_oct, SUM(compro_nov) AS retuvo_nov, SUM(compro_q4) AS retuvo_en_3_meses, ROUND(SUM(compro_oct) * 100.0 / COUNT(*), 2) AS tasa_retencion_oct, ROUND(SUM(compro_nov) * 100.0 / COUNT(*), 2) AS tasa_retencion_nov, ROUND(SUM(compro_q4) * 100.0 / COUNT(*), 2) AS tasa_retencion_3_meses FROM retencion;",
+    "tables_used": ["orders"],
+    "join_types": ["LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["total_cohorte", "retuvo_oct", "retuvo_nov", "retuvo_q4", "tasa_retencion_oct", "tasa_retencion_nov", "tasa_retencion_3_meses"],
+    "sample_rows": [
+      [0, 0, 0, 0, 0.00, 0.00, 0.00]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. AMBIGUEDAD SOBRE LA COHORTE: el briefing dice 'clientes que hicieron su primera compra en septiembre 2025'. La query filtra con NOT EXISTS para asegurar que sea realmente su primera compra. Si el seed tiene clientes con first_purchase en sep 2025, deben ser los del grupo hogar premium (customer_id 521-550, registrados en sep 2025). POSIBLE 0 FILAS EN COHORTE: si ningun cliente del seed hizo su primera compra en septiembre 2025, el resultado sera una fila de todos ceros — el teacher debe advertirlo. El teacher puede relajar la condicion a 'cualquier compra en septiembre 2025' (sin la restriccion de primera compra) para asegurar que la cohorte tenga datos. NOTA: el resultado es 1 fila (resumen agregado), no fila por cliente."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Analisis de cohortes mensual 2025 — retencion a 30 dias por mes de primera compra",
+    "briefing_ref": "Briefing 6.6 — Valentina Torres: Tasa de retencion al mes siguiente por cohorte mensual 2025",
+    "lesson_ref": "Leccion 2 — Cohortes mensuales con DATE_TRUNC y autorelacion",
+    "reference_query": "WITH primera_compra AS ( SELECT o.customer_id, DATE_TRUNC('month', MIN(o.ordered_at))::DATE AS mes_primera_compra FROM orders o WHERE o.status = 'delivered' AND o.ordered_at >= '2025-01-01' AND o.ordered_at < '2026-01-01' GROUP BY o.customer_id ), retenidos AS ( SELECT pc.mes_primera_compra, COUNT(DISTINCT pc.customer_id) AS clientes_nuevos, COUNT(DISTINCT CASE WHEN EXISTS ( SELECT 1 FROM orders o2 WHERE o2.customer_id = pc.customer_id AND o2.status = 'delivered' AND o2.ordered_at >= pc.mes_primera_compra + INTERVAL '1 month' AND o2.ordered_at < pc.mes_primera_compra + INTERVAL '2 months' ) THEN pc.customer_id END) AS retenidos_mes2 FROM primera_compra pc GROUP BY pc.mes_primera_compra ) SELECT mes_primera_compra AS cohorte, clientes_nuevos, retenidos_mes2, ROUND(retenidos_mes2 * 100.0 / NULLIF(clientes_nuevos, 0), 2) AS tasa_retencion_pct FROM retenidos ORDER BY tasa_retencion_pct DESC;",
+    "tables_used": ["orders"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["cohorte", "clientes_nuevos", "retenidos_mes2", "tasa_retencion_pct"],
+    "sample_rows": [
+      ["2025-01-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-02-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-05-01", "PLACEHOLDER — pico de nuevos clientes (Mayo Conectados)", "PLACEHOLDER", "PLACEHOLDER"],
+      ["2025-09-01", "PLACEHOLDER — hogar premium, se espera retencion alta", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener hasta 12 filas (una por cada mes de 2025 donde hubo primeras compras). AMBIGUEDAD: 'primera compra en 2025' puede significar primera compra de toda la historia del cliente que ocurrio en 2025, o primera compra del cliente independientemente del historial. La query propuesta usa la primera compra que ocurre dentro de 2025, independientemente de si el cliente tenia compras anteriores. El teacher debe aclarar si la cohorte debe ser de clientes nuevos (primera compra absoluta) o de activacion en ese mes. NARRATIVA ESPERADA: la cohorte de septiembre 2025 (hogar premium) deberia tener una tasa de retencion superior a la media — el briefing de Sofia menciona que ese segmento tenia ticket alto. La cohorte de mayo 2025 (pico de volumen) puede tener retencion baja si fue un efecto de campana sin fidelizacion real."
+  },
+  {
+    "exercise_number": 6,
+    "title": "LTV promedio y mediana por pais — revenue total por cliente agrupado por pais",
+    "briefing_ref": "Briefing 6.7 — Valentina Torres: LTV promedio por pais para presentacion de inversores",
+    "lesson_ref": "Leccion 2 — Metricas de LTV con CTEs y PERCENTILE_CONT",
+    "reference_query": "WITH ltv_cliente AS ( SELECT c.customer_id, c.country, SUM(oi.quantity * oi.unit_price) AS ltv FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id AND o.status = 'delivered' INNER JOIN order_items oi ON oi.order_id = o.order_id GROUP BY c.customer_id, c.country ) SELECT country AS pais, COUNT(*) AS clientes_activos, ROUND(AVG(ltv), 2) AS ltv_promedio, ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ltv), 2) AS ltv_mediana, ROUND(MAX(ltv), 2) AS ltv_maximo FROM ltv_cliente GROUP BY country ORDER BY ltv_promedio DESC;",
+    "tables_used": ["customers", "orders", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["pais", "clientes_activos", "ltv_promedio", "ltv_mediana", "ltv_maximo"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0, 0.00, 0.00, 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA CRITICA SOBRE DIALECTOS: PERCENTILE_CONT es una funcion de ventana avanzada que NO esta disponible en SQLite. En PostgreSQL es estandar. En SQLite se puede aproximar la mediana con un enfoque de CTEs y ROW_NUMBER. El teacher debe verificar el dialecto del curso y adaptar. Si el curso usa SQLite, la mediana se puede calcular con: SELECT AVG(ltv) FROM (SELECT ltv FROM ltv_cliente ORDER BY ltv LIMIT 2 OFFSET (SELECT COUNT(*)/2 FROM ltv_cliente)). NOTA SOBRE LTV: este es el LTV historico acumulado (revenue real ya generado), no el LTV predictivo (valor esperado futuro). El teacher debe aclarar esta distincion en la leccion. PUNTO PEDAGOGICO: si ltv_promedio > ltv_mediana en un pais, hay clientes de muy alto valor que distorsionan la media — el teacher puede identificar el pais donde esto ocurre."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Revenue neto mensual Q1 2026 vs Q1 2025 — comparacion interanual con variacion",
+    "briefing_ref": "Briefing 6.8 — Ana Castillo: Revenue neto Q1 2026 vs Q1 2025 para cierre de periodo",
+    "lesson_ref": "Leccion 1 — Comparacion interanual con CTEs y pivot manual",
+    "reference_query": "WITH revenue_neto AS ( SELECT DATE_TRUNC('month', o.ordered_at)::DATE AS mes, EXTRACT(YEAR FROM o.ordered_at) AS anio, EXTRACT(MONTH FROM o.ordered_at) AS nro_mes, SUM(oi.quantity * oi.unit_price) AS revenue_bruto FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status = 'delivered' AND ( (o.ordered_at >= '2025-01-01' AND o.ordered_at < '2025-04-01') OR (o.ordered_at >= '2026-01-01' AND o.ordered_at < '2026-04-01') ) GROUP BY DATE_TRUNC('month', o.ordered_at), EXTRACT(YEAR FROM o.ordered_at), EXTRACT(MONTH FROM o.ordered_at) ) SELECT r26.nro_mes AS mes_numero, CASE r26.nro_mes WHEN 1 THEN 'Enero' WHEN 2 THEN 'Febrero' WHEN 3 THEN 'Marzo' END AS mes_nombre, ROUND(r26.revenue_bruto, 2) AS revenue_neto_2026, ROUND(r25.revenue_bruto, 2) AS revenue_neto_2025, ROUND(r26.revenue_bruto - r25.revenue_bruto, 2) AS variacion_absoluta, ROUND( (r26.revenue_bruto - r25.revenue_bruto) * 100.0 / NULLIF(r25.revenue_bruto, 0), 2 ) AS variacion_pct FROM revenue_neto r26 INNER JOIN revenue_neto r25 ON r25.nro_mes = r26.nro_mes AND r25.anio = 2025 WHERE r26.anio = 2026 ORDER BY r26.nro_mes;",
+    "tables_used": ["orders", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["mes_numero", "mes_nombre", "revenue_neto_2026", "revenue_neto_2025", "variacion_absoluta", "variacion_pct"],
+    "sample_rows": [
+      [1, "Enero", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      [2, "Febrero", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      [3, "Marzo", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 3 filas (enero, febrero, marzo) si ambos anios tienen datos para Q1. ADVERTENCIA: si el seed tiene datos limitados para Q1 2025 o Q1 2026, alguna fila puede faltar. El INNER JOIN entre r26 y r25 eliminaria los meses que solo existen en un anio — usar LEFT JOIN si se quiere mostrar todos los meses aunque no haya comparativa. SIMPLIFICACION: la query calcula revenue bruto (sin descontar devoluciones) por restriccion del schema — el briefing pide 'revenue neto descontando devoluciones aprobadas o reembolsadas'. Para el revenue neto real se necesita un subcalculo adicional similar al ejercicio 5.9. El teacher puede presentar esta query como version simplificada y proponer la extension como ejercicio avanzado. NOTA: EXTRACT() y DATE_TRUNC() son PostgreSQL. En SQLite usar strftime('%m', ordered_at) para el mes."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Tasa de devolucion mensual con LAG — serie enero 2025 a mayo 2026",
+    "briefing_ref": "Briefing 6.11 — Diego Morales: Tasa de devolucion mensual 2025 y 2026 con comparativa del mes anterior",
+    "lesson_ref": "Leccion 1 — LAG() en series temporales para detectar tendencias",
+    "reference_query": "WITH devoluciones_mes AS ( SELECT DATE_TRUNC('month', r.returned_at)::DATE AS mes, COUNT(DISTINCT r.return_id) AS devoluciones_aprobadas FROM returns r WHERE r.status IN ('approved', 'refunded') AND r.returned_at >= '2025-01-01' AND r.returned_at < '2026-06-01' GROUP BY DATE_TRUNC('month', r.returned_at) ), pedidos_mes AS ( SELECT DATE_TRUNC('month', o.ordered_at)::DATE AS mes, COUNT(DISTINCT o.order_id) AS total_pedidos FROM orders o WHERE o.ordered_at >= '2025-01-01' AND o.ordered_at < '2026-06-01' GROUP BY DATE_TRUNC('month', o.ordered_at) ), tasa AS ( SELECT pm.mes, pm.total_pedidos, COALESCE(dm.devoluciones_aprobadas, 0) AS devoluciones, ROUND(COALESCE(dm.devoluciones_aprobadas, 0) * 100.0 / NULLIF(pm.total_pedidos, 0), 2) AS tasa_devolucion_pct FROM pedidos_mes pm LEFT JOIN devoluciones_mes dm ON dm.mes = pm.mes ) SELECT mes, total_pedidos, devoluciones, tasa_devolucion_pct, LAG(tasa_devolucion_pct) OVER (ORDER BY mes) AS tasa_mes_anterior, ROUND(tasa_devolucion_pct - LAG(tasa_devolucion_pct) OVER (ORDER BY mes), 2) AS delta_tasa FROM tasa ORDER BY mes;",
+    "tables_used": ["returns", "orders"],
+    "join_types": ["LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["mes", "total_pedidos", "devoluciones", "tasa_devolucion_pct", "tasa_mes_anterior", "delta_tasa"],
+    "sample_rows": [
+      ["2025-01-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", null, null],
+      ["2025-07-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera ~8.3% (spike calzado)", "PLACEHOLDER", "PLACEHOLDER — delta positivo grande"],
+      ["2025-08-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — post-spike, deberia bajar", "PLACEHOLDER", "PLACEHOLDER — delta negativo"]
+    ],
+    "expected_row_count_approx": 17,
+    "notes": "TEMPLATE — valores reales pendientes. El rango cubre desde enero 2025 hasta mayo 2026, lo que son aproximadamente 17 meses. El primer mes (enero 2025) tendra tasa_mes_anterior = NULL y delta_tasa = NULL. NARRATIVA CLAVE: julio 2025 deberia mostrar la tasa mas alta del periodo (spike de devoluciones por calzado Colombia — el seed menciona 8.3%). Los meses siguientes deberian mostrar una recuperacion hacia el rango historico (<4%). PUNTO PEDAGOGICO: el delta_tasa (diferencia de tasas) permite detectar visualmente cuando la tasa esta empeorando (delta positivo) vs mejorando (delta negativo). NOTA SOBRE LA TASA: el denominador son todos los pedidos del mes (sin filtrar por status). Si se quiere solo pedidos 'delivered', el denominador cambia. El teacher debe ser explícito sobre la definicion de la tasa."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Revenue por canal en cada campana activa — gasto vs revenue por canal para el Briefing 6.1",
+    "briefing_ref": "Briefing 6.1 — Sofia Ramirez: Campana Regreso a Clases — gasto vs revenue por canal",
+    "lesson_ref": "Leccion 1 — JOIN temporal entre campanas y pedidos durante periodo activo",
+    "reference_query": "SELECT mc.name AS campana, mc.channel AS canal, mc.started_at, mc.ended_at, mc.budget, mc.spent, COUNT(DISTINCT o.customer_id) AS clientes_distintos, ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_atribuible, ROUND( (SUM(oi.quantity * oi.unit_price) - mc.spent) * 100.0 / NULLIF(mc.spent, 0), 2 ) AS roi_pct FROM marketing_campaigns mc INNER JOIN orders o ON o.ordered_at::DATE BETWEEN mc.started_at AND COALESCE(mc.ended_at, CURRENT_DATE) INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status <> 'cancelled' AND mc.started_at >= '2025-01-01' AND mc.started_at <= '2025-12-31' GROUP BY mc.campaign_id, mc.name, mc.channel, mc.started_at, mc.ended_at, mc.budget, mc.spent ORDER BY mc.started_at, mc.channel;",
+    "tables_used": ["marketing_campaigns", "orders", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["campana", "canal", "started_at", "ended_at", "budget", "spent", "clientes_distintos", "revenue_atribuible", "roi_pct"],
+    "sample_rows": [
+      ["Lanzamiento Peru Febrero 2025", "social", "2025-02-01", "2025-02-28", 6000.00, 3200.00, "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["Regreso a Clases MX-CO-CL 2025", "paid_search", "2025-03-01", "2025-03-31", 14000.00, 9800.00, "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera ROI negativo o bajo"],
+      ["Black Friday 2025", "email", "2025-11-01", "2025-11-28", 22000.00, 94000.00, "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. CORRECCION IMP-N6-03 (2026-06-03): website_sessions pertenece al Nivel 7. La query fue reformulada para usar marketing_campaigns JOIN orders JOIN order_items, atribuyendo revenue a campanas por solapamiento temporal (ordered_at BETWEEN started_at y ended_at). El campo clientes_distintos reemplaza sesiones_convertidas como indicador de alcance. CAMPANAS ESPERADAS: una fila por campana de 2025. La campana Regreso a Clases (spent=9800) debe mostrar ROI negativo, confirmando la narrativa del briefing 6.1. CAMPANAS CON SPENT > BUDGET: Black Friday 2025 tiene spent=94000 vs budget=22000 — esto es intencionado en la narrativa y puede generar discusion pedagógica. TABLAS USADAS: marketing_campaigns, orders, order_items — todas disponibles en Nivel 6."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Crecimiento YoY por pais — revenue 2024 vs 2025 con mix de mercado",
+    "briefing_ref": "Briefing 6.10 — Marco Jimenez: Crecimiento YoY por pais 2024 vs 2025 con participacion en revenue total",
+    "lesson_ref": "Leccion 2 — Comparacion anual con self-join o CASE WHEN para pivot",
+    "reference_query": "WITH revenue_anual AS ( SELECT c.country, EXTRACT(YEAR FROM o.ordered_at) AS anio, SUM(oi.quantity * oi.unit_price) AS revenue FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id AND o.status = 'delivered' INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE EXTRACT(YEAR FROM o.ordered_at) IN (2024, 2025) GROUP BY c.country, EXTRACT(YEAR FROM o.ordered_at) ), totales_anuales AS ( SELECT anio, SUM(revenue) AS revenue_global FROM revenue_anual GROUP BY anio ) SELECT ra24.country AS pais, ROUND(ra24.revenue, 2) AS revenue_2024, ROUND(ra25.revenue, 2) AS revenue_2025, ROUND((ra25.revenue - ra24.revenue) * 100.0 / NULLIF(ra24.revenue, 0), 2) AS crecimiento_yoy_pct, ROUND(ra24.revenue * 100.0 / t24.revenue_global, 2) AS mix_2024_pct, ROUND(ra25.revenue * 100.0 / t25.revenue_global, 2) AS mix_2025_pct FROM revenue_anual ra24 INNER JOIN revenue_anual ra25 ON ra25.country = ra24.country AND ra25.anio = 2025 INNER JOIN totales_anuales t24 ON t24.anio = 2024 INNER JOIN totales_anuales t25 ON t25.anio = 2025 WHERE ra24.anio = 2024 ORDER BY crecimiento_yoy_pct DESC;",
+    "tables_used": ["customers", "orders", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["pais", "revenue_2024", "revenue_2025", "crecimiento_yoy_pct", "mix_2024_pct", "mix_2025_pct"],
+    "sample_rows": [
+      ["PLACEHOLDER — pais con mayor crecimiento YoY", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["PLACEHOLDER — pais con menor crecimiento o caida", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. NOTA: solo aparecen paises con revenue en AMBOS anios (INNER JOIN entre 2024 y 2025). Si un pais entro en 2025 (como Peru con la expansion de febrero 2025), no apareceria en este resultado porque no tiene datos 2024. El teacher puede cambiar a LEFT JOIN para incluirlos con 0 en 2024. PUNTO NARRATIVO: Peru entro al mercado en feb 2025 — puede quedar excluido del resultado si no tiene ventas en 2024. Argentina puede mostrar crecimiento alto en 2025 si el evento de liquidacion de enero 2025 (sobre-stock electronica) genero volumen. PUNTO PEDAGOGICO: el mix de mercado (mix_2024_pct y mix_2025_pct) muestra si la composicion geografica del revenue cambio — si Peru entra en 2025, los porcentajes de otros paises bajan aunque su revenue crezca en terminos absolutos."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Estacionalidad — revenue promedio por mes del anio usando todos los datos historicos",
+    "briefing_ref": "Briefing 6.12 — Valentina Torres: Revenue promedio historico por mes del anio para detectar estacionalidad",
+    "lesson_ref": "Leccion 2 — Agregacion por mes del anio con EXTRACT(MONTH)",
+    "reference_query": "WITH revenue_por_mes_anio AS ( SELECT EXTRACT(MONTH FROM o.ordered_at) AS nro_mes, EXTRACT(YEAR FROM o.ordered_at) AS anio, SUM(oi.quantity * oi.unit_price) AS revenue FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status = 'delivered' GROUP BY EXTRACT(MONTH FROM o.ordered_at), EXTRACT(YEAR FROM o.ordered_at) ) SELECT nro_mes, CASE nro_mes WHEN 1 THEN 'Enero' WHEN 2 THEN 'Febrero' WHEN 3 THEN 'Marzo' WHEN 4 THEN 'Abril' WHEN 5 THEN 'Mayo' WHEN 6 THEN 'Junio' WHEN 7 THEN 'Julio' WHEN 8 THEN 'Agosto' WHEN 9 THEN 'Septiembre' WHEN 10 THEN 'Octubre' WHEN 11 THEN 'Noviembre' WHEN 12 THEN 'Diciembre' END AS mes_nombre, ROUND(AVG(revenue), 2) AS revenue_promedio_historico, COUNT(DISTINCT anio) AS anios_con_datos FROM revenue_por_mes_anio GROUP BY nro_mes ORDER BY revenue_promedio_historico DESC;",
+    "tables_used": ["orders", "order_items"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nro_mes", "mes_nombre", "revenue_promedio_historico", "anios_con_datos"],
+    "sample_rows": [
+      [11, "Noviembre", "PLACEHOLDER — se espera el mas alto (Black Friday)", "PLACEHOLDER"],
+      [12, "Diciembre", "PLACEHOLDER — segundo o tercero alto (Navidad)", "PLACEHOLDER"],
+      [5, "Mayo", "PLACEHOLDER — pico por Mayo Conectados 2025", "PLACEHOLDER"],
+      [3, "Marzo", "PLACEHOLDER — se espera bajo (campana fallida 2025)", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 12 filas (una por cada mes del anio). PUNTO PEDAGOGICO: los meses que no tienen datos en algun anio no inflan el promedio — AVG(revenue) solo promedia los anios donde ese mes tiene datos. La columna anios_con_datos ayuda a interpretar la confiabilidad del promedio (un mes con 1 solo anio de datos es menos confiable que uno con 3). NARRATIVA ESPERADA: noviembre y diciembre deberian aparecer primero (Black Fridays y Navidad). Mayo deberia estar alto por la campana de Mayo Conectados 2025 pero puede no ser estructuralmente alto en otros anios. Marzo puede aparecer bajo si el seed refleja el impacto de la campana fallida. NOTA: el seed cubre 2023-2026, por lo que cada mes deberia tener entre 2 y 3 anios de datos."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Tasa de cancelacion mensual en Chile — proxy de transacciones no completadas con LAG (dic 2025 a may 2026)",
+    "briefing_ref": "Briefing 6.9 — Ana Castillo: Anomalia de cancelaciones en Chile (ADAPTADO — usa orders.status como proxy)",
+    "lesson_ref": "Leccion 1 — LAG() en KPIs de calidad operativa con proxy de datos de nivel superior",
+    "reference_query": "WITH pedidos_chile_mes AS ( SELECT DATE_TRUNC('month', o.ordered_at)::DATE AS mes, COUNT(*) AS total_pedidos, SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) AS pedidos_cancelados FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id WHERE c.country = 'Chile' AND o.ordered_at >= '2025-12-01' AND o.ordered_at < '2026-06-01' GROUP BY DATE_TRUNC('month', o.ordered_at) ), tasa_cancelacion AS ( SELECT mes, total_pedidos, pedidos_cancelados, ROUND( pedidos_cancelados * 100.0 / NULLIF(total_pedidos, 0), 2 ) AS tasa_cancelacion_pct FROM pedidos_chile_mes ) SELECT mes, total_pedidos, pedidos_cancelados, tasa_cancelacion_pct, LAG(tasa_cancelacion_pct) OVER (ORDER BY mes) AS tasa_mes_anterior FROM tasa_cancelacion ORDER BY mes;",
+    "tables_used": ["orders", "customers"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["mes", "total_pedidos", "pedidos_cancelados", "tasa_cancelacion_pct", "tasa_mes_anterior"],
+    "sample_rows": [
+      ["2025-12-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", null],
+      ["2026-03-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera alta (spike narrativo)", "PLACEHOLDER"],
+      ["2026-04-01", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera aun mas alta", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 6,
+    "notes": "CORRECCION CRIT-06 (2026-06-03): eliminada referencia a tabla payments (Nivel 8). La query usa orders.status = 'cancelled' como proxy de transacciones no completadas, que es lo que la solucion del ejercicio EJ24 ya implementa en el archivo ejercicios-nivel-06.sql. El titulo, briefing_ref, reference_query, tables_used y expected_columns han sido actualizados para alinearse con la solucion real del nivel. NOTA PEDAGOGICA: el briefing 6.9 fue adaptado en contenido/briefings-nivel-06.md para explicar que el analisis de pagos fallidos por metodo de pago pertenece al Nivel 8 (tabla payments). Este ejercicio en Nivel 6 analiza cancelaciones de pedidos como aproximacion. El spike narrativo de Chile en marzo-abril 2026 se mantiene visible en los datos de orders. RESULTADO ESPERADO: 6 filas (diciembre 2025 a mayo 2026). El primer mes (diciembre 2025) tendra tasa_mes_anterior = NULL."
+  }
+]

@@ -1,0 +1,3763 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Ejercicio 01",
+    "briefing_ref": "Briefing 5.1",
+    "lesson_ref": "Lección 1",
+    "reference_query": "WITH inventario_completo AS (\n    SELECT\n        p.name      AS producto,\n        cat.name    AS categoria,\n        i.stock\n    FROM inventory i\n    INNER JOIN products   p   ON p.product_id   = i.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n)\nSELECT producto, categoria, stock\nFROM inventario_completo\nWHERE stock < 10\nORDER BY stock ASC, producto ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "stock"
+    ],
+    "sample_rows": [
+      [
+        "Hub USB-C 7-en-1",
+        "Electronics",
+        0
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        "Electronics",
+        2
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        4
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        7
+      ],
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        8
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Hub USB-C 7-en-1 (product_id=10) es el unico con stock=0. Los 5 productos criticos son todos de Electronics o Toys & Games."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Ejercicio 02",
+    "briefing_ref": "Briefing 5.2",
+    "lesson_ref": "Lección 2",
+    "reference_query": "WITH revenue_por_cliente AS (\n    SELECT\n        o.customer_id,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_total\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status = 'delivered'\n    GROUP BY o.customer_id\n)\nSELECT\n    c.first_name || ' ' || c.last_name  AS nombre_completo,\n    c.country,\n    r.revenue_total\nFROM customers c\nINNER JOIN revenue_por_cliente r ON r.customer_id = c.customer_id\nORDER BY r.revenue_total DESC\nLIMIT 20;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_completo",
+      "country",
+      "revenue_total"
+    ],
+    "sample_rows": [
+      [
+        "Isabella Gutierrez",
+        "Mexico",
+        41381.8
+      ],
+      [
+        "Joseph Hall",
+        "Mexico",
+        41371.94
+      ],
+      [
+        "Isabella Morales",
+        "Mexico",
+        41157.29
+      ],
+      [
+        "Fernanda Mendoza",
+        "Mexico",
+        39525.23
+      ],
+      [
+        "David Harris",
+        "Mexico",
+        38647.7
+      ],
+      [
+        "Richard Jones",
+        "Mexico",
+        37297.58
+      ],
+      [
+        "Patricia Jones",
+        "Colombia",
+        36971.26
+      ],
+      [
+        "Alicia Hernandez",
+        "Mexico",
+        35313.71
+      ],
+      [
+        "Ashley Taylor",
+        "Colombia",
+        34313.19
+      ],
+      [
+        "Jorge Vega",
+        "Colombia",
+        34243.62
+      ],
+      [
+        "Mario Pena",
+        "Colombia",
+        33234.48
+      ],
+      [
+        "Thomas Martin",
+        "Mexico",
+        32853.53
+      ],
+      [
+        "Gustavo Herrera",
+        "Mexico",
+        32579.79
+      ],
+      [
+        "Brian Wright",
+        "Colombia",
+        32339.61
+      ],
+      [
+        "Ana Guerrero",
+        "Mexico",
+        32142.92
+      ],
+      [
+        "Emilio Ramirez",
+        "Mexico",
+        31976.36
+      ],
+      [
+        "Patricia Herrera",
+        "Mexico",
+        31933.3
+      ],
+      [
+        "Linda Wilson",
+        "Colombia",
+        31403.55
+      ],
+      [
+        "Carolina Castillo",
+        "Colombia",
+        30843.12
+      ],
+      [
+        "Carlos Guerrero",
+        "Mexico",
+        30692.32
+      ]
+    ],
+    "expected_row_count_approx": 20,
+    "notes": "Los 20 primeros clientes son todos de Mexico. Indica alta concentracion de clientes de alto valor en ese mercado. Revenue top: ~$41K."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Ejercicio 03",
+    "briefing_ref": "Briefing 5.3",
+    "lesson_ref": "Lección 3",
+    "reference_query": "WITH unidades_vendidas AS (\n    SELECT\n        cat.name                AS categoria,\n        SUM(oi.quantity)        AS unidades_vendidas\n    FROM order_items oi\n    INNER JOIN products   p   ON p.product_id   = oi.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    GROUP BY cat.name\n),\nunidades_devueltas AS (\n    SELECT\n        cat.name            AS categoria,\n        -- SUM(oi.quantity) cuenta unidades físicas devueltas, no eventos de devolución.\n        -- COUNT contaría 1 por fila aunque quantity > 1 — subestimaría el ratio real.\n        SUM(oi.quantity)    AS unidades_devueltas\n    FROM returns r\n    INNER JOIN order_items oi ON oi.order_id   = r.order_id\n                              AND oi.product_id = r.product_id\n    INNER JOIN products    p  ON p.product_id   = oi.product_id\n    INNER JOIN categories  cat ON cat.category_id = p.category_id\n    GROUP BY cat.name\n)\nSELECT\n    uv.categoria,\n    uv.unidades_vendidas,\n    COALESCE(ud.unidades_devueltas, 0)           AS unidades_devueltas,\n    ROUND(\n        100.0 * COALESCE(ud.unidades_devueltas, 0)\n        / NULLIF(uv.unidades_vendidas, 0),\n        2\n    )                                            AS ratio_devolucion_pct\nFROM unidades_vendidas uv\nLEFT JOIN unidades_devueltas ud ON ud.categoria = uv.categoria\nWHERE uv.unidades_vendidas >= 10\nORDER BY ratio_devolucion_pct DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "categoria",
+      "unidades_vendidas",
+      "unidades_devueltas",
+      "ratio_devolucion_pct"
+    ],
+    "sample_rows": [
+      [
+        "Clothing",
+        14053,
+        588,
+        4.18
+      ],
+      [
+        "Beauty",
+        8573,
+        339,
+        3.95
+      ],
+      [
+        "Wearables",
+        10467,
+        401,
+        3.83
+      ],
+      [
+        "Electronics",
+        26433,
+        982,
+        3.72
+      ],
+      [
+        "Home Appliances",
+        23102,
+        831,
+        3.6
+      ],
+      [
+        "Office",
+        5804,
+        208,
+        3.58
+      ],
+      [
+        "Books",
+        7402,
+        252,
+        3.4
+      ],
+      [
+        "Toys & Games",
+        7191,
+        241,
+        3.35
+      ],
+      [
+        "Sports",
+        9381,
+        280,
+        2.98
+      ],
+      [
+        "Audio",
+        9353,
+        271,
+        2.9
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "El expected_result canónico para el sistema de validacion es expected_rows_CORRECTED. El expected_rows_AS_WRITTEN se documenta como referencia del bug IMP-14 para el teacher."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Ejercicio 04",
+    "briefing_ref": "Briefing 5.4",
+    "lesson_ref": "Lección 4",
+    "reference_query": "WITH metricas_producto AS (\n    SELECT\n        p.name                                         AS producto,\n        SUM(oi.quantity)                               AS unidades_vendidas,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)     AS revenue_total,\n        ROUND(\n            SUM(oi.quantity * oi.unit_price)\n            / NULLIF(SUM(oi.quantity), 0),\n            2\n        )                                              AS precio_prom_venta\n    FROM order_items oi\n    INNER JOIN products p ON p.product_id = oi.product_id\n    GROUP BY p.name\n)\nSELECT producto, unidades_vendidas, revenue_total, precio_prom_venta\nFROM metricas_producto\nORDER BY revenue_total DESC\nLIMIT 15;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "producto",
+      "unidades_vendidas",
+      "revenue_total",
+      "precio_prom_venta"
+    ],
+    "sample_rows": [
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        1751,
+        905701.03,
+        517.25
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        1768,
+        578473.02,
+        327.19
+      ],
+      [
+        "Estufa Bioetanol Design",
+        1362,
+        531166.38,
+        389.99
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        1374,
+        412186.26,
+        299.99
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        1831,
+        379487.25,
+        207.26
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        1792,
+        372496.62,
+        207.87
+      ],
+      [
+        "Cuchillos Chef Zwilling 3pz",
+        1350,
+        337486.5,
+        249.99
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        1576,
+        315135.99,
+        199.96
+      ],
+      [
+        "Juego Sabanas Percal 300 hilos",
+        1406,
+        309305.94,
+        219.99
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        1360,
+        272061.4,
+        200.05
+      ],
+      [
+        "Set Cubiertos Inox Tramontina 24pz",
+        1331,
+        252876.69,
+        189.99
+      ],
+      [
+        "Tablet Amazon Fire HD 10",
+        1724,
+        242094.68,
+        140.43
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        1347,
+        228976.53,
+        169.99
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        1522,
+        228283.54,
+        149.99
+      ],
+      [
+        "Gafas Inteligentes Ray-Ban Stories",
+        1413,
+        211922.46,
+        149.98
+      ]
+    ],
+    "expected_row_count_approx": 15,
+    "notes": "La Laptop Lenovo lidera con mas de $864K de revenue historico. Los 4 primeros productos concentran el 27% del revenue total (~$10.2M). Revenue total historico en order_items: ~$10.18M."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Ejercicio 05",
+    "briefing_ref": "Briefing 5.5",
+    "lesson_ref": "Lección 5",
+    "reference_query": "WITH ventas_diarias AS (\n    SELECT\n        p.product_id,\n        p.name                              AS producto,\n        cat.name                            AS categoria,\n        ROUND(SUM(oi.quantity) / 90.0, 2)  AS ventas_diarias_prom\n    FROM order_items oi\n    INNER JOIN products   p   ON p.product_id   = oi.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    INNER JOIN orders     o   ON o.order_id     = oi.order_id\n    WHERE o.ordered_at >= CURRENT_DATE - INTERVAL '90 days'\n    GROUP BY p.product_id, p.name, cat.name\n),\ncobertura AS (\n    SELECT\n        vd.producto,\n        vd.categoria,\n        i.stock                             AS stock_actual,\n        vd.ventas_diarias_prom,\n        ROUND(\n            i.stock / NULLIF(vd.ventas_diarias_prom, 0),\n            1\n        )                                   AS dias_cobertura\n    FROM ventas_diarias vd\n    INNER JOIN inventory i ON i.product_id = vd.product_id\n)\nSELECT producto, categoria, stock_actual, ventas_diarias_prom, dias_cobertura\nFROM cobertura\nWHERE dias_cobertura < 15\n   OR stock_actual = 0\nORDER BY\n    CASE WHEN stock_actual = 0 THEN 0 ELSE 1 END,\n    dias_cobertura ASC NULLS LAST;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "volatile_date_dependent",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "stock_actual",
+      "ventas_diarias_prom",
+      "dias_cobertura"
+    ],
+    "sample_rows": [
+      [
+        "Hub USB-C 7-en-1",
+        "Electronics",
+        0,
+        2.68,
+        0.0
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        "Electronics",
+        2,
+        2.26,
+        0.9
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        4,
+        2.26,
+        1.8
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        7,
+        2.53,
+        2.8
+      ],
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        8,
+        2.23,
+        3.6
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        "Home Appliances",
+        11,
+        2.91,
+        3.8
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        "Electronics",
+        11,
+        2.59,
+        4.2
+      ],
+      [
+        "Zapatillas Running Asics GT-1000",
+        "Sports",
+        12,
+        2.2,
+        5.5
+      ],
+      [
+        "Organizador Cocina Bambu Set 5pz",
+        "Home Appliances",
+        15,
+        2.7,
+        5.6
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        "Wearables",
+        17,
+        2.84,
+        6.0
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        "Home Appliances",
+        14,
+        2.29,
+        6.1
+      ],
+      [
+        "Funda Protectora iPhone 15",
+        "Electronics",
+        17,
+        2.54,
+        6.7
+      ],
+      [
+        "Serum Vitamina C CeraVe 30ml",
+        "Beauty",
+        19,
+        2.79,
+        6.8
+      ],
+      [
+        "Campera Rompeviento Columbia",
+        "Clothing",
+        22,
+        2.82,
+        7.8
+      ],
+      [
+        "Bolsa Gimnasio Nike Brasilia 30L",
+        "Sports",
+        21,
+        2.58,
+        8.1
+      ],
+      [
+        "Cafetera de Prensa Bodum 1L",
+        "Home Appliances",
+        15,
+        1.74,
+        8.6
+      ],
+      [
+        "Parlante Bluetooth Sony SRS-XB13",
+        "Audio",
+        22,
+        2.5,
+        8.8
+      ],
+      [
+        "Vela Aromatica Luxury Pack x3",
+        "Home Appliances",
+        21,
+        2.37,
+        8.9
+      ],
+      [
+        "Smartband Xiaomi Mi Band 8",
+        "Wearables",
+        27,
+        2.76,
+        9.8
+      ],
+      [
+        "Power Bank 20000mAh Anker",
+        "Electronics",
+        33,
+        2.92,
+        11.3
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        "Wearables",
+        21,
+        1.84,
+        11.4
+      ],
+      [
+        "Kit Skincare Neutrogena 3 pasos",
+        "Beauty",
+        30,
+        2.54,
+        11.8
+      ],
+      [
+        "Botella Deportiva 750ml Camelbak",
+        "Sports",
+        30,
+        2.14,
+        14.0
+      ],
+      [
+        "Cuchillos Chef Zwilling 3pz",
+        "Home Appliances",
+        39,
+        2.74,
+        14.2
+      ],
+      [
+        "Juego Sabanas Percal 300 hilos",
+        "Home Appliances",
+        39,
+        2.64,
+        14.8
+      ],
+      [
+        "Cuerda de Saltar PVC",
+        "Sports",
+        46,
+        3.09,
+        14.9
+      ]
+    ],
+    "expected_row_count_approx": 26,
+    "notes": "La ventana de 90 dias es relativa a CURRENT_DATE — el resultado exacto cambia si el seed se recarga en una fecha diferente. Validar usando los primeros 5 productos del orden (los mas criticos no cambian si el seed no cambia). El producto con stock=0 siempre aparece primero. En la fecha 2026-06-01 el resultado tiene 24 filas."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Ejercicio 06",
+    "briefing_ref": "Briefing 5.6",
+    "lesson_ref": "Lección 6",
+    "reference_query": "WITH revenue_cliente AS (\n    SELECT\n        o.customer_id,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_total\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status = 'delivered'\n    GROUP BY o.customer_id\n),\npromedio_general AS (\n    SELECT AVG(revenue_total) AS promedio\n    FROM revenue_cliente\n)\nSELECT\n    c.first_name || ' ' || c.last_name  AS nombre_completo,\n    c.country,\n    r.revenue_total\nFROM customers c\nINNER JOIN revenue_cliente  r ON r.customer_id = c.customer_id\nCROSS JOIN promedio_general pg\nWHERE r.revenue_total > 2 * pg.promedio\nORDER BY r.revenue_total DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "nombre_completo",
+      "country",
+      "revenue_total"
+    ],
+    "sample_rows": [
+      [
+        "Isabella Gutierrez",
+        "Mexico",
+        41381.8
+      ],
+      [
+        "Joseph Hall",
+        "Mexico",
+        41371.94
+      ],
+      [
+        "Isabella Morales",
+        "Mexico",
+        41157.29
+      ],
+      [
+        "Fernanda Mendoza",
+        "Mexico",
+        39525.23
+      ],
+      [
+        "David Harris",
+        "Mexico",
+        38647.7
+      ],
+      [
+        "Richard Jones",
+        "Mexico",
+        37297.58
+      ],
+      [
+        "Patricia Jones",
+        "Colombia",
+        36971.26
+      ],
+      [
+        "Alicia Hernandez",
+        "Mexico",
+        35313.71
+      ],
+      [
+        "Ashley Taylor",
+        "Colombia",
+        34313.19
+      ],
+      [
+        "Jorge Vega",
+        "Colombia",
+        34243.62
+      ],
+      [
+        "Mario Pena",
+        "Colombia",
+        33234.48
+      ],
+      [
+        "Thomas Martin",
+        "Mexico",
+        32853.53
+      ],
+      [
+        "Gustavo Herrera",
+        "Mexico",
+        32579.79
+      ],
+      [
+        "Brian Wright",
+        "Colombia",
+        32339.61
+      ],
+      [
+        "Ana Guerrero",
+        "Mexico",
+        32142.92
+      ],
+      [
+        "Emilio Ramirez",
+        "Mexico",
+        31976.36
+      ],
+      [
+        "Patricia Herrera",
+        "Mexico",
+        31933.3
+      ],
+      [
+        "Linda Wilson",
+        "Colombia",
+        31403.55
+      ],
+      [
+        "Carolina Castillo",
+        "Colombia",
+        30843.12
+      ],
+      [
+        "Carlos Guerrero",
+        "Mexico",
+        30692.32
+      ],
+      [
+        "Raul Flores",
+        "Mexico",
+        30592.01
+      ],
+      [
+        "Alicia Soto",
+        "Colombia",
+        30388.09
+      ],
+      [
+        "Rafael Ruiz",
+        "Colombia",
+        30182.07
+      ],
+      [
+        "Carlos Fuentes",
+        "Mexico",
+        30137.06
+      ],
+      [
+        "Ricardo Vega",
+        "Mexico",
+        29979.47
+      ],
+      [
+        "Ana Torres",
+        "Mexico",
+        29883.86
+      ],
+      [
+        "Melissa Davis",
+        "Mexico",
+        29671.99
+      ],
+      [
+        "Isabella Navarro",
+        "Mexico",
+        29621.39
+      ],
+      [
+        "Melissa Robinson",
+        "Mexico",
+        29550.96
+      ],
+      [
+        "Rafael Bravo",
+        "Mexico",
+        29529.91
+      ],
+      [
+        "Daniel Young",
+        "Mexico",
+        29338.65
+      ],
+      [
+        "Lorena Guerrero",
+        "Colombia",
+        29003.05
+      ],
+      [
+        "Emily Jones",
+        "Mexico",
+        28923.4
+      ],
+      [
+        "Emily Walker",
+        "Mexico",
+        28842.15
+      ],
+      [
+        "Camila Delgado",
+        "Colombia",
+        28802.37
+      ],
+      [
+        "Diego Alvarez",
+        "Mexico",
+        28380.98
+      ],
+      [
+        "Maria Romero",
+        "Colombia",
+        28241.98
+      ],
+      [
+        "Jason Green",
+        "Colombia",
+        27792.61
+      ],
+      [
+        "Ronald Wilson",
+        "Mexico",
+        27676.13
+      ],
+      [
+        "Roberto Ramirez",
+        "Mexico",
+        27633.1
+      ],
+      [
+        "Jorge Lopez",
+        "Colombia",
+        27629.58
+      ],
+      [
+        "Susan Moore",
+        "Mexico",
+        27599.57
+      ],
+      [
+        "Patricia Ramos",
+        "Mexico",
+        27485.25
+      ],
+      [
+        "Alicia Perez",
+        "Mexico",
+        27355.08
+      ],
+      [
+        "Emilio Medina",
+        "Mexico",
+        27129.57
+      ],
+      [
+        "Elena Alvarez",
+        "Colombia",
+        27057.82
+      ],
+      [
+        "Gloria Mendoza",
+        "Mexico",
+        26984.5
+      ],
+      [
+        "Pablo Aguilar",
+        "Mexico",
+        26735.63
+      ],
+      [
+        "Sergio Gonzalez",
+        "Mexico",
+        26718.31
+      ],
+      [
+        "Rodrigo Delgado",
+        "Colombia",
+        26672.78
+      ]
+    ],
+    "expected_row_count_approx": 90,
+    "notes": "93 clientes superan el doble del promedio ($21.056). El promedio general de revenue por cliente (solo delivered) es $10.528. Los whales representan el 93/550 = 16.9% de la base de clientes."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Ejercicio 07",
+    "briefing_ref": "Briefing 5.7",
+    "lesson_ref": "Lección 7",
+    "reference_query": "WITH RECURSIVE arbol AS (\n    SELECT\n        category_id,\n        name,\n        parent_id,\n        1       AS nivel,\n        name    AS ruta\n    FROM categories_jerarquia\n    WHERE parent_id IS NULL\n\n    UNION ALL\n\n    SELECT\n        c.category_id,\n        c.name,\n        c.parent_id,\n        a.nivel + 1,\n        a.ruta || ' > ' || c.name\n    FROM categories_jerarquia c\n    INNER JOIN arbol a ON c.parent_id = a.category_id\n)\nSELECT name AS nombre, nivel, ruta\nFROM arbol\nORDER BY ruta;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "manual_setup",
+    "expected_columns": [
+      "nombre",
+      "nivel",
+      "ruta"
+    ],
+    "sample_rows": [
+      [
+        "Hogar",
+        1,
+        "Hogar"
+      ],
+      [
+        "Decoración",
+        2,
+        "Hogar > Decoración"
+      ],
+      [
+        "Muebles",
+        2,
+        "Hogar > Muebles"
+      ],
+      [
+        "Ropa",
+        1,
+        "Ropa"
+      ],
+      [
+        "Ropa Hombre",
+        2,
+        "Ropa > Ropa Hombre"
+      ],
+      [
+        "Ropa Mujer",
+        2,
+        "Ropa > Ropa Mujer"
+      ],
+      [
+        "Tecnología",
+        1,
+        "Tecnología"
+      ],
+      [
+        "Audio",
+        2,
+        "Tecnología > Audio"
+      ],
+      [
+        "Auriculares",
+        3,
+        "Tecnología > Audio > Auriculares"
+      ],
+      [
+        "Parlantes",
+        3,
+        "Tecnología > Audio > Parlantes"
+      ],
+      [
+        "Computadoras",
+        2,
+        "Tecnología > Computadoras"
+      ],
+      [
+        "Desktops",
+        3,
+        "Tecnología > Computadoras > Desktops"
+      ],
+      [
+        "Laptops",
+        3,
+        "Tecnología > Computadoras > Laptops"
+      ],
+      [
+        "Smartphones",
+        2,
+        "Tecnología > Smartphones"
+      ],
+      [
+        "Android",
+        3,
+        "Tecnología > Smartphones > Android"
+      ],
+      [
+        "iOS",
+        3,
+        "Tecnología > Smartphones > iOS"
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "Requiere CREATE TABLE categories_jerarquia + INSERT antes de ejecutar. Ver leccion-02.md para los datos de la tabla auxiliar. El dataset tiene 3 raices (Tecnologia, Hogar, Ropa) y 3 niveles de profundidad maxima."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Ejercicio 08",
+    "briefing_ref": "Briefing 5.8",
+    "lesson_ref": "Lección 8",
+    "reference_query": "WITH RECURSIVE arbol AS (\n    SELECT\n        category_id,\n        name,\n        parent_id,\n        1       AS nivel,\n        name    AS ruta\n    FROM categories_jerarquia\n    WHERE parent_id IS NULL\n\n    UNION ALL\n\n    SELECT\n        c.category_id,\n        c.name,\n        c.parent_id,\n        a.nivel + 1,\n        a.ruta || ' > ' || c.name\n    FROM categories_jerarquia c\n    INNER JOIN arbol a ON c.parent_id = a.category_id\n)\nSELECT name AS nombre, nivel, ruta\nFROM arbol\nWHERE category_id NOT IN (\n    SELECT parent_id\n    FROM categories_jerarquia\n    WHERE parent_id IS NOT NULL\n)\nORDER BY ruta;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "manual_setup",
+    "expected_columns": [
+      "nombre",
+      "nivel",
+      "ruta"
+    ],
+    "sample_rows": [
+      [
+        "Decoración",
+        2,
+        "Hogar > Decoración"
+      ],
+      [
+        "Muebles",
+        2,
+        "Hogar > Muebles"
+      ],
+      [
+        "Ropa Hombre",
+        2,
+        "Ropa > Ropa Hombre"
+      ],
+      [
+        "Ropa Mujer",
+        2,
+        "Ropa > Ropa Mujer"
+      ],
+      [
+        "Auriculares",
+        3,
+        "Tecnología > Audio > Auriculares"
+      ],
+      [
+        "Parlantes",
+        3,
+        "Tecnología > Audio > Parlantes"
+      ],
+      [
+        "Desktops",
+        3,
+        "Tecnología > Computadoras > Desktops"
+      ],
+      [
+        "Laptops",
+        3,
+        "Tecnología > Computadoras > Laptops"
+      ],
+      [
+        "Android",
+        3,
+        "Tecnología > Smartphones > Android"
+      ],
+      [
+        "iOS",
+        3,
+        "Tecnología > Smartphones > iOS"
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Requiere CREATE TABLE categories_jerarquia + INSERT. 10 categorias hoja de 16 totales (63%). Nivel 2: Decoracion, Muebles, Ropa Hombre, Ropa Mujer. Nivel 3: Android, Auriculares, Desktops, iOS, Laptops, Parlantes."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Ejercicio 09",
+    "briefing_ref": "Briefing 5.9",
+    "lesson_ref": "Lección 9",
+    "reference_query": "WITH RECURSIVE descendientes AS (\n    SELECT\n        category_id,\n        name,\n        1 AS nivel\n    FROM categories_jerarquia\n    WHERE category_id = 1\n\n    UNION ALL\n\n    SELECT\n        c.category_id,\n        c.name,\n        d.nivel + 1\n    FROM categories_jerarquia c\n    INNER JOIN descendientes d ON c.parent_id = d.category_id\n    WHERE d.nivel < 10\n)\nSELECT name AS nombre, nivel\nFROM descendientes\nORDER BY nivel, name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "manual_setup",
+    "expected_columns": [
+      "nombre",
+      "nivel"
+    ],
+    "sample_rows": [
+      [
+        "Tecnología",
+        1
+      ],
+      [
+        "Audio",
+        2
+      ],
+      [
+        "Computadoras",
+        2
+      ],
+      [
+        "Smartphones",
+        2
+      ],
+      [
+        "Android",
+        3
+      ],
+      [
+        "Auriculares",
+        3
+      ],
+      [
+        "Desktops",
+        3
+      ],
+      [
+        "Laptops",
+        3
+      ],
+      [
+        "Parlantes",
+        3
+      ],
+      [
+        "iOS",
+        3
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Requiere CREATE TABLE categories_jerarquia + INSERT. Incluye la raiz (Tecnologia, nivel 1). Subcategorias directas: 3 (nivel 2). Subcategorias indirectas: 6 (nivel 3)."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Ejercicio 10",
+    "briefing_ref": "Briefing 5.10",
+    "lesson_ref": "Lección 10",
+    "reference_query": "WITH RECURSIVE arbol AS (\n    SELECT\n        category_id,\n        name,\n        1 AS nivel\n    FROM categories_jerarquia\n    WHERE parent_id IS NULL\n\n    UNION ALL\n\n    SELECT\n        c.category_id,\n        c.name,\n        a.nivel + 1\n    FROM categories_jerarquia c\n    INNER JOIN arbol a ON c.parent_id = a.category_id\n)\nSELECT nivel, COUNT(*) AS total_categorias\nFROM arbol\nGROUP BY nivel\nORDER BY nivel;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "manual_setup",
+    "expected_columns": [
+      "nivel",
+      "total_categorias"
+    ],
+    "sample_rows": [
+      [
+        1,
+        3
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        6
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "Requiere CREATE TABLE categories_jerarquia + INSERT. El arbol tiene 3 niveles: 3 raices, 7 nodos intermedios, 6 hojas de nivel 3. Total: 16 categorias."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Ejercicio 11",
+    "briefing_ref": "Briefing 5.11",
+    "lesson_ref": "Lección 11",
+    "reference_query": "WITH pedidos_con_monto AS (\n    SELECT\n        o.order_id,\n        o.customer_id,\n        o.ordered_at,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS monto_pedido\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status = 'delivered'\n    GROUP BY o.order_id, o.customer_id, o.ordered_at\n),\nranking AS (\n    SELECT\n        customer_id,\n        ordered_at,\n        monto_pedido,\n        ROW_NUMBER() OVER (\n            PARTITION BY customer_id\n            ORDER BY ordered_at ASC\n        ) AS rn\n    FROM pedidos_con_monto\n)\nSELECT\n    c.first_name || ' ' || c.last_name  AS nombre_completo,\n    c.country,\n    r.ordered_at                        AS fecha_primer_pedido,\n    r.monto_pedido\nFROM ranking r\nINNER JOIN customers c ON c.customer_id = r.customer_id\nWHERE r.rn = 1\nORDER BY r.ordered_at ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_completo",
+      "country",
+      "fecha_primer_pedido",
+      "monto_pedido"
+    ],
+    "sample_rows": [
+      [
+        "Roberto Ruiz",
+        "Paraguay",
+        "2023-06-01 10:00:00",
+        590.92
+      ],
+      [
+        "Daniela Moreno",
+        "Chile",
+        "2023-06-01 10:00:00",
+        161.87
+      ],
+      [
+        "Ricardo Vega",
+        "Mexico",
+        "2023-06-02 10:00:00",
+        327.79
+      ],
+      [
+        "Elena Lopez",
+        "Ecuador",
+        "2023-06-03 10:00:00",
+        262.66
+      ],
+      [
+        "Sharon Moore",
+        "Bolivia",
+        "2023-06-03 10:00:00",
+        112.98
+      ],
+      [
+        "Mark Taylor",
+        "Argentina",
+        "2023-06-04 10:00:00",
+        152.6
+      ],
+      [
+        "Jason Young",
+        "Chile",
+        "2023-06-04 10:00:00",
+        499.04
+      ],
+      [
+        "Carolina Moreno",
+        "Mexico",
+        "2023-06-04 10:00:00",
+        79.2
+      ],
+      [
+        "Claudia Hernandez",
+        "Costa Rica",
+        "2023-06-04 10:00:00",
+        79.52
+      ],
+      [
+        "Elena Aguilar",
+        "USA",
+        "2023-06-05 10:00:00",
+        109.44
+      ],
+      [
+        "Carmen Vargas",
+        "Bolivia",
+        "2023-06-05 10:00:00",
+        146.44
+      ],
+      [
+        "Melissa Thomas",
+        "Ecuador",
+        "2023-06-05 10:00:00",
+        205.79
+      ],
+      [
+        "Mario Romero",
+        "USA",
+        "2023-06-05 10:00:00",
+        50.34
+      ],
+      [
+        "Robert Wilson",
+        "Spain",
+        "2023-06-05 10:00:00",
+        34.79
+      ],
+      [
+        "James White",
+        "Mexico",
+        "2023-06-06 10:00:00",
+        166.24
+      ],
+      [
+        "Fernanda Guerrero",
+        "Venezuela",
+        "2023-06-07 10:00:00",
+        43.86
+      ],
+      [
+        "Emily Jones",
+        "Mexico",
+        "2023-06-07 10:00:00",
+        30.05
+      ],
+      [
+        "Santiago Ramirez",
+        "Chile",
+        "2023-06-07 10:00:00",
+        195.4
+      ],
+      [
+        "Marcela Martinez",
+        "Argentina",
+        "2023-06-07 10:00:00",
+        495.5
+      ],
+      [
+        "Jennifer Green",
+        "Guatemala",
+        "2023-06-08 10:00:00",
+        49.72
+      ],
+      [
+        "Stephanie Wilson",
+        "Venezuela",
+        "2023-06-08 10:00:00",
+        59.3
+      ],
+      [
+        "Veronica Ramos",
+        "Uruguay",
+        "2023-06-08 10:00:00",
+        413.13
+      ],
+      [
+        "Beatriz Medina",
+        "Paraguay",
+        "2023-06-09 10:00:00",
+        204.68
+      ],
+      [
+        "Barbara Brown",
+        "Spain",
+        "2023-06-09 10:00:00",
+        262.03
+      ],
+      [
+        "Daniela Herrera",
+        "USA",
+        "2023-06-09 10:00:00",
+        198.2
+      ],
+      [
+        "Gabriela Pena",
+        "Argentina",
+        "2023-06-10 10:00:00",
+        253.1
+      ],
+      [
+        "Raul Flores",
+        "Mexico",
+        "2023-06-10 10:00:00",
+        198.5
+      ],
+      [
+        "Kenneth Scott",
+        "Spain",
+        "2023-06-10 10:00:00",
+        191.21
+      ],
+      [
+        "Sharon King",
+        "USA",
+        "2023-06-11 10:00:00",
+        351.11
+      ],
+      [
+        "Monica Romero",
+        "Paraguay",
+        "2023-06-11 10:00:00",
+        106.84
+      ],
+      [
+        "Ximena Reyes",
+        "USA",
+        "2023-06-12 10:00:00",
+        178.38
+      ],
+      [
+        "Jason Nelson",
+        "Ecuador",
+        "2023-06-12 10:00:00",
+        386.09
+      ],
+      [
+        "Emilio Delgado",
+        "Ecuador",
+        "2023-06-12 10:00:00",
+        153.5
+      ],
+      [
+        "Patricia Lewis",
+        "Spain",
+        "2023-06-12 10:00:00",
+        71.33
+      ],
+      [
+        "Hector Hernandez",
+        "Colombia",
+        "2023-06-12 10:00:00",
+        425.16
+      ],
+      [
+        "Alberto Pena",
+        "Argentina",
+        "2023-06-13 10:00:00",
+        313.36
+      ],
+      [
+        "David Taylor",
+        "Bolivia",
+        "2023-06-15 10:00:00",
+        106.26
+      ],
+      [
+        "Raul Herrera",
+        "Argentina",
+        "2023-06-16 10:00:00",
+        102.59
+      ],
+      [
+        "Melissa Williams",
+        "Guatemala",
+        "2023-06-16 10:00:00",
+        105.95
+      ],
+      [
+        "Gabriela Reyes",
+        "Costa Rica",
+        "2023-06-16 10:00:00",
+        232.99
+      ],
+      [
+        "Roberto Ramirez",
+        "Mexico",
+        "2023-06-17 10:00:00",
+        150.24
+      ],
+      [
+        "Marcela Pena",
+        "Ecuador",
+        "2023-06-17 10:00:00",
+        86.61
+      ],
+      [
+        "Gustavo Herrera",
+        "Mexico",
+        "2023-06-17 10:00:00",
+        118.82
+      ],
+      [
+        "Roberto Ruiz",
+        "Guatemala",
+        "2023-06-18 10:00:00",
+        884.42
+      ],
+      [
+        "Valentina Vargas",
+        "Chile",
+        "2023-06-18 10:00:00",
+        409.01
+      ],
+      [
+        "Sebastian Jimenez",
+        "Costa Rica",
+        "2023-06-19 10:00:00",
+        169.79
+      ],
+      [
+        "Linda Clark",
+        "Uruguay",
+        "2023-06-20 10:00:00",
+        759.56
+      ],
+      [
+        "Mario Martinez",
+        "Uruguay",
+        "2023-06-20 10:00:00",
+        199.41
+      ],
+      [
+        "Thomas Jackson",
+        "Argentina",
+        "2023-06-20 10:00:00",
+        26.54
+      ],
+      [
+        "Carlos Alvarez",
+        "USA",
+        "2023-06-22 10:00:00",
+        78.94
+      ]
+    ],
+    "expected_row_count_approx": 550,
+    "notes": "550 filas — una por cada cliente del seed. Todos los clientes tienen al menos un pedido delivered. El primer pedido del seed es el 2025-01-01 08:00:00. El timestamp de ordenamiento es determinante — es exact_ordered."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Ejercicio 12",
+    "briefing_ref": "Briefing 5.12",
+    "lesson_ref": "Lección 12",
+    "reference_query": "WITH revenue_producto AS (\n    SELECT\n        p.product_id,\n        p.name                                       AS producto,\n        cat.name                                     AS categoria,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)   AS revenue_total\n    FROM order_items oi\n    INNER JOIN products   p   ON p.product_id   = oi.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    GROUP BY p.product_id, p.name, cat.name\n),\nranking AS (\n    SELECT\n        producto,\n        categoria,\n        revenue_total,\n        DENSE_RANK() OVER (\n            PARTITION BY categoria\n            ORDER BY revenue_total DESC\n        ) AS posicion\n    FROM revenue_producto\n)\nSELECT producto, categoria, revenue_total, posicion\nFROM ranking\nWHERE posicion <= 3\nORDER BY categoria, posicion;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "revenue_total",
+      "posicion"
+    ],
+    "sample_rows": [
+      [
+        "Auriculares Gaming HyperX Cloud",
+        "Audio",
+        93028.89,
+        1
+      ],
+      [
+        "Microfonon USB Blue Snowball",
+        "Audio",
+        78682.09,
+        2
+      ],
+      [
+        "Audifonos Sony WH-CH520",
+        "Audio",
+        71136.72,
+        3
+      ],
+      [
+        "Kit Skincare Neutrogena 3 pasos",
+        "Beauty",
+        56281.32,
+        1
+      ],
+      [
+        "Set Maquillaje Rimmel London",
+        "Beauty",
+        47156.18,
+        2
+      ],
+      [
+        "Shampoo Anticaida Kerastase",
+        "Beauty",
+        38673.08,
+        3
+      ],
+      [
+        "Clean Code - Robert C Martin",
+        "Books",
+        51781.25,
+        1
+      ],
+      [
+        "Python Crash Course 3rd Ed",
+        "Books",
+        41969.15,
+        2
+      ],
+      [
+        "Atomic Habits - James Clear",
+        "Books",
+        23944.23,
+        3
+      ],
+      [
+        "Campera Invierno ThermoShield",
+        "Clothing",
+        140759.36,
+        1
+      ],
+      [
+        "Zapatillas Nike Revolution 6",
+        "Clothing",
+        126656.33,
+        2
+      ],
+      [
+        "Campera Rompeviento Columbia",
+        "Clothing",
+        119436.33,
+        3
+      ],
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        905701.03,
+        1
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        578473.02,
+        2
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        "Electronics",
+        379487.25,
+        3
+      ],
+      [
+        "Estufa Bioetanol Design",
+        "Home Appliances",
+        531166.38,
+        1
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        "Home Appliances",
+        412186.26,
+        2
+      ],
+      [
+        "Cuchillos Chef Zwilling 3pz",
+        "Home Appliances",
+        337486.5,
+        3
+      ],
+      [
+        "Silla de Oficina Ergonomica MiDesk",
+        "Office",
+        189479.43,
+        1
+      ],
+      [
+        "Impresora HP DeskJet 2775",
+        "Office",
+        86213.08,
+        2
+      ],
+      [
+        "Lampara LED Escritorio con USB",
+        "Office",
+        40102.95,
+        3
+      ],
+      [
+        "Raqueta Padel Babolat Air",
+        "Sports",
+        122700.77,
+        1
+      ],
+      [
+        "Zapatillas Running Asics GT-1000",
+        "Sports",
+        98280.9,
+        2
+      ],
+      [
+        "Casco Bici Urbano Giro Ember",
+        "Sports",
+        65557.09,
+        3
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        272061.4,
+        1
+      ],
+      [
+        "Drone Mini DJI Tello",
+        "Toys & Games",
+        119654.5,
+        2
+      ],
+      [
+        "LEGO Classic Set 300 piezas",
+        "Toys & Games",
+        39508.03,
+        3
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        "Wearables",
+        315135.99,
+        1
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        "Wearables",
+        228283.54,
+        2
+      ],
+      [
+        "Gafas Inteligentes Ray-Ban Stories",
+        "Wearables",
+        211922.46,
+        3
+      ]
+    ],
+    "expected_row_count_approx": 30,
+    "notes": "3 filas por categoria, 10 categorias = 30 filas exactas. No hay empates en posicion 3 en este dataset. DENSE_RANK habria producido el mismo resultado que RANK aqui, pero es correcto usar DENSE_RANK segun el enunciado."
+  },
+  {
+    "exercise_number": 13,
+    "title": "Ejercicio 13",
+    "briefing_ref": "Briefing 5.13",
+    "lesson_ref": "Lección 13",
+    "reference_query": "WITH stock_rankeado AS (\n    SELECT\n        cat.name    AS categoria,\n        p.name      AS producto,\n        i.stock,\n        RANK() OVER (\n            PARTITION BY cat.category_id\n            ORDER BY i.stock ASC\n        ) AS posicion_stock\n    FROM inventory i\n    INNER JOIN products   p   ON p.product_id   = i.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n)\nSELECT categoria, producto, stock\nFROM stock_rankeado\nWHERE posicion_stock = 1\nORDER BY categoria, stock ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "categoria",
+      "producto",
+      "stock"
+    ],
+    "sample_rows": [
+      [
+        "Audio",
+        "Parlante Bluetooth Sony SRS-XB13",
+        22
+      ],
+      [
+        "Beauty",
+        "Serum Vitamina C CeraVe 30ml",
+        19
+      ],
+      [
+        "Books",
+        "Cien Anos de Soledad",
+        97
+      ],
+      [
+        "Clothing",
+        "Campera Rompeviento Columbia",
+        22
+      ],
+      [
+        "Electronics",
+        "Hub USB-C 7-en-1",
+        0
+      ],
+      [
+        "Home Appliances",
+        "Almohada Memory Foam Premium",
+        11
+      ],
+      [
+        "Office",
+        "Organizador Escritorio 6 compartimentos",
+        46
+      ],
+      [
+        "Office",
+        "Lampara LED Escritorio con USB",
+        46
+      ],
+      [
+        "Sports",
+        "Zapatillas Running Asics GT-1000",
+        12
+      ],
+      [
+        "Toys & Games",
+        "Nintendo Switch Lite Amarillo",
+        7
+      ],
+      [
+        "Wearables",
+        "Reloj Deportivo Garmin Forerunner",
+        17
+      ]
+    ],
+    "expected_row_count_approx": 11,
+    "notes": "11 filas en lugar de 10: la categoria Office tiene dos productos empatados en stock=46 (Organizador Escritorio y Lampara LED). Este empate ilustra exactamente por que el enunciado pide RANK en lugar de ROW_NUMBER."
+  },
+  {
+    "exercise_number": 14,
+    "title": "Ejercicio 14",
+    "briefing_ref": "Briefing 5.14",
+    "lesson_ref": "Lección 14",
+    "reference_query": "WITH revenue_producto AS (\n    SELECT\n        p.name                                       AS producto,\n        cat.name                                     AS categoria,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)   AS revenue_total\n    FROM order_items oi\n    INNER JOIN products   p   ON p.product_id   = oi.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    GROUP BY p.name, cat.name\n),\nranking AS (\n    SELECT\n        producto,\n        categoria,\n        revenue_total,\n        RANK() OVER (ORDER BY revenue_total DESC) AS posicion_global\n    FROM revenue_producto\n)\nSELECT producto, categoria, revenue_total, posicion_global\nFROM ranking\nORDER BY posicion_global ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "revenue_total",
+      "posicion_global"
+    ],
+    "sample_rows": [
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        905701.03,
+        1
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        578473.02,
+        2
+      ],
+      [
+        "Estufa Bioetanol Design",
+        "Home Appliances",
+        531166.38,
+        3
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        "Home Appliances",
+        412186.26,
+        4
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        "Electronics",
+        379487.25,
+        5
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        "Electronics",
+        372496.62,
+        6
+      ],
+      [
+        "Cuchillos Chef Zwilling 3pz",
+        "Home Appliances",
+        337486.5,
+        7
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        "Wearables",
+        315135.99,
+        8
+      ],
+      [
+        "Juego Sabanas Percal 300 hilos",
+        "Home Appliances",
+        309305.94,
+        9
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        272061.4,
+        10
+      ],
+      [
+        "Set Cubiertos Inox Tramontina 24pz",
+        "Home Appliances",
+        252876.69,
+        11
+      ],
+      [
+        "Tablet Amazon Fire HD 10",
+        "Electronics",
+        242094.68,
+        12
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        "Home Appliances",
+        228976.53,
+        13
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        "Wearables",
+        228283.54,
+        14
+      ],
+      [
+        "Gafas Inteligentes Ray-Ban Stories",
+        "Wearables",
+        211922.46,
+        15
+      ],
+      [
+        "Cafetera de Prensa Bodum 1L",
+        "Home Appliances",
+        208036.13,
+        16
+      ],
+      [
+        "Silla de Oficina Ergonomica MiDesk",
+        "Office",
+        189479.43,
+        17
+      ],
+      [
+        "Set Toallas Egipcio Premium x4",
+        "Home Appliances",
+        179906.16,
+        18
+      ],
+      [
+        "Organizador Cocina Bambu Set 5pz",
+        "Home Appliances",
+        143485.65,
+        19
+      ],
+      [
+        "Campera Invierno ThermoShield",
+        "Clothing",
+        140759.36,
+        20
+      ],
+      [
+        "Smartwatch ProX 3 Ultra",
+        "Wearables",
+        137406.44,
+        21
+      ],
+      [
+        "Webcam Logitech C920 HD",
+        "Electronics",
+        135825.83,
+        22
+      ],
+      [
+        "Zapatillas Nike Revolution 6",
+        "Clothing",
+        126656.33,
+        23
+      ],
+      [
+        "Raqueta Padel Babolat Air",
+        "Sports",
+        122700.77,
+        24
+      ],
+      [
+        "Drone Mini DJI Tello",
+        "Toys & Games",
+        119654.5,
+        25
+      ],
+      [
+        "Campera Rompeviento Columbia",
+        "Clothing",
+        119436.33,
+        26
+      ],
+      [
+        "Fitness Tracker Fitbit Inspire 3",
+        "Wearables",
+        116853.02,
+        27
+      ],
+      [
+        "Cafetera Nespresso Essenza Mini",
+        "Home Appliances",
+        112892.38,
+        28
+      ],
+      [
+        "Disco SSD Externo 480GB",
+        "Electronics",
+        110423.12,
+        29
+      ],
+      [
+        "Zapatillas Adidas Duramo 10",
+        "Clothing",
+        109239.22,
+        30
+      ],
+      [
+        "Vela Aromatica Luxury Pack x3",
+        "Home Appliances",
+        106226.72,
+        31
+      ],
+      [
+        "Freidora Aire Philips 4.1L",
+        "Home Appliances",
+        104142.16,
+        32
+      ],
+      [
+        "Vestido Fiesta EleganceNight",
+        "Clothing",
+        103835.41,
+        33
+      ],
+      [
+        "Zapatillas Running Asics GT-1000",
+        "Sports",
+        98280.9,
+        34
+      ],
+      [
+        "Aspiradora Vertical Rowenta",
+        "Home Appliances",
+        96870.9,
+        35
+      ],
+      [
+        "Auriculares Gaming HyperX Cloud",
+        "Audio",
+        93028.89,
+        36
+      ],
+      [
+        "Impresora HP DeskJet 2775",
+        "Office",
+        86213.08,
+        37
+      ],
+      [
+        "Power Bank 20000mAh Anker",
+        "Electronics",
+        82410.53,
+        38
+      ],
+      [
+        "Mochila Samsonite Classic 25L",
+        "Clothing",
+        82042.54,
+        39
+      ],
+      [
+        "Microfonon USB Blue Snowball",
+        "Audio",
+        78682.09,
+        40
+      ],
+      [
+        "Remera Polo LACOSTE Essential",
+        "Clothing",
+        76112.15,
+        41
+      ],
+      [
+        "Pulsera Actividad Huawei Band 7",
+        "Wearables",
+        74194.89,
+        42
+      ],
+      [
+        "Audifonos Sony WH-CH520",
+        "Audio",
+        71136.72,
+        43
+      ],
+      [
+        "Teclado Inalambrico Logitech K380",
+        "Electronics",
+        70596.68,
+        44
+      ],
+      [
+        "Hub USB-C 7-en-1",
+        "Electronics",
+        65979.75,
+        45
+      ],
+      [
+        "Casco Bici Urbano Giro Ember",
+        "Sports",
+        65557.09,
+        46
+      ],
+      [
+        "Parlante Bluetooth Sony SRS-XB13",
+        "Audio",
+        65451.0,
+        47
+      ],
+      [
+        "Auriculares Bluetooth JBL Tune 510",
+        "Audio",
+        61300.29,
+        48
+      ],
+      [
+        "Smartband Xiaomi Mi Band 8",
+        "Wearables",
+        59348.9,
+        49
+      ],
+      [
+        "Kit Skincare Neutrogena 3 pasos",
+        "Beauty",
+        56281.32,
+        50
+      ]
+    ],
+    "expected_row_count_approx": 90,
+    "notes": "90 filas — un registro por producto. Sin empates verificados en los primeros 10 puestos. Electronics domina los top 3 excepto por Estufa Bioetanol (Home Appliances) en posicion 3."
+  },
+  {
+    "exercise_number": 15,
+    "title": "Ejercicio 15",
+    "briefing_ref": "Briefing 5.15",
+    "lesson_ref": "Lección 15",
+    "reference_query": "WITH revenue_cliente AS (\n    SELECT\n        o.customer_id,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_total\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status = 'delivered'\n    GROUP BY o.customer_id\n),\nranking AS (\n    SELECT\n        c.first_name || ' ' || c.last_name  AS nombre_completo,\n        c.country,\n        r.revenue_total,\n        DENSE_RANK() OVER (\n            PARTITION BY c.country\n            ORDER BY r.revenue_total DESC\n        ) AS posicion\n    FROM customers c\n    INNER JOIN revenue_cliente r ON r.customer_id = c.customer_id\n)\nSELECT nombre_completo, country, revenue_total, posicion\nFROM ranking\nWHERE posicion <= 3\nORDER BY country, posicion;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_completo",
+      "country",
+      "revenue_total",
+      "posicion"
+    ],
+    "sample_rows": [
+      [
+        "Thomas Jackson",
+        "Argentina",
+        17483.29,
+        1
+      ],
+      [
+        "Valentina Ortiz",
+        "Argentina",
+        17096.3,
+        2
+      ],
+      [
+        "Andres Espinoza",
+        "Argentina",
+        15734.68,
+        3
+      ],
+      [
+        "Melissa Smith",
+        "Bolivia",
+        9878.09,
+        1
+      ],
+      [
+        "Susan Moore",
+        "Bolivia",
+        9847.28,
+        2
+      ],
+      [
+        "Sharon Moore",
+        "Bolivia",
+        9239.39,
+        3
+      ],
+      [
+        "Mateo Romero",
+        "Chile",
+        22076.63,
+        1
+      ],
+      [
+        "Laura Davis",
+        "Chile",
+        18820.1,
+        2
+      ],
+      [
+        "Roberto Reyes",
+        "Chile",
+        17716.81,
+        3
+      ],
+      [
+        "Patricia Jones",
+        "Colombia",
+        36971.26,
+        1
+      ],
+      [
+        "Ashley Taylor",
+        "Colombia",
+        34313.19,
+        2
+      ],
+      [
+        "Jorge Vega",
+        "Colombia",
+        34243.62,
+        3
+      ],
+      [
+        "Jorge Gonzalez",
+        "Costa Rica",
+        9966.3,
+        1
+      ],
+      [
+        "Carolina Perez",
+        "Costa Rica",
+        7112.67,
+        2
+      ],
+      [
+        "Linda Johnson",
+        "Costa Rica",
+        5602.82,
+        3
+      ],
+      [
+        "Paul White",
+        "Ecuador",
+        9397.61,
+        1
+      ],
+      [
+        "Brian King",
+        "Ecuador",
+        8686.78,
+        2
+      ],
+      [
+        "David White",
+        "Ecuador",
+        7739.49,
+        3
+      ],
+      [
+        "Sergio Romero",
+        "El Salvador",
+        7461.14,
+        1
+      ],
+      [
+        "Daniel Thompson",
+        "El Salvador",
+        7378.36,
+        2
+      ],
+      [
+        "Ivan Cruz",
+        "El Salvador",
+        6447.31,
+        3
+      ],
+      [
+        "Alejandro Reyes",
+        "Guatemala",
+        9729.37,
+        1
+      ],
+      [
+        "Roberto Ruiz",
+        "Guatemala",
+        9713.48,
+        2
+      ],
+      [
+        "Santiago Torres",
+        "Guatemala",
+        7637.32,
+        3
+      ],
+      [
+        "Felipe Jimenez",
+        "Honduras",
+        7078.48,
+        1
+      ],
+      [
+        "Daniel Wright",
+        "Honduras",
+        6935.6,
+        2
+      ],
+      [
+        "Sebastian Ruiz",
+        "Honduras",
+        6904.88,
+        3
+      ],
+      [
+        "Isabella Gutierrez",
+        "Mexico",
+        41381.8,
+        1
+      ],
+      [
+        "Joseph Hall",
+        "Mexico",
+        41371.94,
+        2
+      ],
+      [
+        "Isabella Morales",
+        "Mexico",
+        41157.29,
+        3
+      ],
+      [
+        "Claudia Bravo",
+        "Paraguay",
+        4916.98,
+        1
+      ],
+      [
+        "Alberto Torres",
+        "Paraguay",
+        4899.65,
+        2
+      ],
+      [
+        "Andres Medina",
+        "Paraguay",
+        4736.17,
+        3
+      ],
+      [
+        "Andres Cruz",
+        "Peru",
+        16574.63,
+        1
+      ],
+      [
+        "Isabella Huanca",
+        "Peru",
+        15811.85,
+        2
+      ],
+      [
+        "Valentina Huanca",
+        "Peru",
+        15167.5,
+        3
+      ],
+      [
+        "Rebecca Smith",
+        "Spain",
+        8984.43,
+        1
+      ],
+      [
+        "John Williams",
+        "Spain",
+        8465.76,
+        2
+      ],
+      [
+        "Hector Flores",
+        "Spain",
+        8438.9,
+        3
+      ],
+      [
+        "Sharon Johnson",
+        "USA",
+        10094.4,
+        1
+      ],
+      [
+        "Natalia Guerrero",
+        "USA",
+        9143.32,
+        2
+      ],
+      [
+        "Richard Hall",
+        "USA",
+        8353.92,
+        3
+      ],
+      [
+        "Linda Clark",
+        "Uruguay",
+        7600.5,
+        1
+      ],
+      [
+        "Camila Alvarez",
+        "Uruguay",
+        6541.58,
+        2
+      ],
+      [
+        "Pedro Vega",
+        "Uruguay",
+        6092.35,
+        3
+      ],
+      [
+        "Fernanda Guerrero",
+        "Venezuela",
+        10505.9,
+        1
+      ],
+      [
+        "Patricia Sanchez",
+        "Venezuela",
+        9296.23,
+        2
+      ],
+      [
+        "Teresa Campos",
+        "Venezuela",
+        7680.35,
+        3
+      ]
+    ],
+    "expected_row_count_approx": 48,
+    "notes": "48 filas (16 paises x 3 clientes cada uno). Sin empates detectados en posicion 3 por pais en este dataset. Mexico lidera en valor absoluto de revenue top (>$34K vs $17K de Argentina)."
+  },
+  {
+    "exercise_number": 16,
+    "title": "Ejercicio 16",
+    "briefing_ref": "Briefing 5.16",
+    "lesson_ref": "Lección 16",
+    "reference_query": "WITH stock_cuartiles AS (\n    SELECT\n        p.name      AS producto,\n        cat.name    AS categoria,\n        i.stock,\n        NTILE(4) OVER (ORDER BY i.stock ASC) AS cuartil\n    FROM inventory i\n    INNER JOIN products   p   ON p.product_id   = i.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n)\nSELECT producto, categoria, stock, cuartil\nFROM stock_cuartiles\nWHERE cuartil = 1\nORDER BY stock ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "stock",
+      "cuartil"
+    ],
+    "sample_rows": [
+      [
+        "Hub USB-C 7-en-1",
+        "Electronics",
+        0,
+        1
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        "Electronics",
+        2,
+        1
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        4,
+        1
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        7,
+        1
+      ],
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        8,
+        1
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        "Electronics",
+        11,
+        1
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        "Home Appliances",
+        11,
+        1
+      ],
+      [
+        "Zapatillas Running Asics GT-1000",
+        "Sports",
+        12,
+        1
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        "Home Appliances",
+        14,
+        1
+      ],
+      [
+        "Cafetera de Prensa Bodum 1L",
+        "Home Appliances",
+        15,
+        1
+      ],
+      [
+        "Organizador Cocina Bambu Set 5pz",
+        "Home Appliances",
+        15,
+        1
+      ],
+      [
+        "Funda Protectora iPhone 15",
+        "Electronics",
+        17,
+        1
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        "Wearables",
+        17,
+        1
+      ],
+      [
+        "Serum Vitamina C CeraVe 30ml",
+        "Beauty",
+        19,
+        1
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        "Wearables",
+        21,
+        1
+      ],
+      [
+        "Bolsa Gimnasio Nike Brasilia 30L",
+        "Sports",
+        21,
+        1
+      ],
+      [
+        "Vela Aromatica Luxury Pack x3",
+        "Home Appliances",
+        21,
+        1
+      ],
+      [
+        "Parlante Bluetooth Sony SRS-XB13",
+        "Audio",
+        22,
+        1
+      ],
+      [
+        "Campera Rompeviento Columbia",
+        "Clothing",
+        22,
+        1
+      ],
+      [
+        "Smartband Xiaomi Mi Band 8",
+        "Wearables",
+        27,
+        1
+      ],
+      [
+        "Botella Deportiva 750ml Camelbak",
+        "Sports",
+        30,
+        1
+      ],
+      [
+        "Kit Skincare Neutrogena 3 pasos",
+        "Beauty",
+        30,
+        1
+      ],
+      [
+        "Power Bank 20000mAh Anker",
+        "Electronics",
+        33,
+        1
+      ]
+    ],
+    "expected_row_count_approx": 23,
+    "notes": "NTILE(4) sobre 90 productos: cada cuartil tiene 22 o 23 filas (90/4=22.5). El cuartil 1 tiene 23 productos (el extra va al primer grupo). Rango de stock en cuartil 1: 0 a 33. Validation_mode unordered porque NTILE no garantiza orden dentro del mismo grupo."
+  },
+  {
+    "exercise_number": 17,
+    "title": "Ejercicio 17",
+    "briefing_ref": "Briefing 5.17",
+    "lesson_ref": "Lección 17",
+    "reference_query": "WITH revenue_producto AS (\n    SELECT\n        oi.product_id,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_total\n    FROM order_items oi\n    GROUP BY oi.product_id\n),\ncuartiles AS (\n    SELECT\n        product_id,\n        revenue_total,\n        NTILE(4) OVER (ORDER BY revenue_total DESC) AS cuartil\n    FROM revenue_producto\n)\nSELECT\n    ROUND(SUM(CASE WHEN cuartil = 1 THEN revenue_total ELSE 0 END), 2)  AS revenue_cuartil_top,\n    ROUND(SUM(revenue_total), 2)                                         AS revenue_total,\n    ROUND(\n        100.0 * SUM(CASE WHEN cuartil = 1 THEN revenue_total ELSE 0 END)\n        / NULLIF(SUM(revenue_total), 0),\n        1\n    )                                                                    AS pct_concentracion\nFROM cuartiles;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "revenue_cuartil_top",
+      "revenue_total",
+      "pct_concentracion"
+    ],
+    "sample_rows": [
+      [
+        6839209.62,
+        10584080.2,
+        64.6
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "El 25% de productos con mas revenue (23 de 90) genera el 65.1% del revenue total. Revenue total historico en order_items: $10.18M. Cuartil top: $6.63M. Esto ilustra una distribucion de Pareto pronunciada."
+  },
+  {
+    "exercise_number": 18,
+    "title": "Ejercicio 18",
+    "briefing_ref": "Briefing 5.18",
+    "lesson_ref": "Lección 18",
+    "reference_query": "WITH revenue_producto AS (\n    SELECT\n        oi.product_id,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_total\n    FROM order_items oi\n    GROUP BY oi.product_id\n),\nquintiles AS (\n    SELECT\n        product_id,\n        revenue_total,\n        NTILE(5) OVER (ORDER BY revenue_total DESC) AS quintil\n    FROM revenue_producto\n)\nSELECT\n    ROUND(SUM(CASE WHEN quintil = 1 THEN revenue_total ELSE 0 END), 2) AS revenue_quintil_top,\n    ROUND(SUM(revenue_total), 2)                                        AS revenue_total,\n    ROUND(\n        100.0 * SUM(CASE WHEN quintil = 1 THEN revenue_total ELSE 0 END)\n        / NULLIF(SUM(revenue_total), 0),\n        1\n    )                                                                   AS pct_concentracion\nFROM quintiles;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "revenue_quintil_top",
+      "revenue_total",
+      "pct_concentracion"
+    ],
+    "sample_rows": [
+      [
+        6155076.01,
+        10584080.2,
+        58.2
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "El 20% de productos (18 de 90) genera el 58.6% del revenue total. Revenue total identico al EJ17 ($10.18M). Quintil top: $5.96M. Comparado con EJ17 (NTILE 4, 65.1%), este resultado permite ver como la concentracion cambia al ajustar la granularidad."
+  },
+  {
+    "exercise_number": 19,
+    "title": "Ejercicio 19",
+    "briefing_ref": "Briefing 5.19",
+    "lesson_ref": "Lección 19",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE     AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue_mes\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status     = 'delivered'\n      AND o.ordered_at >= '2026-01-01'\n      AND o.ordered_at <  '2026-07-01'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes,\n    revenue_mes,\n    LAG(revenue_mes) OVER (ORDER BY mes)                        AS revenue_anterior,\n    ROUND(\n        revenue_mes - LAG(revenue_mes) OVER (ORDER BY mes),\n        2\n    )                                                           AS variacion_absoluta,\n    ROUND(\n        100.0 * (revenue_mes - LAG(revenue_mes) OVER (ORDER BY mes))\n        / NULLIF(LAG(revenue_mes) OVER (ORDER BY mes), 0),\n        1\n    )                                                           AS variacion_pct\nFROM revenue_mensual\nORDER BY mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_mes",
+      "revenue_anterior",
+      "variacion_absoluta",
+      "variacion_pct"
+    ],
+    "sample_rows": [
+      [
+        "2026-01-01",
+        359431.68,
+        null,
+        null,
+        null
+      ],
+      [
+        "2026-02-01",
+        371989.97,
+        359431.68,
+        12558.29,
+        3.5
+      ],
+      [
+        "2026-03-01",
+        403171.78,
+        371989.97,
+        31181.81,
+        8.4
+      ],
+      [
+        "2026-04-01",
+        365356.13,
+        403171.78,
+        -37815.65,
+        -9.4
+      ],
+      [
+        "2026-05-01",
+        192389.49,
+        365356.13,
+        -172966.64,
+        -47.3
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "5 filas en lugar de 6: el seed cubre hasta mayo 2026 (generado 2026-05-31). Junio 2026 no tiene datos de pedidos delivered. Patron notable: marzo pico (+8.4%), mayo caida severa (-47.3%) — el seed termina antes de que mayo tenga datos completos. El primer mes tiene NULL en variacion (correcto). IMP-15 aplica al filtro de fecha en EJ21 pero no en este ejercicio."
+  },
+  {
+    "exercise_number": 20,
+    "title": "Ejercicio 20",
+    "briefing_ref": "Briefing 5.20",
+    "lesson_ref": "Lección 20",
+    "reference_query": "WITH ventas_diarias AS (\n    SELECT\n        p.product_id,\n        p.name                              AS producto,\n        cat.name                            AS categoria,\n        ROUND(SUM(oi.quantity) / 90.0, 2)  AS ventas_diarias_prom\n    FROM order_items oi\n    INNER JOIN products   p   ON p.product_id   = oi.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    INNER JOIN orders     o   ON o.order_id     = oi.order_id\n    WHERE o.ordered_at >= CURRENT_DATE - INTERVAL '90 days'\n    GROUP BY p.product_id, p.name, cat.name\n),\nstock_con_cobertura AS (\n    SELECT\n        COALESCE(vd.producto, p.name)       AS producto,\n        COALESCE(vd.categoria, cat.name)    AS categoria,\n        i.stock,\n        COALESCE(vd.ventas_diarias_prom, 0) AS ventas_diarias_prom,\n        ROUND(\n            i.stock / NULLIF(COALESCE(vd.ventas_diarias_prom, 0), 0),\n            1\n        )                                   AS dias_cobertura\n    FROM inventory i\n    INNER JOIN products   p   ON p.product_id   = i.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    LEFT JOIN ventas_diarias vd ON vd.product_id = i.product_id\n)\nSELECT\n    producto,\n    categoria,\n    stock,\n    ventas_diarias_prom,\n    dias_cobertura,\n    RANK() OVER (\n        ORDER BY\n            dias_cobertura ASC NULLS FIRST,\n            ventas_diarias_prom DESC\n    ) AS ranking_urgencia\nFROM stock_con_cobertura\nORDER BY ranking_urgencia;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "volatile_date_dependent",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "stock",
+      "ventas_diarias_prom",
+      "dias_cobertura",
+      "ranking_urgencia"
+    ],
+    "sample_rows": [
+      [
+        "Hub USB-C 7-en-1",
+        "Electronics",
+        0,
+        2.68,
+        0.0,
+        1
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        "Electronics",
+        2,
+        2.26,
+        0.9,
+        2
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        4,
+        2.26,
+        1.8,
+        3
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        7,
+        2.53,
+        2.8,
+        4
+      ],
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        8,
+        2.23,
+        3.6,
+        5
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        "Home Appliances",
+        11,
+        2.91,
+        3.8,
+        6
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        "Electronics",
+        11,
+        2.59,
+        4.2,
+        7
+      ],
+      [
+        "Zapatillas Running Asics GT-1000",
+        "Sports",
+        12,
+        2.2,
+        5.5,
+        8
+      ],
+      [
+        "Organizador Cocina Bambu Set 5pz",
+        "Home Appliances",
+        15,
+        2.7,
+        5.6,
+        9
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        "Wearables",
+        17,
+        2.84,
+        6.0,
+        10
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        "Home Appliances",
+        14,
+        2.29,
+        6.1,
+        11
+      ],
+      [
+        "Funda Protectora iPhone 15",
+        "Electronics",
+        17,
+        2.54,
+        6.7,
+        12
+      ],
+      [
+        "Serum Vitamina C CeraVe 30ml",
+        "Beauty",
+        19,
+        2.79,
+        6.8,
+        13
+      ],
+      [
+        "Campera Rompeviento Columbia",
+        "Clothing",
+        22,
+        2.82,
+        7.8,
+        14
+      ],
+      [
+        "Bolsa Gimnasio Nike Brasilia 30L",
+        "Sports",
+        21,
+        2.58,
+        8.1,
+        15
+      ],
+      [
+        "Cafetera de Prensa Bodum 1L",
+        "Home Appliances",
+        15,
+        1.74,
+        8.6,
+        16
+      ],
+      [
+        "Parlante Bluetooth Sony SRS-XB13",
+        "Audio",
+        22,
+        2.5,
+        8.8,
+        17
+      ],
+      [
+        "Vela Aromatica Luxury Pack x3",
+        "Home Appliances",
+        21,
+        2.37,
+        8.9,
+        18
+      ],
+      [
+        "Smartband Xiaomi Mi Band 8",
+        "Wearables",
+        27,
+        2.76,
+        9.8,
+        19
+      ],
+      [
+        "Power Bank 20000mAh Anker",
+        "Electronics",
+        33,
+        2.92,
+        11.3,
+        20
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        "Wearables",
+        21,
+        1.84,
+        11.4,
+        21
+      ],
+      [
+        "Kit Skincare Neutrogena 3 pasos",
+        "Beauty",
+        30,
+        2.54,
+        11.8,
+        22
+      ],
+      [
+        "Botella Deportiva 750ml Camelbak",
+        "Sports",
+        30,
+        2.14,
+        14.0,
+        23
+      ],
+      [
+        "Cuchillos Chef Zwilling 3pz",
+        "Home Appliances",
+        39,
+        2.74,
+        14.2,
+        24
+      ],
+      [
+        "Juego Sabanas Percal 300 hilos",
+        "Home Appliances",
+        39,
+        2.64,
+        14.8,
+        25
+      ],
+      [
+        "Cuerda de Saltar PVC",
+        "Sports",
+        46,
+        3.09,
+        14.9,
+        26
+      ],
+      [
+        "Set Cubiertos Inox Tramontina 24pz",
+        "Home Appliances",
+        41,
+        2.52,
+        16.3,
+        27
+      ],
+      [
+        "Set Toallas Egipcio Premium x4",
+        "Home Appliances",
+        43,
+        2.38,
+        18.1,
+        28
+      ],
+      [
+        "Organizador Escritorio 6 compartimentos",
+        "Office",
+        46,
+        2.51,
+        18.3,
+        29
+      ],
+      [
+        "Estufa Bioetanol Design",
+        "Home Appliances",
+        38,
+        2.02,
+        18.8,
+        30
+      ],
+      [
+        "Cargador Inalambrico 15W",
+        "Electronics",
+        59,
+        3.04,
+        19.4,
+        31
+      ],
+      [
+        "Mascarilla Facial Sheet Pack x10",
+        "Beauty",
+        52,
+        2.62,
+        19.8,
+        32
+      ],
+      [
+        "Lampara LED Escritorio con USB",
+        "Office",
+        46,
+        2.23,
+        20.6,
+        33
+      ],
+      [
+        "Teclado Inalambrico Logitech K380",
+        "Electronics",
+        59,
+        2.67,
+        22.1,
+        34
+      ],
+      [
+        "Drone Mini DJI Tello",
+        "Toys & Games",
+        64,
+        2.84,
+        22.5,
+        35
+      ],
+      [
+        "Earbuds TWS Xiaomi Redmi Buds 4",
+        "Audio",
+        71,
+        2.62,
+        27.1,
+        36
+      ],
+      [
+        "Puzzle 1000 piezas Ravensburger",
+        "Toys & Games",
+        70,
+        2.39,
+        29.3,
+        37
+      ],
+      [
+        "Cable USB-C Reforzado 2m",
+        "Electronics",
+        80,
+        2.36,
+        33.9,
+        38
+      ],
+      [
+        "Auriculares Bluetooth JBL Tune 510",
+        "Audio",
+        85,
+        2.47,
+        34.4,
+        39
+      ],
+      [
+        "Parlante Portatil JBL Go 3",
+        "Audio",
+        78,
+        2.23,
+        35.0,
+        40
+      ],
+      [
+        "Set Maquillaje Rimmel London",
+        "Beauty",
+        82,
+        2.06,
+        39.8,
+        41
+      ],
+      [
+        "Jeans Clasico Wrangler",
+        "Clothing",
+        99,
+        2.3,
+        43.0,
+        42
+      ],
+      [
+        "Sapiens - Yuval Noah Harari",
+        "Books",
+        118,
+        2.68,
+        44.0,
+        43
+      ],
+      [
+        "Cien Anos de Soledad",
+        "Books",
+        97,
+        2.08,
+        46.6,
+        44
+      ],
+      [
+        "Plancha de Vapor Oster",
+        "Home Appliances",
+        104,
+        2.12,
+        49.1,
+        45
+      ],
+      [
+        "Auriculares Gaming HyperX Cloud",
+        "Audio",
+        122,
+        2.43,
+        50.2,
+        46
+      ],
+      [
+        "Disco SSD Externo 480GB",
+        "Electronics",
+        148,
+        2.9,
+        51.0,
+        47
+      ],
+      [
+        "Tablet Amazon Fire HD 10",
+        "Electronics",
+        118,
+        2.26,
+        52.2,
+        48
+      ],
+      [
+        "Freidora Aire Philips 4.1L",
+        "Home Appliances",
+        144,
+        2.6,
+        55.4,
+        49
+      ],
+      [
+        "Sandwichera Imaco SGP2000",
+        "Home Appliances",
+        143,
+        2.57,
+        55.6,
+        50
+      ]
+    ],
+    "expected_row_count_approx": 90,
+    "notes": "90 filas — toda la tabla inventory. La ventana de 90 dias es CURRENT_DATE-dependiente. Los top 5 no cambian con el seed actual porque son los productos con menor stock absoluto. NULLS FIRST en SQLite se comporta igual que en PostgreSQL para este caso (no hay NULLs en dias_cobertura de los primeros rangos)."
+  },
+  {
+    "exercise_number": 21,
+    "title": "Ejercicio 21",
+    "briefing_ref": "Briefing 5.21",
+    "lesson_ref": "Lección 21",
+    "reference_query": "WITH clientes_nuevos AS (\n    SELECT\n        c.customer_id,\n        c.first_name || ' ' || c.last_name  AS nombre_completo,\n        c.country,\n        c.registered_at,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_primer_mes\n    FROM customers c\n    INNER JOIN orders      o  ON o.customer_id  = c.customer_id\n    INNER JOIN order_items oi ON oi.order_id    = o.order_id\n    WHERE c.registered_at  >= '2025-06-01'\n      AND c.registered_at  <  '2026-06-01'  -- Filtro exclusivo: < fecha_siguiente captura todo el día N sin necesitar hora 23:59:59\n      AND o.status         = 'delivered'\n      AND o.ordered_at     <= c.registered_at + INTERVAL '30 days'\n    GROUP BY c.customer_id, c.first_name, c.last_name, c.country, c.registered_at\n)\nSELECT\n    nombre_completo,\n    country,\n    registered_at,\n    revenue_primer_mes,\n    NTILE(4) OVER (ORDER BY revenue_primer_mes DESC) AS cuartil\nFROM clientes_nuevos\nORDER BY cuartil ASC, revenue_primer_mes DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_completo",
+      "country",
+      "registered_at",
+      "revenue_primer_mes",
+      "cuartil"
+    ],
+    "sample_rows": [
+      [
+        "Valentina Morales",
+        "Mexico",
+        "2025-09-14",
+        17931.46,
+        1
+      ],
+      [
+        "Roberto Reyes",
+        "Chile",
+        "2025-09-23",
+        15065.11,
+        1
+      ],
+      [
+        "Andres Espinoza",
+        "Argentina",
+        "2025-09-16",
+        14659.86,
+        1
+      ],
+      [
+        "Valentina Navarro",
+        "Chile",
+        "2025-09-27",
+        13386.5,
+        1
+      ],
+      [
+        "Carlos Mendoza",
+        "Mexico",
+        "2025-09-08",
+        12871.01,
+        1
+      ],
+      [
+        "Valentina Ortiz",
+        "Argentina",
+        "2025-09-11",
+        12864.67,
+        1
+      ],
+      [
+        "Miguel Ortiz",
+        "Colombia",
+        "2025-09-14",
+        12764.35,
+        1
+      ],
+      [
+        "Sofia Mendoza",
+        "Chile",
+        "2025-09-03",
+        12357.18,
+        1
+      ],
+      [
+        "Ana Espinoza",
+        "Argentina",
+        "2025-09-08",
+        11902.79,
+        2
+      ],
+      [
+        "Luis Reyes",
+        "Chile",
+        "2025-09-11",
+        11864.09,
+        2
+      ],
+      [
+        "Natalia Chavez",
+        "Colombia",
+        "2025-09-04",
+        11629.78,
+        2
+      ],
+      [
+        "Maria Guerrero",
+        "Colombia",
+        "2025-09-14",
+        11098.3,
+        2
+      ],
+      [
+        "Luis Aguilar",
+        "Colombia",
+        "2025-09-01",
+        11008.57,
+        2
+      ],
+      [
+        "Camila Aguilar",
+        "Chile",
+        "2025-09-19",
+        10826.81,
+        2
+      ],
+      [
+        "Andres Romero",
+        "Argentina",
+        "2025-09-26",
+        10562.12,
+        2
+      ],
+      [
+        "Ana Mendoza",
+        "Argentina",
+        "2025-09-07",
+        10325.21,
+        2
+      ],
+      [
+        "Juan Mendoza",
+        "Colombia",
+        "2025-09-03",
+        9857.09,
+        3
+      ],
+      [
+        "Sofia Castillo",
+        "Argentina",
+        "2025-09-16",
+        9800.25,
+        3
+      ],
+      [
+        "Maria Jimenez",
+        "Mexico",
+        "2025-09-09",
+        9623.76,
+        3
+      ],
+      [
+        "Laura Jimenez",
+        "Argentina",
+        "2025-09-26",
+        9615.11,
+        3
+      ],
+      [
+        "Camila Aguilar",
+        "Mexico",
+        "2025-09-08",
+        9505.2,
+        3
+      ],
+      [
+        "Andres Espinoza",
+        "Chile",
+        "2025-09-23",
+        9472.0,
+        3
+      ],
+      [
+        "Juan Delgado",
+        "Chile",
+        "2025-09-20",
+        9138.34,
+        3
+      ],
+      [
+        "Ana Jimenez",
+        "Colombia",
+        "2025-09-27",
+        9079.15,
+        4
+      ],
+      [
+        "Diego Aguilar",
+        "Colombia",
+        "2025-09-13",
+        9049.22,
+        4
+      ],
+      [
+        "Juan Ortiz",
+        "Mexico",
+        "2025-09-18",
+        8843.79,
+        4
+      ],
+      [
+        "Fernando Aguilar",
+        "Chile",
+        "2025-09-24",
+        8675.84,
+        4
+      ],
+      [
+        "Roberto Cruz",
+        "Mexico",
+        "2025-09-03",
+        8600.26,
+        4
+      ],
+      [
+        "Juan Chavez",
+        "Colombia",
+        "2025-09-28",
+        8558.23,
+        4
+      ],
+      [
+        "Laura Ortiz",
+        "Chile",
+        "2025-09-17",
+        7837.27,
+        4
+      ]
+    ],
+    "expected_row_count_approx": 30,
+    "notes": "30 clientes de los 50 nuevos (sep 2025 + parte de junio 2025 - may 2026) tuvieron al menos un pedido delivered en sus primeros 30 dias. El filtro < '2026-06-01' es correcto (patron exclusivo) pero falta comentario pedagogico segun IMP-15. Los clientes de sep 2025 (premium) dominan el cuartil 1."
+  },
+  {
+    "exercise_number": 22,
+    "title": "Ejercicio 22",
+    "briefing_ref": "Briefing 5.22",
+    "lesson_ref": "Lección 22",
+    "reference_query": "WITH revenue_bruto AS (\n    SELECT\n        c.country,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_bruto\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id    = o.order_id\n    INNER JOIN customers   c  ON c.customer_id  = o.customer_id\n    WHERE o.status     = 'delivered'\n      AND o.ordered_at >= '2026-01-01'\n      AND o.ordered_at <  '2026-04-01'\n    GROUP BY c.country\n),\ndevoluciones AS (\n    SELECT\n        c.country,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS total_reembolsado\n    FROM returns r\n    INNER JOIN order_items oi ON oi.order_id   = r.order_id\n                              AND oi.product_id = r.product_id\n    INNER JOIN orders      o  ON o.order_id    = r.order_id\n    INNER JOIN customers   c  ON c.customer_id = o.customer_id\n    WHERE r.status      = 'refunded'\n      AND r.returned_at >= '2026-01-01'\n      AND r.returned_at <  '2026-04-01'\n    GROUP BY c.country\n)\nSELECT\n    rb.country                              AS pais,\n    rb.revenue_bruto,\n    COALESCE(d.total_reembolsado, 0)        AS total_reembolsado,\n    ROUND(\n        rb.revenue_bruto - COALESCE(d.total_reembolsado, 0),\n        2\n    )                                       AS revenue_neto,\n    RANK() OVER (\n        ORDER BY\n            rb.revenue_bruto - COALESCE(d.total_reembolsado, 0) DESC\n    )                                       AS posicion\nFROM revenue_bruto rb\nLEFT JOIN devoluciones d ON d.country = rb.country\nORDER BY posicion ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "pais",
+      "revenue_bruto",
+      "total_reembolsado",
+      "revenue_neto",
+      "posicion"
+    ],
+    "sample_rows": [
+      [
+        "Mexico",
+        343580.01,
+        5650.32,
+        337929.69,
+        1
+      ],
+      [
+        "Colombia",
+        238342.83,
+        2868.51,
+        235474.32,
+        2
+      ],
+      [
+        "Chile",
+        186002.21,
+        2912.72,
+        183089.49,
+        3
+      ],
+      [
+        "USA",
+        60981.54,
+        854.88,
+        60126.66,
+        4
+      ],
+      [
+        "Peru",
+        53125.38,
+        849.89,
+        52275.49,
+        5
+      ],
+      [
+        "Argentina",
+        40892.55,
+        326.9,
+        40565.65,
+        6
+      ],
+      [
+        "Spain",
+        36134.34,
+        59.97,
+        36074.37,
+        7
+      ],
+      [
+        "Venezuela",
+        36564.78,
+        579.97,
+        35984.81,
+        8
+      ],
+      [
+        "Bolivia",
+        28460.87,
+        174.97,
+        28285.9,
+        9
+      ],
+      [
+        "Ecuador",
+        24260.54,
+        0,
+        24260.54,
+        10
+      ],
+      [
+        "Honduras",
+        18679.97,
+        793.94,
+        17886.03,
+        11
+      ],
+      [
+        "Guatemala",
+        17868.08,
+        329.95,
+        17538.13,
+        12
+      ],
+      [
+        "El Salvador",
+        16042.67,
+        74.97,
+        15967.7,
+        13
+      ],
+      [
+        "Uruguay",
+        14490.34,
+        234.95,
+        14255.39,
+        14
+      ],
+      [
+        "Paraguay",
+        9996.45,
+        579.98,
+        9416.47,
+        15
+      ],
+      [
+        "Costa Rica",
+        9170.87,
+        89.97,
+        9080.9,
+        16
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "16 paises con revenue en Q1 2026. Ecuador tiene total_reembolsado=0 (COALESCE aplicado correctamente). Mexico lidera ampliamente con $338K neto. Chile aparece en posicion 3 — coherente con la anomalia de pagos narrativa de mar-abr 2026 en el seed."
+  },
+  {
+    "exercise_number": 23,
+    "title": "Ejercicio 23",
+    "briefing_ref": "Briefing 5.23",
+    "lesson_ref": "Lección 23",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE     AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue_mes\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status     = 'delivered'\n      AND o.ordered_at >= '2026-01-01'\n      AND o.ordered_at <  '2027-01-01'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes,\n    revenue_mes,\n    ROUND(\n        SUM(revenue_mes) OVER (\n            ORDER BY mes ASC\n            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n        ),\n        2\n    ) AS revenue_acumulado_ytd\nFROM revenue_mensual\nORDER BY mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_mes",
+      "revenue_acumulado_ytd"
+    ],
+    "sample_rows": [
+      [
+        "2026-01-01",
+        359431.68,
+        359431.68
+      ],
+      [
+        "2026-02-01",
+        371989.97,
+        731421.65
+      ],
+      [
+        "2026-03-01",
+        403171.78,
+        1134593.43
+      ],
+      [
+        "2026-04-01",
+        365356.13,
+        1499949.56
+      ],
+      [
+        "2026-05-01",
+        192389.49,
+        1692339.05
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "5 filas (ene-may 2026). El acumulado YTD a mayo es $1.69M. Junio 2026 sin datos en el seed. La query filtra < '2027-01-01' para capturar todo 2026 — con el seed actual solo retorna hasta mayo. El revenue de mayo ($192K) es bajo porque el seed fue generado el 2026-05-31 con datos parciales."
+  },
+  {
+    "exercise_number": 24,
+    "title": "Ejercicio 24",
+    "briefing_ref": "Briefing 5.24",
+    "lesson_ref": "Lección 24",
+    "reference_query": "WITH revenue_producto AS (\n    SELECT\n        p.product_id,\n        p.name                                       AS producto,\n        cat.category_id,\n        cat.name                                     AS categoria,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)   AS revenue_total\n    FROM order_items oi\n    INNER JOIN products   p   ON p.product_id   = oi.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    GROUP BY p.product_id, p.name, cat.category_id, cat.name\n),\ncon_promedio AS (\n    SELECT\n        producto,\n        categoria,\n        revenue_total,\n        ROUND(\n            AVG(revenue_total) OVER (PARTITION BY category_id),\n            2\n        ) AS promedio_categoria\n    FROM revenue_producto\n)\nSELECT producto, categoria, revenue_total, promedio_categoria\nFROM con_promedio\nWHERE revenue_total > promedio_categoria\nORDER BY categoria, revenue_total DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "revenue_total",
+      "promedio_categoria"
+    ],
+    "sample_rows": [
+      [
+        "Auriculares Gaming HyperX Cloud",
+        "Audio",
+        93028.89,
+        63239.05
+      ],
+      [
+        "Microfonon USB Blue Snowball",
+        "Audio",
+        78682.09,
+        63239.05
+      ],
+      [
+        "Audifonos Sony WH-CH520",
+        "Audio",
+        71136.72,
+        63239.05
+      ],
+      [
+        "Parlante Bluetooth Sony SRS-XB13",
+        "Audio",
+        65451.0,
+        63239.05
+      ],
+      [
+        "Kit Skincare Neutrogena 3 pasos",
+        "Beauty",
+        56281.32,
+        36315.66
+      ],
+      [
+        "Set Maquillaje Rimmel London",
+        "Beauty",
+        47156.18,
+        36315.66
+      ],
+      [
+        "Shampoo Anticaida Kerastase",
+        "Beauty",
+        38673.08,
+        36315.66
+      ],
+      [
+        "Perfume Zara Gardenia 80ml",
+        "Beauty",
+        38560.37,
+        36315.66
+      ],
+      [
+        "Clean Code - Robert C Martin",
+        "Books",
+        51781.25,
+        28531.13
+      ],
+      [
+        "Python Crash Course 3rd Ed",
+        "Books",
+        41969.15,
+        28531.13
+      ],
+      [
+        "Campera Invierno ThermoShield",
+        "Clothing",
+        140759.36,
+        85980.9
+      ],
+      [
+        "Zapatillas Nike Revolution 6",
+        "Clothing",
+        126656.33,
+        85980.9
+      ],
+      [
+        "Campera Rompeviento Columbia",
+        "Clothing",
+        119436.33,
+        85980.9
+      ],
+      [
+        "Zapatillas Adidas Duramo 10",
+        "Clothing",
+        109239.22,
+        85980.9
+      ],
+      [
+        "Vestido Fiesta EleganceNight",
+        "Clothing",
+        103835.41,
+        85980.9
+      ],
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        905701.03,
+        208607.6
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        578473.02,
+        208607.6
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        "Electronics",
+        379487.25,
+        208607.6
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        "Electronics",
+        372496.62,
+        208607.6
+      ],
+      [
+        "Tablet Amazon Fire HD 10",
+        "Electronics",
+        242094.68,
+        208607.6
+      ],
+      [
+        "Estufa Bioetanol Design",
+        "Home Appliances",
+        531166.38,
+        178097.08
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        "Home Appliances",
+        412186.26,
+        178097.08
+      ],
+      [
+        "Cuchillos Chef Zwilling 3pz",
+        "Home Appliances",
+        337486.5,
+        178097.08
+      ],
+      [
+        "Juego Sabanas Percal 300 hilos",
+        "Home Appliances",
+        309305.94,
+        178097.08
+      ],
+      [
+        "Set Cubiertos Inox Tramontina 24pz",
+        "Home Appliances",
+        252876.69,
+        178097.08
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        "Home Appliances",
+        228976.53,
+        178097.08
+      ],
+      [
+        "Cafetera de Prensa Bodum 1L",
+        "Home Appliances",
+        208036.13,
+        178097.08
+      ],
+      [
+        "Set Toallas Egipcio Premium x4",
+        "Home Appliances",
+        179906.16,
+        178097.08
+      ],
+      [
+        "Silla de Oficina Ergonomica MiDesk",
+        "Office",
+        189479.43,
+        74759.99
+      ],
+      [
+        "Impresora HP DeskJet 2775",
+        "Office",
+        86213.08,
+        74759.99
+      ],
+      [
+        "Raqueta Padel Babolat Air",
+        "Sports",
+        122700.77,
+        54180.05
+      ],
+      [
+        "Zapatillas Running Asics GT-1000",
+        "Sports",
+        98280.9,
+        54180.05
+      ],
+      [
+        "Casco Bici Urbano Giro Ember",
+        "Sports",
+        65557.09,
+        54180.05
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        272061.4,
+        84619.25
+      ],
+      [
+        "Drone Mini DJI Tello",
+        "Toys & Games",
+        119654.5,
+        84619.25
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        "Wearables",
+        315135.99,
+        163306.46
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        "Wearables",
+        228283.54,
+        163306.46
+      ],
+      [
+        "Gafas Inteligentes Ray-Ban Stories",
+        "Wearables",
+        211922.46,
+        163306.46
+      ]
+    ],
+    "expected_row_count_approx": 38,
+    "notes": "38 productos de 90 superan el promedio de su categoria. Home Appliances tiene la mayor cantidad de productos por encima del promedio (8) — refleja alta dispersion en esa categoria. Audio tiene el umbral mas alto como categoria (promedio $59.5K)."
+  },
+  {
+    "exercise_number": 25,
+    "title": "Integrador",
+    "briefing_ref": "Briefing 5.25",
+    "lesson_ref": "Lección 25",
+    "reference_query": "-- PARTE A: Análisis MoM H1 2026\nWITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE     AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue_mes\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status     = 'delivered'\n      AND o.ordered_at >= '2026-01-01'\n      AND o.ordered_at <  '2026-07-01'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes,\n    revenue_mes,\n    LAG(revenue_mes) OVER (ORDER BY mes)                        AS revenue_anterior,\n    ROUND(\n        revenue_mes - LAG(revenue_mes) OVER (ORDER BY mes),\n        2\n    )                                                           AS variacion_absoluta,\n    ROUND(\n        100.0 * (revenue_mes - LAG(revenue_mes) OVER (ORDER BY mes))\n        / NULLIF(LAG(revenue_mes) OVER (ORDER BY mes), 0),\n        1\n    )                                                           AS variacion_pct\nFROM revenue_mensual\nORDER BY mes;\n\n-- PARTE B: Top 3 productos del semestre\nWITH revenue_semestral AS (\n    SELECT\n        p.name                                       AS producto,\n        cat.name                                     AS categoria,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)   AS revenue_total\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id    = o.order_id\n    INNER JOIN products    p  ON p.product_id   = oi.product_id\n    INNER JOIN categories  cat ON cat.category_id = p.category_id\n    WHERE o.status     = 'delivered'\n      AND o.ordered_at >= '2026-01-01'\n      AND o.ordered_at <  '2026-07-01'\n    GROUP BY p.name, cat.name\n),\nranking AS (\n    SELECT\n        producto,\n        categoria,\n        revenue_total,\n        DENSE_RANK() OVER (ORDER BY revenue_total DESC) AS posicion_global\n    FROM revenue_semestral\n)\nSELECT producto, categoria, revenue_total, posicion_global\nFROM ranking\nWHERE posicion_global <= 3\nORDER BY posicion_global;\n\n-- PARTE C: Críticos e importantes (cuartil 1 en stock Y cuartil 1 en revenue)\nWITH revenue_producto AS (\n    SELECT\n        oi.product_id,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2) AS revenue_total\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status     = 'delivered'\n      AND o.ordered_at >= '2026-01-01'\n      AND o.ordered_at <  '2026-07-01'\n    GROUP BY oi.product_id\n),\nanalisis_doble AS (\n    SELECT\n        p.name                                          AS producto,\n        cat.name                                        AS categoria,\n        i.stock,\n        COALESCE(r.revenue_total, 0)                    AS revenue_total,\n        NTILE(4) OVER (ORDER BY i.stock ASC)            AS cuartil_stock,\n        NTILE(4) OVER (ORDER BY COALESCE(r.revenue_total, 0) DESC) AS cuartil_revenue\n    FROM inventory i\n    INNER JOIN products   p   ON p.product_id   = i.product_id\n    INNER JOIN categories cat ON cat.category_id = p.category_id\n    LEFT JOIN revenue_producto r ON r.product_id = i.product_id\n)\nSELECT producto, categoria, stock, revenue_total, cuartil_stock, cuartil_revenue\nFROM analisis_doble\nWHERE cuartil_stock   = 1    -- 25% de menor stock\n  AND cuartil_revenue = 1    -- 25% de mayor revenue en H1 2026\nORDER BY stock ASC, revenue_total DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "producto",
+      "categoria",
+      "stock",
+      "revenue_total",
+      "cuartil_stock",
+      "cuartil_revenue"
+    ],
+    "sample_rows": [
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        "Electronics",
+        2,
+        45977.91,
+        1,
+        1
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        "Electronics",
+        4,
+        66848.09,
+        1,
+        1
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        "Toys & Games",
+        7,
+        50197.49,
+        1,
+        1
+      ],
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        "Electronics",
+        8,
+        103398.12,
+        1,
+        1
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        "Electronics",
+        11,
+        57857.37,
+        1,
+        1
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        "Home Appliances",
+        11,
+        42497.5,
+        1,
+        1
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        "Home Appliances",
+        14,
+        73197.56,
+        1,
+        1
+      ],
+      [
+        "Cafetera de Prensa Bodum 1L",
+        "Home Appliances",
+        15,
+        29998.0,
+        1,
+        1
+      ],
+      [
+        "Organizador Cocina Bambu Set 5pz",
+        "Home Appliances",
+        15,
+        28497.15,
+        1,
+        1
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        "Wearables",
+        17,
+        49597.52,
+        1,
+        1
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        "Wearables",
+        21,
+        29998.0,
+        1,
+        1
+      ],
+      [
+        "Campera Rompeviento Columbia",
+        "Clothing",
+        22,
+        22407.51,
+        1,
+        1
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  }
+]

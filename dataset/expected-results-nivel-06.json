@@ -1,0 +1,2344 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Revenue mensual 2025 con variacion MoM — LAG() sobre revenue del mes anterior",
+    "briefing_ref": "Briefing 6.5 — Valentina Torres: Revenue mensual 2025 con variacion porcentual MoM",
+    "lesson_ref": "Leccion 1 — LAG() para comparacion periodo anterior",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE    AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes,\n    revenue                                             AS revenue_actual,\n    LAG(revenue) OVER (ORDER BY mes)                    AS revenue_mes_anterior,\n    ROUND(\n        (revenue - LAG(revenue) OVER (ORDER BY mes))\n        * 100.0\n        / NULLIF(LAG(revenue) OVER (ORDER BY mes), 0),\n        2\n    )                                                   AS variacion_pct\nFROM revenue_mensual\nORDER BY mes;",
+    "tables_used": [
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_actual",
+      "revenue_mes_anterior",
+      "variacion_pct"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        551217.8,
+        null,
+        null
+      ],
+      [
+        "2025-02-01",
+        310057.9,
+        551217.8,
+        -43.75
+      ],
+      [
+        "2025-03-01",
+        382881.69,
+        310057.9,
+        23.49
+      ],
+      [
+        "2025-04-01",
+        440824.23,
+        382881.69,
+        15.13
+      ],
+      [
+        "2025-05-01",
+        664860.07,
+        440824.23,
+        50.82
+      ],
+      [
+        "2025-06-01",
+        465280.21,
+        664860.07,
+        -30.02
+      ],
+      [
+        "2025-07-01",
+        441981.75,
+        465280.21,
+        -5.01
+      ],
+      [
+        "2025-08-01",
+        433479.37,
+        441981.75,
+        -1.92
+      ],
+      [
+        "2025-09-01",
+        708115.31,
+        433479.37,
+        63.36
+      ],
+      [
+        "2025-10-01",
+        538177.19,
+        708115.31,
+        -24.0
+      ],
+      [
+        "2025-11-01",
+        554086.08,
+        538177.19,
+        2.96
+      ],
+      [
+        "2025-12-01",
+        675553.58,
+        554086.08,
+        21.92
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 12 filas (enero a diciembre 2025). El mes de enero tendra revenue_mes_anterior = NULL y variacion_pct = NULL (primer mes de la serie). ATENCION DIALECTAL: DATE_TRUNC es PostgreSQL. En SQLite usar strftime('%Y-%m-01', ordered_at). El teacher debe adaptar segun el dialecto del curso. PUNTO PEDAGOGICO CENTRAL: LAG() sin argumento de offset usa el valor inmediatamente anterior en la ventana. La formula de variacion porcentual usa NULLIF para evitar division por cero. NARRATIVA ESPERADA: marzo 2025 deberia mostrar variacion negativa (campana 'Regreso a Clases' fallida), mayo 2025 deberia mostrar pico positivo, noviembre 2025 deberia ser el mes mas alto (Black Friday). El teacher puede usar estos eventos narrativos para darle contexto al ejercicio."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Revenue por canal por mes en 2025 con revenue del mes anterior — LAG() con PARTITION BY canal",
+    "briefing_ref": "Briefing 6.2 — Sofia Ramirez: Evolucion de revenue por canal de marketing mes a mes durante 2025",
+    "lesson_ref": "Leccion 1 — LAG() con PARTITION BY: comparacion dentro de grupos",
+    "reference_query": "WITH pedidos_mes AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE  AS mes,\n        COUNT(*)                                  AS total_pedidos\n    FROM orders o\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-06-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n),\ndevoluciones_mes AS (\n    SELECT\n        DATE_TRUNC('month', r.returned_at)::DATE  AS mes,\n        COUNT(*)                                   AS total_devoluciones\n    FROM returns r\n    WHERE r.returned_at >= '2025-01-01'\n      AND r.returned_at <  '2026-06-01'\n      AND r.status IN ('approved', 'refunded')\n    GROUP BY DATE_TRUNC('month', r.returned_at)\n),\ntasa_mensual AS (\n    SELECT\n        p.mes,\n        p.total_pedidos,\n        COALESCE(d.total_devoluciones, 0)                  AS total_devoluciones,\n        ROUND(\n            COALESCE(d.total_devoluciones, 0) * 100.0\n            / NULLIF(p.total_pedidos, 0),\n            2\n        )                                                  AS tasa_devolucion_pct\n    FROM pedidos_mes p\n    LEFT JOIN devoluciones_mes d ON d.mes = p.mes\n)\nSELECT\n    mes,\n    total_pedidos,\n    total_devoluciones,\n    tasa_devolucion_pct,\n    LAG(tasa_devolucion_pct) OVER (ORDER BY mes)  AS tasa_mes_anterior\nFROM tasa_mensual\nORDER BY mes;",
+    "tables_used": [
+      "marketing_campaigns",
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "total_pedidos",
+      "total_devoluciones",
+      "tasa_devolucion_pct",
+      "tasa_mes_anterior"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        1414,
+        61,
+        4.31,
+        null
+      ],
+      [
+        "2025-02-01",
+        913,
+        52,
+        5.7,
+        4.31
+      ],
+      [
+        "2025-03-01",
+        1087,
+        38,
+        3.5,
+        5.7
+      ],
+      [
+        "2025-04-01",
+        1259,
+        69,
+        5.48,
+        3.5
+      ],
+      [
+        "2025-05-01",
+        1999,
+        99,
+        4.95,
+        5.48
+      ],
+      [
+        "2025-06-01",
+        1411,
+        96,
+        6.8,
+        4.95
+      ],
+      [
+        "2025-07-01",
+        1397,
+        138,
+        9.88,
+        6.8
+      ],
+      [
+        "2025-08-01",
+        1305,
+        106,
+        8.12,
+        9.88
+      ],
+      [
+        "2025-09-01",
+        1376,
+        77,
+        5.6,
+        8.12
+      ],
+      [
+        "2025-10-01",
+        1565,
+        82,
+        5.24,
+        5.6
+      ],
+      [
+        "2025-11-01",
+        1630,
+        74,
+        4.54,
+        5.24
+      ],
+      [
+        "2025-12-01",
+        2002,
+        98,
+        4.9,
+        4.54
+      ],
+      [
+        "2026-01-01",
+        1677,
+        105,
+        6.26,
+        4.9
+      ],
+      [
+        "2026-02-01",
+        1628,
+        81,
+        4.98,
+        6.26
+      ],
+      [
+        "2026-03-01",
+        1852,
+        102,
+        5.51,
+        4.98
+      ],
+      [
+        "2026-04-01",
+        1709,
+        89,
+        5.21,
+        5.51
+      ],
+      [
+        "2026-05-01",
+        910,
+        83,
+        9.12,
+        5.21
+      ]
+    ],
+    "expected_row_count_approx": 17,
+    "notes": "TEMPLATE — valores reales pendientes. CORRECCION IMP-N6-02 (2026-06-03): website_sessions pertenece al Nivel 7. La query fue reformulada para usar marketing_campaigns JOIN orders JOIN order_items, atribuyendo revenue a cada canal segun las campanas activas en el periodo del pedido. El LAG() usa PARTITION BY channel para comparar cada canal con su propio mes anterior. POSIBLE FILAS FALTANTES: si una campana no tuvo pedidos en un mes particular, ese mes no aparece para ese canal. El teacher debe mencionar que la ausencia de filas tambien es informacion. TABLAS USADAS: marketing_campaigns, orders, order_items — todas disponibles en Nivel 6."
+  },
+  {
+    "exercise_number": 3,
+    "title": "ROI de todas las campanas de los ultimos 12 meses — revenue atribuido durante el periodo activo",
+    "briefing_ref": "Briefing 6.3 — Sofia Ramirez: ROI de cada campana del ultimo anio",
+    "lesson_ref": "Leccion 1 — Metricas de negocio calculadas con JOINs temporales",
+    "reference_query": "WITH revenue_canal_mes AS (\n    SELECT\n        mc.channel,\n        DATE_TRUNC('month', o.ordered_at)::DATE    AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue\n    FROM marketing_campaigns mc\n    INNER JOIN orders      o  ON o.ordered_at::DATE BETWEEN mc.started_at\n                                                        AND COALESCE(mc.ended_at, CURRENT_DATE)\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY mc.channel, DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    channel,\n    mes,\n    revenue,\n    LAG(revenue) OVER (PARTITION BY channel ORDER BY mes)  AS revenue_mes_anterior\nFROM revenue_canal_mes\nORDER BY channel, mes;",
+    "tables_used": [
+      "marketing_campaigns",
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "channel",
+      "mes",
+      "revenue",
+      "revenue_mes_anterior"
+    ],
+    "sample_rows": [
+      [
+        "display",
+        "2025-07-01",
+        441981.75,
+        null
+      ],
+      [
+        "email",
+        "2025-01-01",
+        478559.95,
+        null
+      ],
+      [
+        "email",
+        "2025-04-01",
+        144485.56,
+        478559.95
+      ],
+      [
+        "email",
+        "2025-05-01",
+        664860.07,
+        144485.56
+      ],
+      [
+        "email",
+        "2025-11-01",
+        554086.08,
+        664860.07
+      ],
+      [
+        "paid_search",
+        "2025-03-01",
+        382881.69,
+        null
+      ],
+      [
+        "paid_search",
+        "2025-11-01",
+        104360.44,
+        382881.69
+      ],
+      [
+        "social",
+        "2025-02-01",
+        310057.9,
+        null
+      ],
+      [
+        "social",
+        "2025-09-01",
+        708115.31,
+        310057.9
+      ],
+      [
+        "social",
+        "2025-12-01",
+        519866.86,
+        708115.31
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. CORRECCION IMP-N6-03 (2026-06-03): website_sessions pertenece al Nivel 7. La query fue reformulada para atribuir revenue a campanas via JOIN temporal directo con orders (o.ordered_at::DATE BETWEEN mc.started_at AND COALESCE(mc.ended_at, CURRENT_DATE)). Este modelo es el que usa el ejercicio EJ13 de la solucion SQL del nivel. FORMULA ROI: (revenue_atribuible - spent) * 100 / spent. ROI positivo = campana rentable. CAMPANAS ESPERADAS: campanas de 2025 del seed. La campana Regreso a Clases (spent=9800) deberia mostrar ROI negativo o muy bajo, confirmando la narrativa del briefing. TABLAS USADAS: marketing_campaigns, orders, order_items — todas disponibles en Nivel 6."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Cohote septiembre 2025 — retencion en los 3 meses siguientes",
+    "briefing_ref": "Briefing 6.4 — Sofia Ramirez: Clientes de la campana de septiembre 2025 que volvieron a comprar",
+    "lesson_ref": "Leccion 2 — Analisis de cohortes con DATE_TRUNC y self-join temporal",
+    "reference_query": "WITH revenue_neto_mes AS (\n    SELECT\n        EXTRACT(MONTH FROM o.ordered_at)::INT        AS mes_numero,\n        TO_CHAR(o.ordered_at, 'TMMonth')             AS mes_nombre,\n        EXTRACT(YEAR FROM o.ordered_at)::INT         AS anio,\n        ROUND(\n            SUM(oi.quantity * oi.unit_price)\n            - COALESCE((\n                SELECT SUM(oi2.quantity * oi2.unit_price)\n                FROM returns r2\n                INNER JOIN order_items oi2 ON oi2.order_id = r2.order_id\n                                           AND oi2.product_id = r2.product_id\n                WHERE r2.order_id   = o.order_id\n                  AND r2.status     = 'refunded'\n                  AND EXTRACT(YEAR  FROM r2.returned_at) = EXTRACT(YEAR FROM o.ordered_at)\n                  AND EXTRACT(MONTH FROM r2.returned_at) = EXTRACT(MONTH FROM o.ordered_at)\n            ), 0),\n            2\n        )                                            AS revenue_neto\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE EXTRACT(MONTH FROM o.ordered_at) IN (1, 2, 3)\n      AND EXTRACT(YEAR  FROM o.ordered_at) IN (2025, 2026)\n      AND o.status <> 'cancelled'\n    GROUP BY EXTRACT(MONTH FROM o.ordered_at),\n             TO_CHAR(o.ordered_at, 'TMMonth'),\n             EXTRACT(YEAR FROM o.ordered_at)\n)\nSELECT\n    mes_numero,\n    mes_nombre,\n    MAX(CASE WHEN anio = 2026 THEN revenue_neto END)    AS revenue_neto_2026,\n    MAX(CASE WHEN anio = 2025 THEN revenue_neto END)    AS revenue_neto_2025,\n    ROUND(\n        MAX(CASE WHEN anio = 2026 THEN revenue_neto END)\n        - MAX(CASE WHEN anio = 2025 THEN revenue_neto END),\n        2\n    )                                                   AS variacion_absoluta,\n    ROUND(\n        (MAX(CASE WHEN anio = 2026 THEN revenue_neto END)\n         - MAX(CASE WHEN anio = 2025 THEN revenue_neto END))\n        * 100.0\n        / NULLIF(MAX(CASE WHEN anio = 2025 THEN revenue_neto END), 0),\n        2\n    )                                                   AS variacion_pct\nFROM revenue_neto_mes\nGROUP BY mes_numero, mes_nombre\nORDER BY mes_numero;",
+    "tables_used": [
+      "orders"
+    ],
+    "join_types": [
+      "LEFT JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes_numero",
+      "mes_nombre",
+      "revenue_neto_2026",
+      "revenue_neto_2025",
+      "variacion_absoluta",
+      "variacion_pct"
+    ],
+    "sample_rows": [
+      [
+        1,
+        "Enero",
+        543235.45,
+        551181.42,
+        -7945.97,
+        -1.44
+      ],
+      [
+        2,
+        "Febrero",
+        554439.8,
+        310057.9,
+        244381.9,
+        78.82
+      ],
+      [
+        3,
+        "Marzo",
+        604087.58,
+        382881.69,
+        221205.89,
+        57.77
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "TEMPLATE — valores reales pendientes. AMBIGUEDAD SOBRE LA COHORTE: el briefing dice 'clientes que hicieron su primera compra en septiembre 2025'. La query filtra con NOT EXISTS para asegurar que sea realmente su primera compra. Si el seed tiene clientes con first_purchase en sep 2025, deben ser los del grupo hogar premium (customer_id 521-550, registrados en sep 2025). POSIBLE 0 FILAS EN COHORTE: si ningun cliente del seed hizo su primera compra en septiembre 2025, el resultado sera una fila de todos ceros — el teacher debe advertirlo. El teacher puede relajar la condicion a 'cualquier compra en septiembre 2025' (sin la restriccion de primera compra) para asegurar que la cohorte tenga datos. NOTA: el resultado es 1 fila (resumen agregado), no fila por cliente."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Analisis de cohortes mensual 2025 — retencion a 30 dias por mes de primera compra",
+    "briefing_ref": "Briefing 6.6 — Valentina Torres: Tasa de retencion al mes siguiente por cohorte mensual 2025",
+    "lesson_ref": "Leccion 2 — Cohortes mensuales con DATE_TRUNC y autorelacion",
+    "reference_query": "WITH pedidos_cliente AS (\n    SELECT\n        o.customer_id,\n        c.first_name || ' ' || c.last_name              AS nombre_completo,\n        MIN(o.ordered_at)::DATE                          AS first_order_date,\n        MAX(o.ordered_at)::DATE                          AS last_order_date,\n        COUNT(o.order_id)                                AS total_pedidos\n    FROM orders o\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE o.status <> 'cancelled'\n    GROUP BY o.customer_id, c.first_name, c.last_name\n)\nSELECT\n    customer_id,\n    nombre_completo,\n    first_order_date,\n    last_order_date,\n    (last_order_date - first_order_date)  AS dias_activo\nFROM pedidos_cliente\nWHERE total_pedidos >= 2\n  AND (last_order_date - first_order_date) >= 365\nORDER BY dias_activo DESC;",
+    "tables_used": [
+      "orders"
+    ],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "nombre_completo",
+      "first_order_date",
+      "last_order_date",
+      "dias_activo"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener hasta 12 filas (una por cada mes de 2025 donde hubo primeras compras). AMBIGUEDAD: 'primera compra en 2025' puede significar primera compra de toda la historia del cliente que ocurrio en 2025, o primera compra del cliente independientemente del historial. La query propuesta usa la primera compra que ocurre dentro de 2025, independientemente de si el cliente tenia compras anteriores. El teacher debe aclarar si la cohorte debe ser de clientes nuevos (primera compra absoluta) o de activacion en ese mes. NARRATIVA ESPERADA: la cohorte de septiembre 2025 (hogar premium) deberia tener una tasa de retencion superior a la media — el briefing de Sofia menciona que ese segmento tenia ticket alto. La cohorte de mayo 2025 (pico de volumen) puede tener retencion baja si fue un efecto de campana sin fidelizacion real."
+  },
+  {
+    "exercise_number": 6,
+    "title": "LTV promedio y mediana por pais — revenue total por cliente agrupado por pais",
+    "briefing_ref": "Briefing 6.7 — Valentina Torres: LTV promedio por pais para presentacion de inversores",
+    "lesson_ref": "Leccion 2 — Metricas de LTV con CTEs y PERCENTILE_CONT",
+    "reference_query": "WITH pedidos_mes AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE  AS mes,\n        COUNT(*)                                  AS total_pedidos\n    FROM orders o\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-06-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n),\ndevoluciones_mes AS (\n    SELECT\n        DATE_TRUNC('month', r.returned_at)::DATE  AS mes,\n        COUNT(*)                                   AS total_devoluciones\n    FROM returns r\n    WHERE r.returned_at >= '2025-01-01'\n      AND r.returned_at <  '2026-06-01'\n      AND r.status IN ('approved', 'refunded')\n    GROUP BY DATE_TRUNC('month', r.returned_at)\n),\ntasa_mensual AS (\n    SELECT\n        p.mes,\n        ROUND(\n            COALESCE(d.total_devoluciones, 0) * 100.0\n            / NULLIF(p.total_pedidos, 0),\n            2\n        ) AS tasa_devolucion_pct\n    FROM pedidos_mes p\n    LEFT JOIN devoluciones_mes d ON d.mes = p.mes\n)\nSELECT\n    mes,\n    tasa_devolucion_pct,\n    LAG(tasa_devolucion_pct)  OVER (ORDER BY mes)  AS tasa_mes_anterior,\n    LEAD(tasa_devolucion_pct) OVER (ORDER BY mes)  AS tasa_mes_siguiente\nFROM tasa_mensual\nORDER BY mes;",
+    "tables_used": [
+      "customers",
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "tasa_devolucion_pct",
+      "tasa_mes_anterior",
+      "tasa_mes_siguiente"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        4.31,
+        null,
+        5.7
+      ],
+      [
+        "2025-02-01",
+        5.7,
+        4.31,
+        3.5
+      ],
+      [
+        "2025-03-01",
+        3.5,
+        5.7,
+        5.48
+      ],
+      [
+        "2025-04-01",
+        5.48,
+        3.5,
+        4.95
+      ],
+      [
+        "2025-05-01",
+        4.95,
+        5.48,
+        6.8
+      ],
+      [
+        "2025-06-01",
+        6.8,
+        4.95,
+        9.88
+      ],
+      [
+        "2025-07-01",
+        9.88,
+        6.8,
+        8.12
+      ],
+      [
+        "2025-08-01",
+        8.12,
+        9.88,
+        5.6
+      ],
+      [
+        "2025-09-01",
+        5.6,
+        8.12,
+        5.24
+      ],
+      [
+        "2025-10-01",
+        5.24,
+        5.6,
+        4.54
+      ],
+      [
+        "2025-11-01",
+        4.54,
+        5.24,
+        4.9
+      ],
+      [
+        "2025-12-01",
+        4.9,
+        4.54,
+        6.26
+      ],
+      [
+        "2026-01-01",
+        6.26,
+        4.9,
+        4.98
+      ],
+      [
+        "2026-02-01",
+        4.98,
+        6.26,
+        5.51
+      ],
+      [
+        "2026-03-01",
+        5.51,
+        4.98,
+        5.21
+      ],
+      [
+        "2026-04-01",
+        5.21,
+        5.51,
+        9.12
+      ],
+      [
+        "2026-05-01",
+        9.12,
+        5.21,
+        null
+      ]
+    ],
+    "expected_row_count_approx": 17,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA CRITICA SOBRE DIALECTOS: PERCENTILE_CONT es una funcion de ventana avanzada que NO esta disponible en SQLite. En PostgreSQL es estandar. En SQLite se puede aproximar la mediana con un enfoque de CTEs y ROW_NUMBER. El teacher debe verificar el dialecto del curso y adaptar. Si el curso usa SQLite, la mediana se puede calcular con: SELECT AVG(ltv) FROM (SELECT ltv FROM ltv_cliente ORDER BY ltv LIMIT 2 OFFSET (SELECT COUNT(*)/2 FROM ltv_cliente)). NOTA SOBRE LTV: este es el LTV historico acumulado (revenue real ya generado), no el LTV predictivo (valor esperado futuro). El teacher debe aclarar esta distincion en la leccion. PUNTO PEDAGOGICO: si ltv_promedio > ltv_mediana en un pais, hay clientes de muy alto valor que distorsionan la media — el teacher puede identificar el pais donde esto ocurre."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Revenue neto mensual Q1 2026 vs Q1 2025 — comparacion interanual con variacion",
+    "briefing_ref": "Briefing 6.8 — Ana Castillo: Revenue neto Q1 2026 vs Q1 2025 para cierre de periodo",
+    "lesson_ref": "Leccion 1 — Comparacion interanual con CTEs y pivot manual",
+    "reference_query": "WITH primer_pedido AS (\n    SELECT\n        customer_id,\n        DATE_TRUNC('month', MIN(ordered_at))::DATE  AS cohorte\n    FROM orders\n    WHERE status <> 'cancelled'\n    GROUP BY customer_id\n),\nretenciones AS (\n    SELECT\n        pp.cohorte,\n        pp.customer_id,\n        MAX(CASE\n            WHEN DATE_TRUNC('month', o.ordered_at)::DATE\n                 = (pp.cohorte + INTERVAL '1 month')::DATE\n            THEN 1\n            ELSE 0\n        END) AS retuvo_mes_2\n    FROM primer_pedido pp\n    LEFT JOIN orders o ON o.customer_id = pp.customer_id\n                       AND o.status     <> 'cancelled'\n    GROUP BY pp.cohorte, pp.customer_id\n)\nSELECT\n    cohorte,\n    COUNT(*)                                              AS clientes_nuevos,\n    SUM(retuvo_mes_2)                                    AS retuvieron_mes_2,\n    ROUND(\n        SUM(retuvo_mes_2) * 100.0\n        / NULLIF(COUNT(*), 0),\n        1\n    )                                                    AS tasa_retencion_pct\nFROM retenciones\nWHERE cohorte >= '2025-01-01'\n  AND cohorte <  '2026-01-01'\nGROUP BY cohorte\nORDER BY tasa_retencion_pct DESC;",
+    "tables_used": [
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "cohorte",
+      "clientes_nuevos",
+      "retuvieron_mes_2",
+      "tasa_retencion_pct"
+    ],
+    "sample_rows": [
+      [
+        "2025-04-01",
+        3,
+        3,
+        100.0
+      ],
+      [
+        "2025-02-01",
+        7,
+        5,
+        71.4
+      ],
+      [
+        "2025-03-01",
+        15,
+        6,
+        40.0
+      ],
+      [
+        "2025-01-01",
+        67,
+        14,
+        20.9
+      ],
+      [
+        "2025-05-01",
+        1,
+        0,
+        0.0
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 3 filas (enero, febrero, marzo) si ambos anios tienen datos para Q1. ADVERTENCIA: si el seed tiene datos limitados para Q1 2025 o Q1 2026, alguna fila puede faltar. El INNER JOIN entre r26 y r25 eliminaria los meses que solo existen en un anio — usar LEFT JOIN si se quiere mostrar todos los meses aunque no haya comparativa. SIMPLIFICACION: la query calcula revenue bruto (sin descontar devoluciones) por restriccion del schema — el briefing pide 'revenue neto descontando devoluciones aprobadas o reembolsadas'. Para el revenue neto real se necesita un subcalculo adicional similar al ejercicio 5.9. El teacher puede presentar esta query como version simplificada y proponer la extension como ejercicio avanzado. NOTA: EXTRACT() y DATE_TRUNC() son PostgreSQL. En SQLite usar strftime('%m', ordered_at) para el mes."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Tasa de devolucion mensual con LAG — serie enero 2025 a mayo 2026",
+    "briefing_ref": "Briefing 6.11 — Diego Morales: Tasa de devolucion mensual 2025 y 2026 con comparativa del mes anterior",
+    "lesson_ref": "Leccion 1 — LAG() en series temporales para detectar tendencias",
+    "reference_query": "WITH cohorte_sep AS (\n    SELECT customer_id\n    FROM orders\n    WHERE status <> 'cancelled'\n    GROUP BY customer_id\n    HAVING DATE_TRUNC('month', MIN(ordered_at))::DATE = '2025-09-01'\n),\nseguimiento AS (\n    SELECT\n        gs.mes_seguimiento,\n        COUNT(DISTINCT cs.customer_id)                   AS total_cohorte,\n        COUNT(DISTINCT CASE\n            WHEN DATE_TRUNC('month', o.ordered_at)::DATE = gs.mes_seguimiento\n            THEN o.customer_id\n        END)                                             AS compraron_ese_mes\n    FROM cohorte_sep cs\n    CROSS JOIN (\n        VALUES\n            ('2025-10-01'::DATE),\n            ('2025-11-01'::DATE),\n            ('2025-12-01'::DATE)\n    ) AS gs(mes_seguimiento)\n    LEFT JOIN orders o ON o.customer_id = cs.customer_id\n                       AND o.status     <> 'cancelled'\n    GROUP BY gs.mes_seguimiento\n)\nSELECT\n    mes_seguimiento,\n    total_cohorte,\n    compraron_ese_mes,\n    ROUND(\n        compraron_ese_mes * 100.0\n        / NULLIF(total_cohorte, 0),\n        1\n    ) AS tasa_retencion_pct\nFROM seguimiento\nORDER BY mes_seguimiento;",
+    "tables_used": [
+      "returns",
+      "orders"
+    ],
+    "join_types": [
+      "LEFT JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes_seguimiento",
+      "total_cohorte",
+      "compraron_ese_mes",
+      "tasa_retencion_pct"
+    ],
+    "sample_rows": [],
+    "expected_row_count_approx": 0,
+    "notes": "TEMPLATE — valores reales pendientes. El rango cubre desde enero 2025 hasta mayo 2026, lo que son aproximadamente 17 meses. El primer mes (enero 2025) tendra tasa_mes_anterior = NULL y delta_tasa = NULL. NARRATIVA CLAVE: julio 2025 deberia mostrar la tasa mas alta del periodo (spike de devoluciones por calzado Colombia — el seed menciona 8.3%). Los meses siguientes deberian mostrar una recuperacion hacia el rango historico (<4%). PUNTO PEDAGOGICO: el delta_tasa (diferencia de tasas) permite detectar visualmente cuando la tasa esta empeorando (delta positivo) vs mejorando (delta negativo). NOTA SOBRE LA TASA: el denominador son todos los pedidos del mes (sin filtrar por status). Si se quiere solo pedidos 'delivered', el denominador cambia. El teacher debe ser explícito sobre la definicion de la tasa."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Revenue por canal en cada campana activa — gasto vs revenue por canal para el Briefing 6.1",
+    "briefing_ref": "Briefing 6.1 — Sofia Ramirez: Campana Regreso a Clases — gasto vs revenue por canal",
+    "lesson_ref": "Leccion 1 — JOIN temporal entre campanas y pedidos durante periodo activo",
+    "reference_query": "WITH ltv_por_cliente AS (\n    SELECT\n        o.customer_id,\n        c.country,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS ltv_total\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id   = o.order_id\n    INNER JOIN customers   c  ON c.customer_id = o.customer_id\n    WHERE o.status <> 'cancelled'\n    GROUP BY o.customer_id, c.country\n)\nSELECT\n    country,\n    COUNT(DISTINCT customer_id)                   AS clientes_activos,\n    ROUND(AVG(ltv_total), 2)                      AS ltv_promedio,\n    ROUND(PERCENTILE_CONT(0.5)\n          WITHIN GROUP (ORDER BY ltv_total), 2)   AS ltv_mediana\nFROM ltv_por_cliente\nGROUP BY country\nORDER BY ltv_promedio DESC;",
+    "tables_used": [
+      "marketing_campaigns",
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "country",
+      "clientes_activos",
+      "ltv_promedio",
+      "ltv_mediana",
+      "ltv_maximo"
+    ],
+    "sample_rows": [
+      [
+        "Mexico",
+        64,
+        40221.65,
+        40482.68,
+        59490.03
+      ],
+      [
+        "Colombia",
+        55,
+        35827.84,
+        36484.59,
+        53153.65
+      ],
+      [
+        "Chile",
+        48,
+        19065.97,
+        18659.86,
+        30796.76
+      ],
+      [
+        "Argentina",
+        54,
+        15378.04,
+        14524.2,
+        24914.08
+      ],
+      [
+        "Peru",
+        51,
+        13233.29,
+        13009.54,
+        21452.14
+      ],
+      [
+        "Bolivia",
+        30,
+        8319.59,
+        8264.66,
+        14259.59
+      ],
+      [
+        "Guatemala",
+        16,
+        7886.77,
+        7364.52,
+        12367.02
+      ],
+      [
+        "Ecuador",
+        31,
+        7794.51,
+        7487.94,
+        12645.41
+      ],
+      [
+        "USA",
+        64,
+        7726.89,
+        7314.35,
+        12659.23
+      ],
+      [
+        "Venezuela",
+        35,
+        7723.19,
+        7015.11,
+        17264.15
+      ],
+      [
+        "Spain",
+        35,
+        7620.77,
+        7224.28,
+        12858.62
+      ],
+      [
+        "Uruguay",
+        13,
+        7425.52,
+        7256.47,
+        11904.71
+      ],
+      [
+        "Honduras",
+        15,
+        7338.82,
+        7451.43,
+        12459.29
+      ],
+      [
+        "Paraguay",
+        11,
+        7124.18,
+        6598.8,
+        10412.63
+      ],
+      [
+        "Costa Rica",
+        12,
+        7087.56,
+        6653.53,
+        13176.65
+      ],
+      [
+        "El Salvador",
+        16,
+        6558.48,
+        6396.69,
+        9291.16
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "TEMPLATE — valores reales pendientes. CORRECCION IMP-N6-03 (2026-06-03): website_sessions pertenece al Nivel 7. La query fue reformulada para usar marketing_campaigns JOIN orders JOIN order_items, atribuyendo revenue a campanas por solapamiento temporal (ordered_at BETWEEN started_at y ended_at). El campo clientes_distintos reemplaza sesiones_convertidas como indicador de alcance. CAMPANAS ESPERADAS: una fila por campana de 2025. La campana Regreso a Clases (spent=9800) debe mostrar ROI negativo, confirmando la narrativa del briefing 6.1. CAMPANAS CON SPENT > BUDGET: Black Friday 2025 tiene spent=94000 vs budget=22000 — esto es intencionado en la narrativa y puede generar discusion pedagógica. TABLAS USADAS: marketing_campaigns, orders, order_items — todas disponibles en Nivel 6."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Crecimiento YoY por pais — revenue 2024 vs 2025 con mix de mercado",
+    "briefing_ref": "Briefing 6.10 — Marco Jimenez: Crecimiento YoY por pais 2024 vs 2025 con participacion en revenue total",
+    "lesson_ref": "Leccion 2 — Comparacion anual con self-join o CASE WHEN para pivot",
+    "reference_query": "WITH ltv_2025 AS (\n    SELECT\n        o.customer_id,\n        c.first_name || ' ' || c.last_name               AS nombre_completo,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)        AS ltv_2025\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id   = o.order_id\n    INNER JOIN customers   c  ON c.customer_id = o.customer_id\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY o.customer_id, c.first_name, c.last_name\n),\ncon_cuartil AS (\n    SELECT\n        customer_id,\n        nombre_completo,\n        ltv_2025,\n        NTILE(4) OVER (ORDER BY ltv_2025 DESC)  AS cuartil\n    FROM ltv_2025\n)\nSELECT\n    customer_id,\n    nombre_completo,\n    ltv_2025,\n    CASE\n        WHEN cuartil = 1 THEN 'alto'\n        WHEN cuartil = 2 THEN 'medio'\n        WHEN cuartil = 3 THEN 'medio'\n        WHEN cuartil = 4 THEN 'bajo'\n    END AS segmento\nFROM con_cuartil\nORDER BY ltv_2025 DESC;",
+    "tables_used": [
+      "customers",
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN",
+      "INNER JOIN",
+      "INNER JOIN",
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "nombre_completo",
+      "ltv_2025",
+      "segmento"
+    ],
+    "sample_rows": [
+      [
+        140,
+        "Joseph Hall",
+        42501.79,
+        "alto"
+      ],
+      [
+        250,
+        "Alicia Hernandez",
+        40657.9,
+        "alto"
+      ],
+      [
+        186,
+        "Patricia Jones",
+        40007.23,
+        "alto"
+      ],
+      [
+        394,
+        "Richard Jones",
+        39830.49,
+        "alto"
+      ],
+      [
+        193,
+        "David Harris",
+        39352.19,
+        "alto"
+      ],
+      [
+        243,
+        "Fernanda Mendoza",
+        38925.24,
+        "alto"
+      ],
+      [
+        73,
+        "Isabella Gutierrez",
+        38806.81,
+        "alto"
+      ],
+      [
+        344,
+        "Isabella Morales",
+        38182.29,
+        "alto"
+      ],
+      [
+        203,
+        "Melissa Davis",
+        37106.98,
+        "alto"
+      ],
+      [
+        282,
+        "Mario Pena",
+        36752.45,
+        "alto"
+      ],
+      [
+        469,
+        "Thomas Martin",
+        36646.37,
+        "alto"
+      ],
+      [
+        228,
+        "Linda Wilson",
+        35604.47,
+        "alto"
+      ],
+      [
+        158,
+        "Jorge Vega",
+        35335.47,
+        "alto"
+      ],
+      [
+        401,
+        "Melissa Robinson",
+        35009.94,
+        "alto"
+      ],
+      [
+        157,
+        "Ashley Taylor",
+        34968.91,
+        "alto"
+      ],
+      [
+        477,
+        "Rafael Ruiz",
+        34676.92,
+        "alto"
+      ],
+      [
+        307,
+        "Ricardo Vega",
+        34553.36,
+        "alto"
+      ],
+      [
+        497,
+        "Carolina Castillo",
+        34419.35,
+        "alto"
+      ],
+      [
+        192,
+        "Jorge Lopez",
+        34195.97,
+        "alto"
+      ],
+      [
+        398,
+        "Sebastian Herrera",
+        33772.71,
+        "alto"
+      ],
+      [
+        324,
+        "Emilio Ramirez",
+        33772.0,
+        "alto"
+      ],
+      [
+        374,
+        "Lorena Guerrero",
+        33722.85,
+        "alto"
+      ],
+      [
+        470,
+        "Carlos Fuentes",
+        33687.76,
+        "alto"
+      ],
+      [
+        173,
+        "Ana Guerrero",
+        33598.8,
+        "alto"
+      ],
+      [
+        495,
+        "Gustavo Herrera",
+        33318.25,
+        "alto"
+      ],
+      [
+        224,
+        "Rafael Bravo",
+        33059.37,
+        "alto"
+      ],
+      [
+        41,
+        "Jason Green",
+        32793.95,
+        "alto"
+      ],
+      [
+        252,
+        "Daniel Young",
+        32707.89,
+        "alto"
+      ],
+      [
+        376,
+        "Brian Wright",
+        32536.75,
+        "alto"
+      ],
+      [
+        419,
+        "David Brown",
+        32178.24,
+        "alto"
+      ],
+      [
+        237,
+        "Rosa Soto",
+        32082.07,
+        "alto"
+      ],
+      [
+        211,
+        "Maria Romero",
+        31916.43,
+        "alto"
+      ],
+      [
+        478,
+        "James Moore",
+        31785.91,
+        "alto"
+      ],
+      [
+        322,
+        "Diego Alvarez",
+        31629.51,
+        "alto"
+      ],
+      [
+        450,
+        "Rodrigo Delgado",
+        31312.29,
+        "alto"
+      ],
+      [
+        13,
+        "Miguel Ortiz",
+        31262.27,
+        "alto"
+      ],
+      [
+        208,
+        "Rafael Medina",
+        30831.48,
+        "alto"
+      ],
+      [
+        242,
+        "Susan Moore",
+        30316.07,
+        "alto"
+      ],
+      [
+        329,
+        "Alicia Soto",
+        30310.25,
+        "alto"
+      ],
+      [
+        338,
+        "Isabella Navarro",
+        30126.73,
+        "alto"
+      ],
+      [
+        36,
+        "Emily Jones",
+        29728.43,
+        "alto"
+      ],
+      [
+        367,
+        "Carolina Moreno",
+        29718.95,
+        "alto"
+      ],
+      [
+        286,
+        "Jorge Espinoza",
+        29668.64,
+        "alto"
+      ],
+      [
+        88,
+        "Claudia Espinoza",
+        29589.23,
+        "alto"
+      ],
+      [
+        395,
+        "Camila Delgado",
+        29494.63,
+        "alto"
+      ],
+      [
+        480,
+        "William Smith",
+        29324.3,
+        "alto"
+      ],
+      [
+        489,
+        "Edward Miller",
+        29235.75,
+        "alto"
+      ],
+      [
+        81,
+        "Raul Jimenez",
+        29231.39,
+        "alto"
+      ],
+      [
+        318,
+        "Andres Navarro",
+        29167.38,
+        "alto"
+      ],
+      [
+        99,
+        "Charles White",
+        29152.27,
+        "alto"
+      ]
+    ],
+    "expected_row_count_approx": 550,
+    "notes": "TEMPLATE — valores reales pendientes. NOTA: solo aparecen paises con revenue en AMBOS anios (INNER JOIN entre 2024 y 2025). Si un pais entro en 2025 (como Peru con la expansion de febrero 2025), no apareceria en este resultado porque no tiene datos 2024. El teacher puede cambiar a LEFT JOIN para incluirlos con 0 en 2024. PUNTO NARRATIVO: Peru entro al mercado en feb 2025 — puede quedar excluido del resultado si no tiene ventas en 2024. Argentina puede mostrar crecimiento alto en 2025 si el evento de liquidacion de enero 2025 (sobre-stock electronica) genero volumen. PUNTO PEDAGOGICO: el mix de mercado (mix_2024_pct y mix_2025_pct) muestra si la composicion geografica del revenue cambio — si Peru entra en 2025, los porcentajes de otros paises bajan aunque su revenue crezca en terminos absolutos."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Estacionalidad — revenue promedio por mes del anio usando todos los datos historicos",
+    "briefing_ref": "Briefing 6.12 — Valentina Torres: Revenue promedio historico por mes del anio para detectar estacionalidad",
+    "lesson_ref": "Leccion 2 — Agregacion por mes del anio con EXTRACT(MONTH)",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE    AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue_mensual\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes,\n    revenue_mensual,\n    SUM(revenue_mensual) OVER (\n        ORDER BY mes\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    )                                                AS revenue_acumulado,\n    ROUND(\n        SUM(revenue_mensual) OVER (\n            ORDER BY mes\n            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n        ) * 100.0\n        / NULLIF(SUM(revenue_mensual) OVER (), 0),\n        1\n    )                                                AS pct_del_total_anual\nFROM revenue_mensual\nORDER BY mes;",
+    "tables_used": [
+      "orders",
+      "order_items"
+    ],
+    "join_types": [
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_mensual",
+      "revenue_acumulado",
+      "pct_del_total_anual"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        551217.8,
+        551217.8,
+        8.9
+      ],
+      [
+        "2025-02-01",
+        310057.9,
+        861275.7000000001,
+        14.0
+      ],
+      [
+        "2025-03-01",
+        382881.69,
+        1244157.3900000001,
+        20.2
+      ],
+      [
+        "2025-04-01",
+        440824.23,
+        1684981.62,
+        27.3
+      ],
+      [
+        "2025-05-01",
+        664860.07,
+        2349841.69,
+        38.1
+      ],
+      [
+        "2025-06-01",
+        465280.21,
+        2815121.9,
+        45.7
+      ],
+      [
+        "2025-07-01",
+        441981.75,
+        3257103.65,
+        52.8
+      ],
+      [
+        "2025-08-01",
+        433479.37,
+        3690583.02,
+        59.8
+      ],
+      [
+        "2025-09-01",
+        708115.31,
+        4398698.33,
+        71.3
+      ],
+      [
+        "2025-10-01",
+        538177.19,
+        4936875.52,
+        80.1
+      ],
+      [
+        "2025-11-01",
+        554086.08,
+        5490961.6,
+        89.0
+      ],
+      [
+        "2025-12-01",
+        675553.58,
+        6166515.18,
+        100.0
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 12 filas (una por cada mes del anio). PUNTO PEDAGOGICO: los meses que no tienen datos en algun anio no inflan el promedio — AVG(revenue) solo promedia los anios donde ese mes tiene datos. La columna anios_con_datos ayuda a interpretar la confiabilidad del promedio (un mes con 1 solo anio de datos es menos confiable que uno con 3). NARRATIVA ESPERADA: noviembre y diciembre deberian aparecer primero (Black Fridays y Navidad). Mayo deberia estar alto por la campana de Mayo Conectados 2025 pero puede no ser estructuralmente alto en otros anios. Marzo puede aparecer bajo si el seed refleja el impacto de la campana fallida. NOTA: el seed cubre 2023-2026, por lo que cada mes deberia tener entre 2 y 3 anios de datos."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Tasa de cancelacion mensual en Chile — proxy de transacciones no completadas con LAG (dic 2025 a may 2026)",
+    "briefing_ref": "Briefing 6.9 — Ana Castillo: Anomalia de cancelaciones en Chile (ADAPTADO — usa orders.status como proxy)",
+    "lesson_ref": "Leccion 1 — LAG() en KPIs de calidad operativa con proxy de datos de nivel superior",
+    "reference_query": "-- CORRECCIÓN [CRIT-N6-03]: mes_vida ahora usa diferencia de meses calendario\n-- en lugar de división entera por 30, que producía resultados incorrectos\n-- en meses cortos (febrero, etc.).\n-- SQLite (Playground): strftime para extraer año y mes como enteros.\n-- PostgreSQL (producción): ver comentario dentro de la CTE.\nWITH primer_pedido AS (\n    SELECT\n        customer_id,\n        DATE_TRUNC('month', MIN(ordered_at))::DATE  AS cohorte\n    FROM orders\n    WHERE status <> 'cancelled'\n    GROUP BY customer_id\n),\nrevenue_por_mes_vida AS (\n    SELECT\n        pp.cohorte,\n        pp.customer_id,\n        -- Mes de vida basado en meses calendario (corrección CRIT-N6-03)\n        -- SQLite (Playground):\n        (CAST(strftime('%Y', o.ordered_at) AS INT)\n         - CAST(strftime('%Y', pp.cohorte) AS INT)) * 12\n        + (CAST(strftime('%m', o.ordered_at) AS INT)\n           - CAST(strftime('%m', pp.cohorte) AS INT)) + 1   AS mes_vida,\n        -- En PostgreSQL usar:\n        -- EXTRACT(YEAR FROM AGE(DATE_TRUNC('month', o.ordered_at), pp.cohorte)) * 12\n        -- + EXTRACT(MONTH FROM AGE(DATE_TRUNC('month', o.ordered_at), pp.cohorte)) + 1\n        SUM(oi.quantity * oi.unit_price)                    AS revenue\n    FROM primer_pedido pp\n    INNER JOIN orders      o  ON o.customer_id = pp.customer_id\n                              AND o.status     <> 'cancelled'\n    INNER JOIN order_items oi ON oi.order_id   = o.order_id\n    WHERE pp.cohorte >= '2025-01-01'\n      AND pp.cohorte <  '2025-04-01'   -- Q1 2025: ene, feb, mar\n    GROUP BY pp.cohorte, pp.customer_id,\n             (CAST(strftime('%Y', o.ordered_at) AS INT)\n              - CAST(strftime('%Y', pp.cohorte) AS INT)) * 12\n             + (CAST(strftime('%m', o.ordered_at) AS INT)\n                - CAST(strftime('%m', pp.cohorte) AS INT)) + 1\n),\nltv_acumulado AS (\n    SELECT\n        cohorte,\n        customer_id,\n        SUM(CASE WHEN mes_vida = 1 THEN revenue ELSE 0 END)           AS ltv_mes_1,\n        SUM(CASE WHEN mes_vida BETWEEN 1 AND 3 THEN revenue ELSE 0 END) AS ltv_1_a_3,\n        SUM(CASE WHEN mes_vida BETWEEN 1 AND 6 THEN revenue ELSE 0 END) AS ltv_1_a_6\n    FROM revenue_por_mes_vida\n    GROUP BY cohorte, customer_id\n)\nSELECT\n    cohorte,\n    ROUND(AVG(ltv_mes_1), 2)  AS ltv_mes_1,\n    ROUND(AVG(ltv_1_a_3), 2)  AS ltv_mes_1_a_3,\n    ROUND(AVG(ltv_1_a_6), 2)  AS ltv_mes_1_a_6\nFROM ltv_acumulado\nGROUP BY cohorte\nORDER BY cohorte;",
+    "tables_used": [
+      "orders",
+      "customers"
+    ],
+    "join_types": [
+      "INNER JOIN"
+    ],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "cohorte",
+      "ltv_mes_1",
+      "ltv_mes_1_a_3",
+      "ltv_mes_1_a_6"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        734.18,
+        3412.95,
+        5178.67
+      ],
+      [
+        "2025-02-01",
+        9296.67,
+        9874.18,
+        10714.06
+      ],
+      [
+        "2025-03-01",
+        720.2,
+        2678.74,
+        6100.18
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "CORRECCION CRIT-06 (2026-06-03): eliminada referencia a tabla payments (Nivel 8). La query usa orders.status = 'cancelled' como proxy de transacciones no completadas, que es lo que la solucion del ejercicio EJ24 ya implementa en el archivo ejercicios-nivel-06.sql. El titulo, briefing_ref, reference_query, tables_used y expected_columns han sido actualizados para alinearse con la solucion real del nivel. NOTA PEDAGOGICA: el briefing 6.9 fue adaptado en contenido/briefings-nivel-06.md para explicar que el analisis de pagos fallidos por metodo de pago pertenece al Nivel 8 (tabla payments). Este ejercicio en Nivel 6 analiza cancelaciones de pedidos como aproximacion. El spike narrativo de Chile en marzo-abril 2026 se mantiene visible en los datos de orders. RESULTADO ESPERADO: 6 filas (diciembre 2025 a mayo 2026). El primer mes (diciembre 2025) tendra tasa_mes_anterior = NULL."
+  },
+  {
+    "exercise_number": 13,
+    "title": "Ejercicio 13",
+    "briefing_ref": "Briefing 6.13",
+    "lesson_ref": "Lección 13",
+    "reference_query": "WITH revenue_campanas AS (\n    SELECT\n        mc.campaign_id,\n        mc.name                                           AS campana,\n        mc.channel,\n        mc.spent,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)        AS revenue_atribuible\n    FROM marketing_campaigns mc\n    INNER JOIN orders      o  ON o.ordered_at::DATE BETWEEN mc.started_at\n                                                        AND COALESCE(mc.ended_at, CURRENT_DATE)\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status      <> 'cancelled'\n      AND mc.started_at >= '2025-01-01'\n      AND mc.started_at <  '2026-01-01'\n    GROUP BY mc.campaign_id, mc.name, mc.channel, mc.spent\n)\nSELECT\n    campana,\n    channel,\n    spent,\n    revenue_atribuible,\n    ROUND(\n        (revenue_atribuible - spent) * 100.0\n        / NULLIF(spent, 0),\n        2\n    )                                                     AS roi_pct,\n    CASE WHEN revenue_atribuible < spent THEN 'ROI NEGATIVO' ELSE '' END AS alerta\nFROM revenue_campanas\nORDER BY roi_pct DESC NULLS LAST;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "campana",
+      "channel",
+      "spent",
+      "revenue_atribuible",
+      "roi_pct",
+      "alerta"
+    ],
+    "sample_rows": [
+      [
+        "Lanzamiento Peru Febrero 2025",
+        "social",
+        3200.0,
+        310057.9,
+        9589.31,
+        ""
+      ],
+      [
+        "Regreso a Clases MX-CO-CL 2025",
+        "paid_search",
+        9800.0,
+        382881.69,
+        3806.96,
+        ""
+      ],
+      [
+        "Liquidacion Electronica AR Enero 2025",
+        "email",
+        12400.0,
+        478559.95,
+        3759.35,
+        ""
+      ],
+      [
+        "Lanzamiento Hogar Premium Sep 2025",
+        "social",
+        22000.0,
+        708115.31,
+        3118.71,
+        ""
+      ],
+      [
+        "Mid Year Sale Julio 2025",
+        "display",
+        28000.0,
+        441981.75,
+        1478.51,
+        ""
+      ],
+      [
+        "Mayo Conectados 2025",
+        "email",
+        68000.0,
+        809345.63,
+        1090.21,
+        ""
+      ],
+      [
+        "Navidad 2025",
+        "social",
+        82000.0,
+        519866.86,
+        533.98,
+        ""
+      ],
+      [
+        "Black Friday 2025",
+        "email",
+        94000.0,
+        554086.08,
+        489.45,
+        ""
+      ],
+      [
+        "Cyber Monday 2025",
+        "paid_search",
+        55000.0,
+        104360.44,
+        89.75,
+        ""
+      ]
+    ],
+    "expected_row_count_approx": 9,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 14,
+    "title": "Ejercicio 14",
+    "briefing_ref": "Briefing 6.14",
+    "lesson_ref": "Lección 14",
+    "reference_query": "SELECT\n    mc.channel,\n    mc.spent,\n    ROUND(SUM(oi.quantity * oi.unit_price), 2)       AS revenue_atribuible,\n    ROUND(\n        (SUM(oi.quantity * oi.unit_price) - mc.spent) * 100.0\n        / NULLIF(mc.spent, 0),\n        2\n    )                                                AS roi_pct,\n    ROUND(\n        mc.spent\n        / NULLIF(COUNT(DISTINCT o.customer_id), 0),\n        2\n    )                                                AS cac\nFROM marketing_campaigns mc\nINNER JOIN orders      o  ON o.ordered_at::DATE BETWEEN mc.started_at\n                                                    AND COALESCE(mc.ended_at, CURRENT_DATE)\nINNER JOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\n  AND mc.name  LIKE '%Regreso a Clases%'\nGROUP BY mc.campaign_id, mc.channel, mc.spent\nORDER BY roi_pct DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "channel",
+      "spent",
+      "revenue_atribuible",
+      "roi_pct",
+      "cac"
+    ],
+    "sample_rows": [
+      [
+        "paid_search",
+        9800.0,
+        382881.69,
+        3806.96,
+        24.26
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 15,
+    "title": "Ejercicio 15",
+    "briefing_ref": "Briefing 6.15",
+    "lesson_ref": "Lección 15",
+    "reference_query": "SELECT\n    mc.channel,\n    COUNT(DISTINCT mc.campaign_id)                AS num_campanas,\n    ROUND(SUM(mc.spent), 2)                       AS gasto_total,\n    ROUND(SUM(oi.quantity * oi.unit_price), 2)    AS revenue_total,\n    ROUND(\n        (SUM(oi.quantity * oi.unit_price) - SUM(mc.spent))\n        * 100.0\n        / NULLIF(SUM(mc.spent), 0),\n        2\n    )                                             AS roi_canal_pct,\n    ROUND(\n        SUM(oi.quantity * oi.unit_price)\n        / NULLIF(SUM(mc.spent), 0),\n        2\n    )                                             AS revenue_por_dolar\nFROM marketing_campaigns mc\nINNER JOIN orders      o  ON o.ordered_at::DATE BETWEEN mc.started_at\n                                                    AND COALESCE(mc.ended_at, CURRENT_DATE)\nINNER JOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY mc.channel\nORDER BY roi_canal_pct DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "channel",
+      "num_campanas",
+      "gasto_total",
+      "revenue_total",
+      "roi_canal_pct",
+      "revenue_por_dolar"
+    ],
+    "sample_rows": [
+      [
+        "affiliate",
+        1,
+        47642000.0,
+        557745.71,
+        -98.83,
+        0.01
+      ],
+      [
+        "paid_search",
+        7,
+        76641663.9,
+        578438.29,
+        -99.25,
+        0.01
+      ],
+      [
+        "display",
+        1,
+        78036000.0,
+        441981.75,
+        -99.43,
+        0.01
+      ],
+      [
+        "social",
+        8,
+        378400082.13,
+        1627140.05,
+        -99.57,
+        0.0
+      ],
+      [
+        "email",
+        9,
+        893765815.43,
+        2474372.03,
+        -99.72,
+        0.0
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 16,
+    "title": "Ejercicio 16",
+    "briefing_ref": "Briefing 6.16",
+    "lesson_ref": "Lección 16",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE    AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue_mensual\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    rm.mes,\n    rm.revenue_mensual,\n    CASE WHEN mc.campaign_id IS NOT NULL THEN 'Si' ELSE 'No' END AS tiene_paid_search\nFROM revenue_mensual rm\nLEFT JOIN marketing_campaigns mc\n    ON rm.mes BETWEEN mc.started_at AND COALESCE(mc.ended_at, CURRENT_DATE)\n   AND mc.channel = 'paid_search'\nORDER BY rm.mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_mensual",
+      "tiene_paid_search"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        551217.8,
+        "No"
+      ],
+      [
+        "2025-02-01",
+        310057.9,
+        "No"
+      ],
+      [
+        "2025-03-01",
+        382881.69,
+        "Si"
+      ],
+      [
+        "2025-04-01",
+        440824.23,
+        "No"
+      ],
+      [
+        "2025-05-01",
+        664860.07,
+        "No"
+      ],
+      [
+        "2025-06-01",
+        465280.21,
+        "No"
+      ],
+      [
+        "2025-07-01",
+        441981.75,
+        "No"
+      ],
+      [
+        "2025-08-01",
+        433479.37,
+        "No"
+      ],
+      [
+        "2025-09-01",
+        708115.31,
+        "No"
+      ],
+      [
+        "2025-10-01",
+        538177.19,
+        "No"
+      ],
+      [
+        "2025-11-01",
+        554086.08,
+        "No"
+      ],
+      [
+        "2025-12-01",
+        675553.58,
+        "No"
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 17,
+    "title": "Ejercicio 17",
+    "briefing_ref": "Briefing 6.17",
+    "lesson_ref": "Lección 17",
+    "reference_query": "-- Detalle mensual\nWITH pedidos_mes AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE  AS mes,\n        COUNT(*)                                  AS total_pedidos\n    FROM orders o\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n),\ndevoluciones_mes AS (\n    SELECT\n        DATE_TRUNC('month', r.returned_at)::DATE  AS mes,\n        COUNT(*)                                   AS total_devoluciones\n    FROM returns r\n    WHERE r.returned_at >= '2025-01-01'\n      AND r.returned_at <  '2026-01-01'\n      AND r.status IN ('approved', 'refunded')\n    GROUP BY DATE_TRUNC('month', r.returned_at)\n),\ntasa_con_campana AS (\n    SELECT\n        p.mes,\n        ROUND(COALESCE(d.total_devoluciones,0) * 100.0\n              / NULLIF(p.total_pedidos, 0), 2)      AS tasa_devolucion_pct,\n        CASE WHEN mc.campaign_id IS NOT NULL THEN 'Si' ELSE 'No' END AS tiene_campana_activa\n    FROM pedidos_mes p\n    LEFT JOIN devoluciones_mes d ON d.mes = p.mes\n    LEFT JOIN marketing_campaigns mc\n        ON p.mes BETWEEN mc.started_at AND COALESCE(mc.ended_at, CURRENT_DATE)\n)\n-- Detalle mensual\nSELECT mes, tasa_devolucion_pct, tiene_campana_activa\nFROM tasa_con_campana\nORDER BY mes;\n\n-- Resumen por grupo\n-- SELECT tiene_campana_activa,\n--        ROUND(AVG(tasa_devolucion_pct), 2) AS tasa_promedio\n-- FROM tasa_con_campana\n-- GROUP BY tiene_campana_activa;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "tasa_devolucion_pct",
+      "tiene_campana_activa"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        4.31,
+        "No"
+      ],
+      [
+        "2025-02-01",
+        5.7,
+        "Si"
+      ],
+      [
+        "2025-03-01",
+        3.5,
+        "Si"
+      ],
+      [
+        "2025-04-01",
+        5.48,
+        "No"
+      ],
+      [
+        "2025-05-01",
+        4.95,
+        "Si"
+      ],
+      [
+        "2025-06-01",
+        6.8,
+        "No"
+      ],
+      [
+        "2025-07-01",
+        9.88,
+        "Si"
+      ],
+      [
+        "2025-08-01",
+        8.12,
+        "No"
+      ],
+      [
+        "2025-09-01",
+        5.6,
+        "Si"
+      ],
+      [
+        "2025-10-01",
+        5.24,
+        "No"
+      ],
+      [
+        "2025-11-01",
+        4.54,
+        "Si"
+      ],
+      [
+        "2025-12-01",
+        4.9,
+        "Si"
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 18,
+    "title": "Ejercicio 18",
+    "briefing_ref": "Briefing 6.18",
+    "lesson_ref": "Lección 18",
+    "reference_query": "-- NOTA [IMP-N6-01]: La CTE ltv_pais usa INNER JOIN (via subquery), excluyendo\n-- del denominador del AVG a los clientes sin pedidos. Esto es CORRECTO para este\n-- enunciado: el contexto pide LTV promedio como referencia para evaluar si el CAC\n-- de una campaña es sostenible frente al valor que generan los clientes activos de\n-- ese país. Incluir clientes sin pedidos (LTV = 0) bajaría artificialmente el\n-- promedio y distorsionaría la comparación con el CAC. Si el análisis requiriese\n-- el LTV sobre toda la base de clientes (incluyendo inactivos), se usaría LEFT JOIN\n-- desde customers hacia orders.\nWITH ltv_pais AS (\n    SELECT\n        subq.country,\n        ROUND(AVG(ltv_cliente), 2) AS ltv_promedio\n    FROM (\n        SELECT o.customer_id, c2.country,\n               SUM(oi.quantity * oi.unit_price) AS ltv_cliente\n        FROM orders o\n        INNER JOIN order_items oi ON oi.order_id = o.order_id\n        INNER JOIN customers c2 ON c2.customer_id = o.customer_id\n        WHERE o.status <> 'cancelled'\n        GROUP BY o.customer_id, c2.country\n    ) AS subq\n    GROUP BY subq.country\n),\ncampanas_2025 AS (\n    SELECT\n        mc.campaign_id,\n        mc.name                                            AS campana,\n        mc.channel,\n        mc.spent,\n        COUNT(DISTINCT o.customer_id)                     AS clientes_distintos,\n        ROUND(mc.spent / NULLIF(COUNT(DISTINCT o.customer_id), 0), 2) AS cac,\n        -- País predominante: el que tiene más pedidos en el período activo\n        (SELECT c2.country\n         FROM orders o2\n         INNER JOIN customers c2 ON c2.customer_id = o2.customer_id\n         WHERE o2.ordered_at::DATE BETWEEN mc.started_at\n                                       AND COALESCE(mc.ended_at, CURRENT_DATE)\n           AND o2.status <> 'cancelled'\n         GROUP BY c2.country\n         ORDER BY COUNT(*) DESC\n         LIMIT 1) AS pais_predominante\n    FROM marketing_campaigns mc\n    INNER JOIN orders o ON o.ordered_at::DATE BETWEEN mc.started_at\n                                                  AND COALESCE(mc.ended_at, CURRENT_DATE)\n    WHERE o.status      <> 'cancelled'\n      AND mc.started_at >= '2025-01-01'\n      AND mc.started_at <  '2026-01-01'\n    GROUP BY mc.campaign_id, mc.name, mc.channel, mc.spent\n)\nSELECT\n    c2025.campana,\n    c2025.channel,\n    c2025.pais_predominante,\n    c2025.cac,\n    lp.ltv_promedio                                        AS ltv_promedio_pais,\n    ROUND(lp.ltv_promedio / NULLIF(c2025.cac, 0), 2)      AS razon_ltv_cac,\n    CASE WHEN lp.ltv_promedio / NULLIF(c2025.cac, 0) < 3\n         THEN 'REVISAR'\n         ELSE 'OK'\n    END                                                    AS alerta\nFROM campanas_2025 c2025\nLEFT JOIN ltv_pais lp ON lp.country = c2025.pais_predominante\nORDER BY razon_ltv_cac DESC NULLS LAST;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "campana",
+      "channel",
+      "pais_predominante",
+      "cac",
+      "ltv_promedio_pais",
+      "razon_ltv_cac",
+      "alerta"
+    ],
+    "sample_rows": [
+      [
+        "Regreso a Clases MX-CO-CL 2025",
+        "paid_search",
+        "Mexico",
+        24.26,
+        40221.65,
+        1657.94,
+        "OK"
+      ],
+      [
+        "Mid Year Sale Julio 2025",
+        "display",
+        "Colombia",
+        62.78,
+        35827.84,
+        570.69,
+        "OK"
+      ],
+      [
+        "Liquidacion Electronica AR Enero 2025",
+        "email",
+        "Argentina",
+        34.16,
+        15378.04,
+        450.18,
+        "OK"
+      ],
+      [
+        "Lanzamiento Hogar Premium Sep 2025",
+        "social",
+        "Chile",
+        55.84,
+        19065.97,
+        341.44,
+        "OK"
+      ],
+      [
+        "Mayo Conectados 2025",
+        "email",
+        "Mexico",
+        143.16,
+        40221.65,
+        280.96,
+        "OK"
+      ],
+      [
+        "Lanzamiento Peru Febrero 2025",
+        "social",
+        "Peru",
+        62.75,
+        13233.29,
+        210.89,
+        "OK"
+      ],
+      [
+        "Navidad 2025",
+        "social",
+        "Mexico",
+        207.07,
+        40221.65,
+        194.24,
+        "OK"
+      ],
+      [
+        "Black Friday 2025",
+        "email",
+        "Mexico",
+        230.39,
+        40221.65,
+        174.58,
+        "OK"
+      ],
+      [
+        "Cyber Monday 2025",
+        "paid_search",
+        "Mexico",
+        295.7,
+        40221.65,
+        136.02,
+        "OK"
+      ]
+    ],
+    "expected_row_count_approx": 9,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 19,
+    "title": "Integrador de Bloque C",
+    "briefing_ref": "Briefing 6.19",
+    "lesson_ref": "Lección 19",
+    "reference_query": "-- CORRECCIÓN [CRIT-N6-01]: eliminada la CTE huérfana clientes_cohorte_por_canal\n-- y la CTE retencion_canal con SUM(MAX(...)) anidado (PostgreSQL: \"aggregate\n-- function calls cannot be nested\"). La retención se calcula ahora en dos CTEs\n-- separadas: retención_por_cliente (MAX por cliente) y retencion_canal (SUM\n-- sobre esos valores ya calculados).\nWITH revenue_canal AS (\n    SELECT\n        mc.channel,\n        COUNT(DISTINCT mc.campaign_id)                AS num_campanas,\n        ROUND(SUM(mc.spent), 2)                       AS gasto_total,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)    AS revenue_atribuible,\n        COUNT(DISTINCT o.customer_id)                 AS clientes_distintos\n    FROM marketing_campaigns mc\n    INNER JOIN orders      o  ON o.ordered_at::DATE BETWEEN mc.started_at\n                                                        AND COALESCE(mc.ended_at, CURRENT_DATE)\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status      <> 'cancelled'\n      AND mc.started_at >= '2025-01-01'\n      AND mc.started_at <  '2026-01-01'\n    GROUP BY mc.channel\n),\nprimer_pedido AS (\n    SELECT customer_id,\n           DATE_TRUNC('month', MIN(ordered_at))::DATE AS cohorte\n    FROM orders\n    WHERE status <> 'cancelled'\n    GROUP BY customer_id\n),\n-- CTE 1 de retención: MAX por (canal, cliente) — resuelve la anidación inválida\nretencion_por_cliente AS (\n    SELECT\n        mc.channel,\n        pp.customer_id,\n        MAX(CASE\n            WHEN DATE_TRUNC('month', o2.ordered_at)::DATE\n                 = (pp.cohorte + INTERVAL '1 month')::DATE\n            THEN 1\n            ELSE 0\n        END)                                          AS retuvo_mes_2\n    FROM marketing_campaigns mc\n    INNER JOIN orders      o  ON o.ordered_at::DATE BETWEEN mc.started_at\n                                                        AND COALESCE(mc.ended_at, CURRENT_DATE)\n    INNER JOIN primer_pedido pp ON pp.customer_id = o.customer_id\n                                AND pp.cohorte    = DATE_TRUNC('month', o.ordered_at)::DATE\n    LEFT JOIN orders o2 ON o2.customer_id = pp.customer_id\n                        AND o2.status     <> 'cancelled'\n    WHERE mc.started_at >= '2025-01-01'\n      AND mc.started_at <  '2026-01-01'\n      AND o.status      <> 'cancelled'\n    GROUP BY mc.channel, pp.customer_id\n),\n-- CTE 2 de retención: SUM sobre valores ya aplanados — sin anidación\nretencion_canal AS (\n    SELECT\n        channel,\n        ROUND(\n            SUM(retuvo_mes_2) * 100.0\n            / NULLIF(COUNT(customer_id), 0),\n            1\n        )                                             AS tasa_retencion_promedio\n    FROM retencion_por_cliente\n    GROUP BY channel\n)\nSELECT\n    rc.channel,\n    rc.num_campanas,\n    rc.gasto_total,\n    rc.revenue_atribuible,\n    ROUND(\n        (rc.revenue_atribuible - rc.gasto_total) * 100.0\n        / NULLIF(rc.gasto_total, 0),\n        2\n    )                                                  AS roi_pct,\n    ROUND(rc.gasto_total / NULLIF(rc.clientes_distintos, 0), 2) AS cac_promedio,\n    ret.tasa_retencion_promedio\nFROM revenue_canal rc\nLEFT JOIN retencion_canal ret ON ret.channel = rc.channel\nORDER BY roi_pct DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "channel",
+      "num_campanas",
+      "gasto_total",
+      "revenue_atribuible",
+      "roi_pct",
+      "cac_promedio",
+      "tasa_retencion_promedio"
+    ],
+    "sample_rows": [
+      [
+        "paid_search",
+        2,
+        50052800.0,
+        487242.13,
+        -99.03,
+        115063.91,
+        40.0
+      ],
+      [
+        "display",
+        1,
+        78036000.0,
+        441981.75,
+        -99.43,
+        174968.61,
+        null
+      ],
+      [
+        "social",
+        3,
+        320762400.0,
+        1538040.07,
+        -99.52,
+        624051.36,
+        71.4
+      ],
+      [
+        "email",
+        3,
+        667388800.0,
+        1841991.66,
+        -99.72,
+        1233620.7,
+        21.5
+      ]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 20,
+    "title": "Ejercicio 20",
+    "briefing_ref": "Briefing 6.20",
+    "lesson_ref": "Lección 20",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        EXTRACT(MONTH FROM o.ordered_at)::INT       AS mes_numero,\n        TO_CHAR(o.ordered_at, 'TMMonth')            AS mes_nombre,\n        DATE_TRUNC('month', o.ordered_at)::DATE     AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.status <> 'cancelled'\n    GROUP BY EXTRACT(MONTH FROM o.ordered_at),\n             TO_CHAR(o.ordered_at, 'TMMonth'),\n             DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes_numero,\n    mes_nombre,\n    ROUND(AVG(revenue), 2)  AS revenue_promedio,\n    COUNT(*)                AS anios_con_datos\nFROM revenue_mensual\nGROUP BY mes_numero, mes_nombre\nORDER BY revenue_promedio DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes_numero",
+      "mes_nombre",
+      "revenue_promedio",
+      "anios_con_datos"
+    ],
+    "sample_rows": [
+      [
+        1,
+        "Enero",
+        367976.26,
+        3
+      ],
+      [
+        4,
+        "Abril",
+        337040.17,
+        3
+      ],
+      [
+        3,
+        "Marzo",
+        333354.56,
+        3
+      ],
+      [
+        5,
+        "Mayo",
+        324847.2,
+        3
+      ],
+      [
+        2,
+        "Febrero",
+        290699.52,
+        3
+      ],
+      [
+        9,
+        "Septiembre",
+        246468.2,
+        3
+      ],
+      [
+        12,
+        "Diciembre",
+        235153.9,
+        3
+      ],
+      [
+        11,
+        "Noviembre",
+        221668.13,
+        3
+      ],
+      [
+        10,
+        "Octubre",
+        191726.19,
+        3
+      ],
+      [
+        6,
+        "Junio",
+        167207.45,
+        3
+      ],
+      [
+        7,
+        "Julio",
+        158706.97,
+        3
+      ],
+      [
+        8,
+        "Agosto",
+        154860.58,
+        3
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 21,
+    "title": "Ejercicio 21",
+    "briefing_ref": "Briefing 6.21",
+    "lesson_ref": "Lección 21",
+    "reference_query": "WITH revenue_anual_pais AS (\n    SELECT\n        c.country,\n        EXTRACT(YEAR FROM o.ordered_at)::INT        AS anio,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue_anual\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id   = o.order_id\n    INNER JOIN customers   c  ON c.customer_id = o.customer_id\n    WHERE o.status <> 'cancelled'\n    GROUP BY c.country, EXTRACT(YEAR FROM o.ordered_at)\n)\nSELECT\n    country,\n    MAX(CASE WHEN anio = 2024 THEN revenue_anual END)          AS revenue_2024,\n    MAX(CASE WHEN anio = 2025 THEN revenue_anual END)          AS revenue_2025,\n    ROUND(\n        (MAX(CASE WHEN anio = 2025 THEN revenue_anual END)\n         - MAX(CASE WHEN anio = 2024 THEN revenue_anual END))\n        * 100.0\n        / NULLIF(MAX(CASE WHEN anio = 2024 THEN revenue_anual END), 0),\n        2\n    )                                                           AS crecimiento_yoy_pct,\n    ROUND(\n        MAX(CASE WHEN anio = 2025 THEN revenue_anual END) * 100.0\n        / NULLIF(\n            SUM(MAX(CASE WHEN anio = 2025 THEN revenue_anual END)) OVER (),\n            0\n        ),\n        1\n    )                                                           AS pct_revenue_2025\nFROM revenue_anual_pais\nWHERE anio IN (2024, 2025)\nGROUP BY country\nORDER BY crecimiento_yoy_pct DESC NULLS LAST;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "country",
+      "revenue_2024",
+      "revenue_2025",
+      "crecimiento_yoy_pct",
+      "pct_revenue_2025"
+    ],
+    "sample_rows": [
+      [
+        "Mexico",
+        26774.56,
+        1860682.14,
+        6849.44,
+        30.2
+      ],
+      [
+        "Colombia",
+        21445.15,
+        1481175.03,
+        6806.81,
+        24.0
+      ],
+      [
+        "Peru",
+        13143.53,
+        534474.57,
+        3966.45,
+        8.7
+      ],
+      [
+        "Argentina",
+        19578.25,
+        674121.72,
+        3343.22,
+        10.9
+      ],
+      [
+        "Chile",
+        17358.98,
+        374635.01,
+        2058.16,
+        6.1
+      ],
+      [
+        "Venezuela",
+        13282.67,
+        164265.32,
+        1136.69,
+        2.7
+      ],
+      [
+        "Bolivia",
+        13141.76,
+        153749.02,
+        1069.93,
+        2.5
+      ],
+      [
+        "Paraguay",
+        3888.94,
+        44738.01,
+        1050.39,
+        0.7
+      ],
+      [
+        "USA",
+        26423.84,
+        292431.69,
+        1006.7,
+        4.7
+      ],
+      [
+        "Spain",
+        14728.28,
+        156660.95,
+        963.67,
+        2.5
+      ],
+      [
+        "Uruguay",
+        5027.49,
+        51508.04,
+        924.53,
+        0.8
+      ],
+      [
+        "Honduras",
+        6443.06,
+        58533.35,
+        808.47,
+        0.9
+      ],
+      [
+        "Guatemala",
+        8255.2,
+        71291.12,
+        763.59,
+        1.2
+      ],
+      [
+        "Ecuador",
+        18370.23,
+        144520.02,
+        686.71,
+        2.3
+      ],
+      [
+        "Costa Rica",
+        6125.71,
+        46989.55,
+        667.09,
+        0.8
+      ],
+      [
+        "El Salvador",
+        9294.74,
+        56739.64,
+        510.45,
+        0.9
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 22,
+    "title": "Ejercicio 22",
+    "briefing_ref": "Briefing 6.22",
+    "lesson_ref": "Lección 22",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE    AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue_mensual\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.ordered_at >= '2025-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes,\n    revenue_mensual,\n    ROUND(\n        AVG(revenue_mensual) OVER (\n            ORDER BY mes\n            ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n        ),\n        2\n    )                                              AS rolling_avg_3m,\n    ROUND(\n        revenue_mensual - AVG(revenue_mensual) OVER (\n            ORDER BY mes\n            ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n        ),\n        2\n    )                                              AS desviacion_vs_tendencia\nFROM revenue_mensual\nORDER BY mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_mensual",
+      "rolling_avg_3m",
+      "desviacion_vs_tendencia"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        551217.8,
+        551217.8,
+        0.0
+      ],
+      [
+        "2025-02-01",
+        310057.9,
+        430637.85,
+        -120579.95
+      ],
+      [
+        "2025-03-01",
+        382881.69,
+        414719.13,
+        -31837.44
+      ],
+      [
+        "2025-04-01",
+        440824.23,
+        377921.27,
+        62902.96
+      ],
+      [
+        "2025-05-01",
+        664860.07,
+        496188.66,
+        168671.41
+      ],
+      [
+        "2025-06-01",
+        465280.21,
+        523654.84,
+        -58374.63
+      ],
+      [
+        "2025-07-01",
+        441981.75,
+        524040.68,
+        -82058.93
+      ],
+      [
+        "2025-08-01",
+        433479.37,
+        446913.78,
+        -13434.41
+      ],
+      [
+        "2025-09-01",
+        708115.31,
+        527858.81,
+        180256.5
+      ],
+      [
+        "2025-10-01",
+        538177.19,
+        559923.96,
+        -21746.77
+      ],
+      [
+        "2025-11-01",
+        554086.08,
+        600126.19,
+        -46040.11
+      ],
+      [
+        "2025-12-01",
+        675553.58,
+        589272.28,
+        86281.3
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 23,
+    "title": "Ejercicio 23",
+    "briefing_ref": "Briefing 6.23",
+    "lesson_ref": "Lección 23",
+    "reference_query": "WITH revenue_mensual AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE    AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.ordered_at >= '2024-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n    mes,\n    revenue                                         AS revenue_2025,\n    LAG(revenue, 12) OVER (ORDER BY mes)            AS revenue_2024,\n    ROUND(\n        (revenue - LAG(revenue, 12) OVER (ORDER BY mes))\n        * 100.0\n        / NULLIF(LAG(revenue, 12) OVER (ORDER BY mes), 0),\n        2\n    )                                               AS variacion_yoy_pct\nFROM revenue_mensual\nWHERE mes >= '2025-01-01'\n  AND mes <  '2026-01-01'\nORDER BY mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_2025",
+      "revenue_2024",
+      "variacion_yoy_pct"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        551217.8,
+        null,
+        null
+      ],
+      [
+        "2025-02-01",
+        310057.9,
+        null,
+        null
+      ],
+      [
+        "2025-03-01",
+        382881.69,
+        null,
+        null
+      ],
+      [
+        "2025-04-01",
+        440824.23,
+        null,
+        null
+      ],
+      [
+        "2025-05-01",
+        664860.07,
+        null,
+        null
+      ],
+      [
+        "2025-06-01",
+        465280.21,
+        null,
+        null
+      ],
+      [
+        "2025-07-01",
+        441981.75,
+        null,
+        null
+      ],
+      [
+        "2025-08-01",
+        433479.37,
+        null,
+        null
+      ],
+      [
+        "2025-09-01",
+        708115.31,
+        null,
+        null
+      ],
+      [
+        "2025-10-01",
+        538177.19,
+        null,
+        null
+      ],
+      [
+        "2025-11-01",
+        554086.08,
+        null,
+        null
+      ],
+      [
+        "2025-12-01",
+        675553.58,
+        null,
+        null
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 24,
+    "title": "Ejercicio 24",
+    "briefing_ref": "Briefing 6.24",
+    "lesson_ref": "Lección 24",
+    "reference_query": "WITH pedidos_chile_mes AS (\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE       AS mes,\n        COUNT(*)                                        AS total_pedidos,\n        SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END)\n                                                        AS pedidos_cancelados\n    FROM orders o\n    INNER JOIN customers c ON c.customer_id = o.customer_id\n    WHERE c.country = 'Chile'\n      AND o.ordered_at >= '2025-12-01'\n      AND o.ordered_at <  '2026-06-01'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n),\ntasa_cancelacion AS (\n    SELECT\n        mes,\n        total_pedidos,\n        pedidos_cancelados,\n        ROUND(\n            pedidos_cancelados * 100.0\n            / NULLIF(total_pedidos, 0),\n            2\n        )                                              AS tasa_cancelacion_pct\n    FROM pedidos_chile_mes\n)\nSELECT\n    mes,\n    total_pedidos,\n    pedidos_cancelados,\n    tasa_cancelacion_pct,\n    LAG(tasa_cancelacion_pct) OVER (ORDER BY mes)  AS tasa_mes_anterior\nFROM tasa_cancelacion\nORDER BY mes;\n-- NOTA: orders.status = 'cancelled' es un proxy de pagos fallidos.\n-- El análisis real con payments.status = 'failed' se realizará en el Nivel 8.",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "total_pedidos",
+      "pedidos_cancelados",
+      "tasa_cancelacion_pct",
+      "tasa_mes_anterior"
+    ],
+    "sample_rows": [
+      [
+        "2025-12-01",
+        77,
+        12,
+        15.58,
+        null
+      ],
+      [
+        "2026-01-01",
+        84,
+        18,
+        21.43,
+        15.58
+      ],
+      [
+        "2026-02-01",
+        73,
+        16,
+        21.92,
+        21.43
+      ],
+      [
+        "2026-03-01",
+        848,
+        113,
+        13.33,
+        21.92
+      ],
+      [
+        "2026-04-01",
+        785,
+        114,
+        14.52,
+        13.33
+      ],
+      [
+        "2026-05-01",
+        33,
+        2,
+        6.06,
+        14.52
+      ]
+    ],
+    "expected_row_count_approx": 6,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 25,
+    "title": "Integrador del Nivel 6",
+    "briefing_ref": "Briefing 6.25",
+    "lesson_ref": "Lección 25",
+    "reference_query": "-- Reporte ejecutivo anual ShopSphere 2025\n-- Incluye: MoM, YoY, rolling average y ranking mensual\n-- CORRECCIÓN [CRIT-N6-02]: RANK() se calcula ahora en una CTE separada que\n-- contiene SOLO los 12 meses de 2025, no los 24 meses de la serie base.\n-- Así el ranking compara únicamente meses de 2025 entre sí.\n-- La serie base de 24 meses (2024+2025) se mantiene para que LAG(12) y\n-- el rolling avg de los primeros meses de 2025 tengan contexto suficiente.\nWITH revenue_serie_completa AS (\n    -- Fase 1: serie 2024+2025 para LAG(12) y rolling avg\n    SELECT\n        DATE_TRUNC('month', o.ordered_at)::DATE    AS mes,\n        ROUND(SUM(oi.quantity * oi.unit_price), 2)  AS revenue\n    FROM orders o\n    INNER JOIN order_items oi ON oi.order_id = o.order_id\n    WHERE o.ordered_at >= '2024-01-01'\n      AND o.ordered_at <  '2026-01-01'\n      AND o.status     <> 'cancelled'\n    GROUP BY DATE_TRUNC('month', o.ordered_at)\n),\nmetricas_con_lag AS (\n    -- Fase 2: calcula LAG, YoY y rolling avg sobre la serie completa\n    SELECT\n        mes,\n        revenue,\n        LAG(revenue, 1)  OVER (ORDER BY mes)        AS revenue_mes_anterior,\n        LAG(revenue, 12) OVER (ORDER BY mes)        AS revenue_mismo_mes_2024,\n        AVG(revenue) OVER (\n            ORDER BY mes\n            ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n        )                                           AS rolling_avg_3m_raw\n    FROM revenue_serie_completa\n),\nsolo_2025 AS (\n    -- Fase 3: filtra a 2025 ANTES de calcular el RANK,\n    -- para que el ranking compare solo los 12 meses de 2025\n    SELECT *\n    FROM metricas_con_lag\n    WHERE mes >= '2025-01-01'\n      AND mes <  '2026-01-01'\n)\nSELECT\n    mes,\n    revenue                                                    AS revenue_mensual,\n    revenue_mes_anterior,\n    ROUND(\n        (revenue - revenue_mes_anterior) * 100.0\n        / NULLIF(revenue_mes_anterior, 0),\n        2\n    )                                                          AS variacion_mom_pct,\n    revenue_mismo_mes_2024,\n    ROUND(\n        (revenue - revenue_mismo_mes_2024) * 100.0\n        / NULLIF(revenue_mismo_mes_2024, 0),\n        2\n    )                                                          AS variacion_yoy_pct,\n    ROUND(rolling_avg_3m_raw, 2)                               AS rolling_avg_3m,\n    RANK() OVER (ORDER BY revenue DESC)                        AS ranking_mes\nFROM solo_2025\nORDER BY mes;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "revenue_mensual",
+      "revenue_mes_anterior",
+      "variacion_mom_pct",
+      "revenue_mismo_mes_2024",
+      "variacion_yoy_pct",
+      "rolling_avg_3m",
+      "ranking_mes"
+    ],
+    "sample_rows": [
+      [
+        "2025-01-01",
+        551217.8,
+        1530.76,
+        35909.42,
+        9475.53,
+        5717.28,
+        208024.1,
+        5
+      ],
+      [
+        "2025-02-01",
+        310057.9,
+        551217.8,
+        -43.75,
+        7600.86,
+        3979.25,
+        287602.15,
+        12
+      ],
+      [
+        "2025-03-01",
+        382881.69,
+        310057.9,
+        23.49,
+        13094.42,
+        2824.01,
+        414719.13,
+        11
+      ],
+      [
+        "2025-04-01",
+        440824.23,
+        382881.69,
+        15.13,
+        12550.58,
+        3412.38,
+        377921.27,
+        9
+      ],
+      [
+        "2025-05-01",
+        664860.07,
+        440824.23,
+        50.82,
+        18561.53,
+        3481.92,
+        496188.66,
+        3
+      ],
+      [
+        "2025-06-01",
+        465280.21,
+        664860.07,
+        -30.02,
+        16964.17,
+        2642.72,
+        523654.84,
+        7
+      ],
+      [
+        "2025-07-01",
+        441981.75,
+        465280.21,
+        -5.01,
+        17705.22,
+        2396.34,
+        524040.68,
+        8
+      ],
+      [
+        "2025-08-01",
+        433479.37,
+        441981.75,
+        -1.92,
+        15145.97,
+        2762.01,
+        446913.78,
+        10
+      ],
+      [
+        "2025-09-01",
+        708115.31,
+        433479.37,
+        63.36,
+        16871.17,
+        4097.19,
+        527858.81,
+        1
+      ],
+      [
+        "2025-10-01",
+        538177.19,
+        708115.31,
+        -24.0,
+        22458.43,
+        2296.33,
+        559923.96,
+        6
+      ],
+      [
+        "2025-11-01",
+        554086.08,
+        538177.19,
+        2.96,
+        71323.75,
+        676.86,
+        600126.19,
+        4
+      ],
+      [
+        "2025-12-01",
+        675553.58,
+        554086.08,
+        21.92,
+        1530.76,
+        44031.91,
+        589272.28,
+        2
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  }
+]

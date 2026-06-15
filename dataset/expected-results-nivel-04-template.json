@@ -1,0 +1,194 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Clientes con devoluciones en julio 2025 — lista con conteo",
+    "briefing_ref": "Briefing 4.1 — Diego Morales: Clientes que devolvieron en julio",
+    "lesson_ref": "Leccion 1 — Subquery en WHERE con IN",
+    "reference_query": "SELECT c.first_name || ' ' || c.last_name AS nombre, c.email, c.country, COUNT(r.return_id) AS total_devoluciones FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id INNER JOIN returns r ON r.order_id = o.order_id WHERE r.returned_at >= '2025-07-01' AND r.returned_at < '2025-08-01' GROUP BY c.customer_id, c.first_name, c.last_name, c.email, c.country ORDER BY total_devoluciones DESC, nombre;",
+    "tables_used": ["customers", "orders", "returns"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nombre", "email", "country", "total_devoluciones"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 1]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El seed tiene un spike de devoluciones en julio 2025 (tasa 8.3% segun el timeline narrativo). Verificar que hay suficientes registros en returns con returned_at en julio 2025. La version alternativa usa subquery: WHERE c.customer_id IN (SELECT DISTINCT o.customer_id FROM orders o INNER JOIN returns r ON r.order_id = o.order_id WHERE r.returned_at >= '2025-07-01' AND r.returned_at < '2025-08-01'). Ambas versiones son validas para la leccion — el teacher debe decidir cual presentar primero. AMBIGUEDAD: el briefing dice 'cantidad de devoluciones ese mes' pero no especifica si cuenta solo las de julio o el historico — interpretar como las de julio."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Devoluciones sin razon registrada (reason IS NULL)",
+    "briefing_ref": "Briefing 4.2 — Diego Morales: Devoluciones sin razon registrada",
+    "lesson_ref": "Leccion 1 — IS NULL / IS NOT NULL",
+    "reference_query": "SELECT r.return_id, r.order_id, r.product_id, r.returned_at, r.status FROM returns r WHERE r.reason IS NULL ORDER BY r.returned_at DESC;",
+    "tables_used": ["returns"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["return_id", "order_id", "product_id", "returned_at", "status"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0, 0, "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Verificar si el seed incluye registros con reason IS NULL en la tabla returns. Si el seed no tiene ninguna fila con reason NULL, el resultado es 0 filas — lo cual es pedagogicamente valido pero el enunciado debe advertirlo. El briefing tambien pide 'el total' — la leccion puede complementar con SELECT COUNT(*) FROM returns WHERE reason IS NULL como segunda parte del ejercicio. ADVERTENCIA POTENCIAL: el campo reason en el seed usa valores de texto como 'defective', 'wrong_item', 'not_as_described', 'changed_mind', 'wrong_size' — verificar que ningun registro tiene NULL antes de publicar."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Productos sin ninguna devolucion aprobada o reembolsada — ordenados por precio DESC",
+    "briefing_ref": "Briefing 4.3 — Diego Morales: Productos sin devolucion aprobada (los mas confiables)",
+    "lesson_ref": "Leccion 2 — NOT IN con subquery / NOT EXISTS",
+    "reference_query": "SELECT p.name AS producto, c.name AS categoria, p.price AS precio FROM products p INNER JOIN categories c ON c.category_id = p.category_id WHERE p.product_id NOT IN ( SELECT DISTINCT r.product_id FROM returns r WHERE r.status IN ('approved', 'refunded') ) ORDER BY p.price DESC;",
+    "tables_used": ["products", "categories", "returns"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "categoria", "precio"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA CRITICA SOBRE NOT IN CON NULLs: si la subquery retorna algun NULL en product_id (lo cual NO ocurre en returns porque product_id es FK NOT NULL), NOT IN retornaria 0 filas. Para este ejercicio concreto el NULL no es un problema porque returns.product_id es NOT NULL. Sin embargo, el teacher DEBE explicar esta trampa: NOT IN falla silenciosamente con NULLs. La version segura es NOT EXISTS: WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.product_id = p.product_id AND r.status IN ('approved','refunded')). Presentar ambas y explicar la diferencia como punto central de la leccion."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Clientes de alto valor que devolvieron en julio 2025 (subquery correlacionada)",
+    "briefing_ref": "Briefing 4.4 — Valentina Torres: Clientes de alto valor con devoluciones en julio",
+    "lesson_ref": "Leccion 2 — Subquery correlacionada con comparacion vs promedio",
+    "reference_query": "SELECT c.first_name || ' ' || c.last_name AS nombre, c.email, c.country, SUM(oi.quantity * oi.unit_price) AS revenue_historico FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status = 'delivered' AND c.customer_id IN ( SELECT DISTINCT o2.customer_id FROM orders o2 INNER JOIN returns r ON r.order_id = o2.order_id WHERE r.returned_at >= '2025-07-01' AND r.returned_at < '2025-08-01' ) GROUP BY c.customer_id, c.first_name, c.last_name, c.email, c.country HAVING SUM(oi.quantity * oi.unit_price) > ( SELECT AVG(rev_por_cliente.total) FROM ( SELECT SUM(oi2.quantity * oi2.unit_price) AS total FROM customers c2 INNER JOIN orders o3 ON o3.customer_id = c2.customer_id INNER JOIN order_items oi2 ON oi2.order_id = o3.order_id WHERE o3.status = 'delivered' GROUP BY c2.customer_id ) AS rev_por_cliente ) ORDER BY revenue_historico DESC;",
+    "tables_used": ["customers", "orders", "order_items", "returns"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nombre", "email", "country", "revenue_historico"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Este es el ejercicio mas complejo del nivel — combina subquery en WHERE (para filtrar los que devolvieron en julio) con subquery en HAVING (para comparar contra el promedio). AMBIGUEDAD: 'revenue historico total' — el briefing no especifica si incluir pedidos cancelled/shipped/pending. La query propuesta usa solo status='delivered' para mayor consistencia. AMBIGUEDAD ADICIONAL: 'promedio general de clientes' — el teacher debe aclarar si es promedio sobre todos los clientes con al menos un pedido delivered, o todos los clientes registrados (incluyendo los que nunca compraron, cuyo revenue seria 0 o NULL). El enfoque propuesto excluye los que nunca compraron. Posible resultado 0 filas si el set de clientes de alto valor no intersecta con los que devolvieron en julio."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Clientes sin ninguna devolucion que tienen al menos un pedido completado (NOT EXISTS)",
+    "briefing_ref": "Briefing 4.5 — Valentina Torres: Clientes sin fricciones (al menos un pedido, cero devoluciones)",
+    "lesson_ref": "Leccion 2 — NOT EXISTS vs NOT IN",
+    "reference_query": "SELECT c.first_name || ' ' || c.last_name AS nombre, c.email, c.country, COUNT(DISTINCT o.order_id) AS pedidos_completados FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id WHERE o.status = 'delivered' AND NOT EXISTS ( SELECT 1 FROM orders o2 INNER JOIN returns r ON r.order_id = o2.order_id WHERE o2.customer_id = c.customer_id ) GROUP BY c.customer_id, c.first_name, c.last_name, c.email, c.country ORDER BY pedidos_completados DESC;",
+    "tables_used": ["customers", "orders", "returns"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nombre", "email", "country", "pedidos_completados"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 0]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Este ejercicio es el complemento pedagogico del ejercicio 3 (NOT IN). Aqui se usa NOT EXISTS para la misma logica de exclusion, pero sobre clientes en lugar de productos. El punto pedagogico clave: NOT EXISTS es seguro ante NULLs porque busca existencia, no igualdad. Si customer_id en orders.customer_id tiene algun NULL (no deberia por FK), NOT EXISTS sigue funcionando correctamente. NOTA SOBRE PARTITION: 'total de pedidos completados' significa pedidos con status='delivered' exclusivamente — aclarar en el enunciado si incluir 'shipped' o no."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Motivo de devolucion mas frecuente (excluyendo NULL)",
+    "briefing_ref": "Briefing 4.6 — Valentina Torres: Motivo de devolucion mas frecuente",
+    "lesson_ref": "Leccion 1 — IS NOT NULL en filtro + LIMIT 1",
+    "reference_query": "SELECT r.reason AS motivo, COUNT(*) AS cantidad FROM returns r WHERE r.reason IS NOT NULL GROUP BY r.reason ORDER BY cantidad DESC LIMIT 1;",
+    "tables_used": ["returns"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["motivo", "cantidad"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. Ejercicio sencillo de IS NOT NULL + agregacion. El seed usa los valores: 'defective', 'wrong_item', 'not_as_described', 'changed_mind', 'wrong_size'. Verificar cual es el mas frecuente. ATENCION: el seed de julio 2025 incluye 'wrong_size' como motivo (relacionado con el spike de calzado en Colombia) — si el spike de julio es representativo, 'wrong_size' o 'defective' deberian ser candidatos al primer lugar. Confirmar con ejecucion."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Revenue reembolsado en Q3 2025 por categoria (incluye categorias con cero reembolsos — COALESCE)",
+    "briefing_ref": "Briefing 4.7 — Ana Castillo: Revenue perdido por devoluciones reembolsadas Q3 2025",
+    "lesson_ref": "Leccion 3 — COALESCE con LEFT JOIN para incluir filas con valor cero",
+    "reference_query": "SELECT c.name AS categoria, COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS revenue_reembolsado_q3 FROM categories c LEFT JOIN products p ON p.category_id = c.category_id LEFT JOIN returns r ON r.product_id = p.product_id AND r.status = 'refunded' AND r.returned_at >= '2025-07-01' AND r.returned_at < '2025-10-01' LEFT JOIN order_items oi ON oi.order_id = r.order_id AND oi.product_id = r.product_id GROUP BY c.name ORDER BY revenue_reembolsado_q3 DESC;",
+    "tables_used": ["categories", "products", "returns", "order_items"],
+    "join_types": ["LEFT JOIN", "LEFT JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["categoria", "revenue_reembolsado_q3"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0.00]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado DEBE tener exactamente 10 filas (todas las categorias). El punto pedagogico central: usar LEFT JOIN desde categories hacia returns para que las categorias sin reembolsos aparezcan con 0 (via COALESCE). ADVERTENCIA SOBRE LA QUERY: el JOIN entre order_items y returns es por (order_id, product_id) — un pedido puede tener el mismo producto en multiples items (poco comun pero posible). La logica de calcular el monto reembolsado via order_items es una aproximacion: usa el unit_price * quantity del item para estimar el reembolso, ya que la tabla returns no tiene columna de monto (refund_amount fue eliminada en el fix del seed). El teacher debe aclarar esta limitacion en la leccion. NOTA: el filtro de fecha y status debe ir en el ON del LEFT JOIN, no en el WHERE."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Ordenes donde el monto devuelto supera el 80% del pedido (ratio de devolucion extremo)",
+    "briefing_ref": "Briefing 4.8 — Ana Castillo: Ordenes con mas del 80% de valor devuelto",
+    "lesson_ref": "Leccion 3 — Subquery escalar en SELECT / HAVING con ratio calculado",
+    "reference_query": "WITH valor_pedido AS ( SELECT o.order_id, o.ordered_at, c.first_name || ' ' || c.last_name AS cliente, SUM(oi.quantity * oi.unit_price) AS total_pedido FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id INNER JOIN order_items oi ON oi.order_id = o.order_id GROUP BY o.order_id, o.ordered_at, c.first_name, c.last_name ), valor_devuelto AS ( SELECT r.order_id, SUM(oi.quantity * oi.unit_price) AS total_devuelto FROM returns r INNER JOIN order_items oi ON oi.order_id = r.order_id AND oi.product_id = r.product_id WHERE r.status = 'refunded' GROUP BY r.order_id ) SELECT vp.order_id, vp.ordered_at, vp.cliente, vp.total_pedido, COALESCE(vd.total_devuelto, 0) AS total_devuelto, ROUND(COALESCE(vd.total_devuelto, 0) * 100.0 / vp.total_pedido, 2) AS pct_devuelto FROM valor_pedido vp LEFT JOIN valor_devuelto vd ON vd.order_id = vp.order_id WHERE COALESCE(vd.total_devuelto, 0) > vp.total_pedido * 0.80 ORDER BY pct_devuelto DESC;",
+    "tables_used": ["orders", "customers", "order_items", "returns"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["order_id", "ordered_at", "cliente", "total_pedido", "total_devuelto", "pct_devuelto"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 0.00, 0.00, 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. NOTA DE NIVEL: este ejercicio usa CTEs que tecnicamente son del Nivel 5. Para el Nivel 4 la version sin CTE usa subqueries anidadas en FROM. El teacher puede presentar la version con CTE como previsualizacion del siguiente nivel, o reescribirla con subqueries en FROM. ADVERTENCIA: el calculo de 'monto devuelto' esta limitado por el schema — la tabla returns no tiene columna de monto, por lo que se aproxima via order_items. Ordenes donde pct_devuelto > 100% indicarian error de registro (el briefing lo menciona explicitamente). POSIBLE 0 FILAS: si ningun pedido del seed tiene mas del 80% de su valor en devoluciones 'refunded', el resultado sera vacio."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Clientes que compraron en Q3 2025 pero NO en Q4 2025 (EXCEPT / NOT IN)",
+    "briefing_ref": "Briefing 4.9 — Sofia Ramirez: Target para campana de recuperacion — compraron Q3 pero no Q4",
+    "lesson_ref": "Leccion 4 — EXCEPT (o NOT IN con subquery)",
+    "reference_query": "SELECT c.first_name || ' ' || c.last_name AS nombre, c.email, c.country FROM customers c WHERE c.customer_id IN ( SELECT DISTINCT o.customer_id FROM orders o WHERE o.ordered_at >= '2025-07-01' AND o.ordered_at < '2025-10-01' ) AND c.customer_id NOT IN ( SELECT DISTINCT o.customer_id FROM orders o WHERE o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01' ) ORDER BY c.country, nombre;",
+    "tables_used": ["customers", "orders"],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["nombre", "email", "country"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Este ejercicio es el caso clasico de uso de EXCEPT: la version con EXCEPT requiere que ambas subqueries retornen las mismas columnas (customer_id, o nombre+email+country). La version con NOT IN es mas directa. El teacher debe presentar AMBAS versiones para que el estudiante entienda la equivalencia. NOTA SOBRE NOT IN Y NULLs: si la subquery de Q4 retorna algun customer_id NULL (no deberia por FK), NOT IN fallaria. En la practica el seed no tiene customer_id NULL en orders. El teacher debe aclarar que 'compraron' incluye cualquier status de orden (pending, shipped, delivered, cancelled) o solo ciertos estados — el briefing no especifica."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Clientes activos en Q3 y Q4 2025 — los retenidos (INTERSECT / AND con dos IN)",
+    "briefing_ref": "Briefing 4.10 — Sofia Ramirez: Clientes retenidos — compraron en ambos trimestres",
+    "lesson_ref": "Leccion 4 — INTERSECT (o doble IN)",
+    "reference_query": "SELECT c.first_name || ' ' || c.last_name AS nombre, c.email, c.country FROM customers c WHERE c.customer_id IN ( SELECT DISTINCT o.customer_id FROM orders o WHERE o.ordered_at >= '2025-07-01' AND o.ordered_at < '2025-10-01' ) AND c.customer_id IN ( SELECT DISTINCT o.customer_id FROM orders o WHERE o.ordered_at >= '2025-10-01' AND o.ordered_at < '2026-01-01' ) ORDER BY c.country, nombre;",
+    "tables_used": ["customers", "orders"],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["nombre", "email", "country"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Par pedagogico del ejercicio anterior (4.9). Los dos ejercicios juntos construyen la foto completa de retencion: ejercicio_9_count + ejercicio_10_count = clientes que compraron en Q3 2025. El teacher puede incluir un mini-ejercicio de validacion: SELECT COUNT(*) del resultado de 4.10 vs SELECT COUNT(*) del total de compradores Q3. NOTA: INTERSECT en SQL es equivalente a la doble condicion IN. El teacher debe mostrar ambas versiones para que el estudiante entienda el operador de conjuntos."
+  },
+  {
+    "exercise_number": 11,
+    "title": "UNION: lista unificada de emails de clientes que devolvieron Y clientes de Mexico",
+    "briefing_ref": "Leccion 4 — Ejemplo introductorio de UNION",
+    "lesson_ref": "Leccion 4 — UNION / UNION ALL: combinar resultados de dos queries",
+    "reference_query": "SELECT c.email, 'devolucion_registrada' AS origen FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id INNER JOIN returns r ON r.order_id = o.order_id WHERE r.status IN ('approved', 'refunded') UNION SELECT c.email, 'cliente_mexico' AS origen FROM customers c WHERE c.country = 'Mexico' ORDER BY email;",
+    "tables_used": ["customers", "orders", "returns"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["email", "origen"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA: UNION elimina duplicados (un cliente de Mexico que tambien devolvio solo aparece una vez, con el origen de la primera query). Para mantener duplicados se usa UNION ALL. El teacher debe presentar ambas y discutir cuando usar cada una. NOTA PEDAGOGICA: este ejercicio es introductorio — el ejemplo real de UNION util es cuando dos queries tienen la misma estructura de columnas pero fuentes distintas. El teacher puede reemplazarlo con el ejercicio de 'combinacion de compradores Q3 y Q4' (UNION de dos trimestres) para mayor relevancia de negocio."
+  },
+  {
+    "exercise_number": 12,
+    "title": "COALESCE: revenue por cliente mostrando 'Sin pais' cuando country es NULL",
+    "briefing_ref": "Leccion 1 — COALESCE para reemplazar NULLs en presentacion de resultados",
+    "lesson_ref": "Leccion 1 — COALESCE / NULLIF: manejo explicito de NULLs",
+    "reference_query": "SELECT COALESCE(c.country, 'Sin pais') AS pais, COUNT(DISTINCT c.customer_id) AS total_clientes, COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS revenue_total FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id AND o.status = 'delivered' LEFT JOIN order_items oi ON oi.order_id = o.order_id GROUP BY c.country ORDER BY revenue_total DESC;",
+    "tables_used": ["customers", "orders", "order_items"],
+    "join_types": ["LEFT JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["pais", "total_clientes", "revenue_total"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0, 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El seed tiene algunos clientes con city=NULL (los primeros 30 clientes aproximadamente no tienen city). Sin embargo, la columna country en customers no deberia tener NULLs segun el seed generado — verificar antes de publicar. Si no hay NULLs en country, el grupo 'Sin pais' no aparecera en el resultado, lo cual reduce el valor pedagogico del ejercicio. ALTERNATIVA: usar city en lugar de country (hay NULLs confirmados en city para los clientes 1-30). El teacher debe revisar esto antes de escribir el enunciado. NOTA: el COALESCE en revenue_total es para los clientes sin pedidos delivered (resultado del LEFT JOIN)."
+  }
+]

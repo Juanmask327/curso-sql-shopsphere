@@ -1,0 +1,163 @@
+# ============================================================
+# ShopSphere — .gitignore
+# ============================================================
+
+
+# ------------------------------------------------------------
+# Secretos y variables de entorno — NUNCA al repositorio
+# ------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+
+
+# ------------------------------------------------------------
+# Node.js
+# ------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.yarn/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+
+# ------------------------------------------------------------
+# Next.js / Frontend build
+# ------------------------------------------------------------
+.next/
+out/
+dist/
+build/
+.turbo/
+.vercel/
+
+
+# ------------------------------------------------------------
+# Python (si el backend usa Python)
+# ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+
+# ------------------------------------------------------------
+# Docker — Datos persistentes locales
+# ------------------------------------------------------------
+# Si alguien monta volúmenes como directorios locales en lugar de named volumes
+docker/volumes/
+.docker/
+
+
+# ------------------------------------------------------------
+# Editores e IDEs
+# ------------------------------------------------------------
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ------------------------------------------------------------
+# Logs
+# ------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+
+
+# ------------------------------------------------------------
+# Archivos de sistema operativo
+# ------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+
+# ------------------------------------------------------------
+# Archivos temporales
+# ------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.orig
+.cache/
+
+
+# ------------------------------------------------------------
+# Testing
+# ------------------------------------------------------------
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+
+# ------------------------------------------------------------
+# TypeScript
+# ------------------------------------------------------------
+*.tsbuildinfo
+
+
+# ------------------------------------------------------------
+# Dataset SQLite del Playground
+# El archivo binario compilado no va al repo (es grande y
+# se genera/descarga en build time). El schema de seed si.
+# ------------------------------------------------------------
+data/*.db
+data/*.db-wal
+data/*.db-shm
+!data/.gitkeep
+
+
+# ------------------------------------------------------------
+# Drizzle ORM — migraciones generadas
+# Las migraciones SI van al repo (son la fuente de verdad del schema).
+# Solo ignoramos artefactos temporales de drizzle-kit.
+# ------------------------------------------------------------
+drizzle/meta/_journal.json.bak
+
+
+# ------------------------------------------------------------
+# GitHub Actions — artefactos locales
+# ------------------------------------------------------------
+act-artifacts/
+
+
+# ------------------------------------------------------------
+# Certificados SSL locales (mkcert, etc.)
+# ------------------------------------------------------------
+*.crt
+*.cer

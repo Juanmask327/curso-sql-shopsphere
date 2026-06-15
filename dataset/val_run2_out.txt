@@ -1,0 +1,1 @@
+﻿Running validate_exercises.py... output -> C:\Users\Juanm\Desktop\Curso SQL\dataset\validate_result.txt

@@ -1,0 +1,206 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Tasa de conversion por campana en periodo especifico — COUNT condicional con CASE WHEN",
+    "briefing_ref": "Briefing 7.1 — Sofia Ramirez: Tasa de conversion Dia de Madres (5-10 mayo)",
+    "lesson_ref": "Leccion 1 — COUNT condicional: contar filas que cumplen una condicion dentro de un agregado",
+    "reference_query": "SELECT mc.campaign_id, mc.name AS campana, mc.channel AS canal, COUNT(*) AS total_sesiones, COUNT(CASE WHEN ws.converted = TRUE THEN 1 END) AS sesiones_convertidas, ROUND( COUNT(CASE WHEN ws.converted = TRUE THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2 ) AS tasa_conversion_pct FROM website_sessions ws INNER JOIN marketing_campaigns mc ON mc.campaign_id = ws.campaign_id WHERE ws.started_at >= '2026-05-05' AND ws.started_at < '2026-05-11' GROUP BY mc.campaign_id, mc.name, mc.channel ORDER BY mc.campaign_id;",
+    "tables_used": ["website_sessions", "marketing_campaigns"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["campana", "canal", "total_sesiones", "sesiones_convertidas", "tasa_conversion_pct"],
+    "sample_rows": [
+      ["PLACEHOLDER — campana Dia de Madres si existe en el seed en ese rango", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA SOBRE RANGO: el briefing pide 5-10 de mayo (sin especificar anio). El seed cubre hasta mayo 2026 segun los datos del seed transaccional. Verificar que el seed tiene sesiones en ese rango de fechas para la campana de Dia de Madres (que es una campana existente en marketing_campaigns). Si no hay sesiones en ese rango exacto, el resultado sera 0 filas — el teacher debe adaptar el rango o usar el periodo real de la campana. PUNTO PEDAGOGICO CENTRAL: COUNT(CASE WHEN converted = TRUE THEN 1 END) cuenta solo las filas que cumplen la condicion. Es equivalente a SUM(CASE WHEN converted = TRUE THEN 1 ELSE 0 END). El teacher debe mostrar ambas versiones y explicar por que COUNT ignora NULLs (la clave del patron). DIALECTAL: en PostgreSQL converted puede ser TRUE/FALSE. En SQLite es 1/0. El teacher debe adaptar la condicion al dialecto: en SQLite usar WHERE ws.converted = 1. UMBRAL DE NEGOCIO: el briefing dice < 3% es problema, > 6% vale escalar — el teacher puede mencionar este umbral como contexto de interpretacion aunque no lo implemente en SQL."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Tasa de conversion por canal historica — ranking de canales por efectividad",
+    "briefing_ref": "Briefing 7.2 — Sofia Ramirez: Comparativo de conversion por canal (historico completo)",
+    "lesson_ref": "Leccion 1 — Agregacion por canal con JOIN y CASE WHEN",
+    "reference_query": "SELECT mc.channel AS canal, COUNT(*) AS total_sesiones, COUNT(CASE WHEN ws.converted = TRUE THEN 1 END) AS sesiones_convertidas, ROUND( COUNT(CASE WHEN ws.converted = TRUE THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2 ) AS tasa_conversion_pct FROM website_sessions ws INNER JOIN marketing_campaigns mc ON mc.campaign_id = ws.campaign_id GROUP BY mc.channel ORDER BY tasa_conversion_pct DESC;",
+    "tables_used": ["website_sessions", "marketing_campaigns"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["canal", "total_sesiones", "sesiones_convertidas", "tasa_conversion_pct"],
+    "sample_rows": [
+      ["PLACEHOLDER — canal con mayor tasa de conversion", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["PLACEHOLDER — canal con menor tasa de conversion", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "TEMPLATE — valores reales pendientes. El seed tiene exactamente 5 canales segun el CHECK constraint: email, social, paid_search, display, affiliate. El resultado debe tener exactamente 5 filas si todos los canales tienen al menos una sesion en website_sessions. SESIONES SIN CAMPANA: website_sessions tiene campaign_id que puede ser NULL (sesiones organicas). Este INNER JOIN las excluye. Si el briefing quiere incluir sesiones organicas, se necesita LEFT JOIN y un COALESCE(mc.channel, 'organic'). El teacher debe decidir si incluir o excluir sesiones sin campana — es una decision analitica que vale la pena documentar. DATO ESPERADO: el seed fue diseñado con campanas de ROI alto concentradas en email y social — es probable que email o social lideren la tasa de conversion. El teacher puede usar esto como contexto narrativo."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Funnel completo Q1 2026: sesiones -> conversiones -> pedidos -> entregados",
+    "briefing_ref": "Briefing 7.3 — Sofia Ramirez: Funnel sesion-conversion-pedido-entregado Q1 2026",
+    "lesson_ref": "Leccion 2 — Funnel con LEFT JOIN encadenado y conteo condicional por etapa",
+    "reference_query": "WITH sesiones_q1 AS ( SELECT ws.session_id, ws.customer_id, ws.converted FROM website_sessions ws WHERE ws.started_at >= '2026-01-01' AND ws.started_at < '2026-04-01' ), pedidos_q1 AS ( SELECT o.order_id, o.customer_id, o.status FROM orders o WHERE o.ordered_at >= '2026-01-01' AND o.ordered_at < '2026-04-01' ) SELECT COUNT(DISTINCT s.session_id) AS total_sesiones, COUNT(DISTINCT CASE WHEN s.converted = TRUE THEN s.session_id END) AS sesiones_convertidas, COUNT(DISTINCT p.order_id) AS pedidos_generados, COUNT(DISTINCT CASE WHEN p.status = 'delivered' THEN p.order_id END) AS pedidos_entregados, ROUND( COUNT(DISTINCT CASE WHEN s.converted = TRUE THEN s.session_id END) * 100.0 / NULLIF(COUNT(DISTINCT s.session_id), 0), 2 ) AS tasa_sesion_a_conversion, ROUND( COUNT(DISTINCT p.order_id) * 100.0 / NULLIF(COUNT(DISTINCT CASE WHEN s.converted = TRUE THEN s.session_id END), 0), 2 ) AS tasa_conversion_a_pedido, ROUND( COUNT(DISTINCT CASE WHEN p.status = 'delivered' THEN p.order_id END) * 100.0 / NULLIF(COUNT(DISTINCT p.order_id), 0), 2 ) AS tasa_pedido_a_entregado FROM sesiones_q1 s LEFT JOIN pedidos_q1 p ON p.customer_id = s.customer_id;",
+    "tables_used": ["website_sessions", "orders"],
+    "join_types": ["LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["total_sesiones", "sesiones_convertidas", "pedidos_generados", "pedidos_entregados", "tasa_sesion_a_conversion", "tasa_conversion_a_pedido", "tasa_pedido_a_entregado"],
+    "sample_rows": [
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado es una sola fila (resumen del funnel completo). ADVERTENCIA DE ATRIBUCION IMPRECISA: el JOIN entre sesiones y pedidos usa customer_id. Esto puede inflar el conteo de pedidos porque un cliente con 10 sesiones en Q1 y 3 pedidos en Q1 generara 30 combinaciones sesion-pedido — el COUNT DISTINCT sobre order_id corrige esto. El teacher debe explicar por que el COUNT(*) seria incorrecto aqui y por que COUNT(DISTINCT) es esencial. PUNTO PEDAGOGICO CENTRAL: el funnel revela en que etapa se pierde mas volumen. Si la tasa de sesion a conversion es 30% pero la tasa de conversion a pedido es 5%, el problema es el checkout. Si la tasa de pedido a entregado es 50%, el problema es logistico. El teacher puede usar los umbrales como discusion de negocio. ADVERTENCIA Q1 2026: el seed transaccional cubre hasta mayo 2026 pero el volumen de Q1 2026 puede ser menor que trimestres anteriores — si el seed tiene datos limitados para ese periodo, el resultado puede ser sorprendentemente bajo."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Tasa de conversion y engagement por dispositivo — validacion de hipotesis mobile",
+    "briefing_ref": "Briefing 7.4 — Sofia Ramirez: Mobile vs Desktop — tasa de conversion y paginas vistas por device_type",
+    "lesson_ref": "Leccion 1 — GROUP BY con CASE WHEN y AVG para metricas multidimensionales",
+    "reference_query": "SELECT ws.device_type AS dispositivo, COUNT(*) AS total_sesiones, COUNT(CASE WHEN ws.converted = TRUE THEN 1 END) AS sesiones_convertidas, ROUND( COUNT(CASE WHEN ws.converted = TRUE THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2 ) AS tasa_conversion_pct, ROUND(AVG(ws.pages_viewed), 2) AS promedio_paginas_vistas FROM website_sessions ws GROUP BY ws.device_type ORDER BY total_sesiones DESC;",
+    "tables_used": ["website_sessions"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["dispositivo", "total_sesiones", "sesiones_convertidas", "tasa_conversion_pct", "promedio_paginas_vistas"],
+    "sample_rows": [
+      ["desktop", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["mobile", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera menor que desktop si hipotesis es correcta", "PLACEHOLDER — se espera mayor que desktop si hipotesis es correcta"],
+      ["tablet", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 3 filas (desktop, mobile, tablet — los tres valores del CHECK constraint). Si algun device_type no tiene sesiones en el seed, puede haber menos filas. HIPOTESIS DE SOFIA: mobile alta paginas vistas + baja conversion = problema de UX movil. El teacher debe presentar este ejercicio como una validacion de hipotesis: primero la hipotesis, luego la query, luego la interpretacion del resultado. Es un ejemplo perfecto del ciclo analitico. NOTA SOBRE pages_viewed: la columna tiene DEFAULT 1, entonces una sesion de rebote tiene pages_viewed = 1. AVG puede ser > 1 si hay sesiones de mayor engagement. Si el promedio general es 1.1, la base de usuarios tiene muy bajo engagement — eso es informacion de negocio importante. PUNTO PEDAGOGICO: este ejercicio no requiere JOIN porque website_sessions tiene todas las columnas necesarias. El teacher puede destacar que no siempre se necesitan JOINs para un analisis util."
+  },
+  {
+    "exercise_number": 5,
+    "title": "CREATE VIEW v_funnel_adquisicion — vista base del dashboard de BI",
+    "briefing_ref": "Briefing 7.5 — Valentina Torres: Vista v_funnel_adquisicion para Power BI",
+    "lesson_ref": "Leccion 3 — CREATE VIEW: encapsular logica de JOIN compleja para reutilizacion",
+    "reference_query": "CREATE VIEW v_funnel_adquisicion AS SELECT ws.session_id, ws.customer_id, ws.campaign_id, ws.device_type, ws.started_at, ws.converted, o.order_id, o.status AS order_status, ( SELECT SUM(oi.quantity * oi.unit_price) FROM order_items oi WHERE oi.order_id = o.order_id ) AS order_total FROM website_sessions ws LEFT JOIN orders o ON o.customer_id = ws.customer_id AND o.ordered_at >= ws.started_at AND o.ordered_at < ws.started_at + INTERVAL '24 hours';",
+    "tables_used": ["website_sessions", "orders", "order_items"],
+    "join_types": ["LEFT JOIN"],
+    "validation_mode": "schema_match",
+    "expected_columns": ["session_id", "customer_id", "campaign_id", "device_type", "started_at", "converted", "order_id", "order_status", "order_total"],
+    "expected_view_name": "v_funnel_adquisicion",
+    "sample_rows": [],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — CREATE VIEW no retorna filas. La validacion es schema_match: verificar que la vista existe en el schema de la base de datos y que sus columnas corresponden a expected_columns. Para verificar existencia en PostgreSQL: SELECT * FROM information_schema.views WHERE table_name = 'v_funnel_adquisicion'. Para verificar en SQLite: SELECT name FROM sqlite_master WHERE type = 'view' AND name = 'v_funnel_adquisicion'. El teacher debe incluir una SELECT de confirmacion despues del CREATE VIEW. VENTANA DE ATRIBUCION: el JOIN incluye la condicion ordered_at >= started_at AND ordered_at < started_at + INTERVAL '24 hours'. Esto define que solo se atribuye el pedido si ocurrio dentro de las 24 horas siguientes a la sesion. Esta ventana es una decision analitica que el teacher debe documentar — sin ella, un cliente con sesion en enero y pedido en diciembre quedarian unidos incorrectamente. DIALECTAL: INTERVAL '24 hours' es PostgreSQL. En SQLite usar: datetime(ws.started_at, '+24 hours'). El teacher debe adaptar. ADVERTENCIA MULTIPLICACION: si un cliente tiene 5 sesiones y 3 pedidos dentro de la ventana, la vista retornara hasta 15 filas para ese cliente (producto cartesiano parcial). El teacher debe mencionar este comportamiento y como manejarlo en las queries encima de la vista con DISTINCT o GROUP BY."
+  },
+  {
+    "exercise_number": 6,
+    "title": "CREATE VIEW v_clientes_perfil — perfil completo por cliente para segmentacion",
+    "briefing_ref": "Briefing 7.6 — Valentina Torres: Vista v_clientes_perfil para dashboard de fondos",
+    "lesson_ref": "Leccion 3 — CREATE VIEW con multiples JOINs y CTEs internas",
+    "reference_query": "CREATE VIEW v_clientes_perfil AS SELECT c.customer_id, c.country, c.registered_at, COUNT(DISTINCT o.order_id) AS total_pedidos, COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS revenue_total, MIN(o.ordered_at) AS primer_pedido_at, MAX(o.ordered_at) AS ultimo_pedido_at, COUNT(DISTINCT ws.session_id) AS total_sesiones, COUNT(DISTINCT CASE WHEN ws.converted = TRUE THEN ws.session_id END) AS sesiones_convertidas FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id LEFT JOIN order_items oi ON oi.order_id = o.order_id LEFT JOIN website_sessions ws ON ws.customer_id = c.customer_id GROUP BY c.customer_id, c.country, c.registered_at;",
+    "tables_used": ["customers", "orders", "order_items", "website_sessions"],
+    "join_types": ["LEFT JOIN", "LEFT JOIN", "LEFT JOIN"],
+    "validation_mode": "schema_match",
+    "expected_columns": ["customer_id", "country", "registered_at", "total_pedidos", "revenue_total", "primer_pedido_at", "ultimo_pedido_at", "total_sesiones", "sesiones_convertidas"],
+    "expected_view_name": "v_clientes_perfil",
+    "sample_rows": [],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — CREATE VIEW no retorna filas. La validacion es schema_match. El teacher debe incluir una SELECT de confirmacion: SELECT * FROM v_clientes_perfil LIMIT 10. Esta vista es referenciada en el Proyecto del Nivel 7 y se usara en el Capstone. Su correcta construccion es critica. ADVERTENCIA DE MULTIPLICACION: el triple LEFT JOIN sobre orders, order_items y website_sessions puede causar multiplicacion de filas si no se maneja correctamente. Un cliente con 3 pedidos y 10 sesiones puede generar rows infladas si el JOIN de sesiones se hace despues del JOIN de items. La query propuesta agrega en el SELECT final con COUNT(DISTINCT) para evitar el problema — el teacher debe explicar por que DISTINCT es obligatorio en este contexto. CLIENTES SIN PEDIDOS: con LEFT JOIN, clientes sin pedidos apareceran con total_pedidos = 0 y revenue_total = COALESCE(..., 0). Sin COALESCE, revenue_total seria NULL — lo que es incorrecto para un cliente real cuyo revenue es 0 (no desconocido). Esta distincion entre NULL y 0 es un punto pedagogico central del Nivel 7. NOTA: esta vista sera consultada en el EJ11 (segmentacion de clientes). Asegurar que existe antes de ese ejercicio."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Segmentacion de sesiones por engagement — CASE WHEN con rangos de pages_viewed",
+    "briefing_ref": "Briefing 7.7 — Valentina Torres: Clasificar sesiones por engagement y calcular tasa de conversion por categoria",
+    "lesson_ref": "Leccion 1 — CASE WHEN para crear categorias calculadas y agregarlas",
+    "reference_query": "WITH sesiones_clasificadas AS ( SELECT ws.session_id, ws.converted, CASE WHEN ws.pages_viewed = 1 THEN 'rebote' WHEN ws.pages_viewed BETWEEN 2 AND 4 THEN 'exploracion baja' WHEN ws.pages_viewed BETWEEN 5 AND 9 THEN 'exploracion media' WHEN ws.pages_viewed >= 10 THEN 'exploracion alta' END AS nivel_engagement FROM website_sessions ws ) SELECT nivel_engagement, COUNT(*) AS total_sesiones, COUNT(CASE WHEN converted = TRUE THEN 1 END) AS sesiones_convertidas, ROUND( COUNT(CASE WHEN converted = TRUE THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2 ) AS tasa_conversion_pct FROM sesiones_clasificadas GROUP BY nivel_engagement ORDER BY CASE nivel_engagement WHEN 'rebote' THEN 1 WHEN 'exploracion baja' THEN 2 WHEN 'exploracion media' THEN 3 WHEN 'exploracion alta' THEN 4 END;",
+    "tables_used": ["website_sessions"],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nivel_engagement", "total_sesiones", "sesiones_convertidas", "tasa_conversion_pct"],
+    "sample_rows": [
+      ["rebote", "PLACEHOLDER", "PLACEHOLDER — se espera muy baja o 0%", "PLACEHOLDER"],
+      ["exploracion baja", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["exploracion media", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["exploracion alta", "PLACEHOLDER", "PLACEHOLDER — se espera la mas alta segun hipotesis", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 4 filas (una por cada categoria de engagement). PUNTO PEDAGOGICO CENTRAL: el ORDER BY del resultado no puede usar la columna calculada nivel_engagement como string directamente (el orden alfabetico daria: exploracion alta, exploracion baja, exploracion media, rebote). La solucion es un segundo CASE WHEN dentro del ORDER BY que asigna un numero de orden a cada categoria — tecnica util que vale la pena enseñar explicitamente. HIPOTESIS A VALIDAR: Valentina dice que exploracion alta deberia convertir mas. Si el resultado muestra que rebote convierte mas (lo que podria pasar con datos sinteticos no calibrados), el teacher debe reconocerlo y discutir por que los datos pueden contradecir la intuicion. NOTA SOBRE pages_viewed = 1 (rebote): una sesion con 1 sola pagina vista y converted = TRUE es una conversion directa — posiblemente por una landing page muy efectiva. Este patron puede ser interesante si aparece en los datos. SESIONES SIN CLASIFICACION: si pages_viewed fuera NULL, el CASE WHEN retornaria NULL para esa fila. El teacher debe verificar si el seed tiene NULLs en pages_viewed (la columna tiene DEFAULT 1, por lo que es improbable pero vale confirmar)."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Revenue atribuido por campana — canal de origen del cliente y revenue historico",
+    "briefing_ref": "Briefing 7.8 — Marco Jimenez y Valentina Torres: Revenue total generado por clientes segun campana de origen",
+    "lesson_ref": "Leccion 2 — Atribucion de revenue: primera sesion del cliente como canal de adquisicion",
+    "reference_query": "WITH primera_sesion AS ( SELECT ws.customer_id, ws.campaign_id, ROW_NUMBER() OVER (PARTITION BY ws.customer_id ORDER BY ws.started_at ASC) AS rn FROM website_sessions ws WHERE ws.campaign_id IS NOT NULL ), canal_origen AS ( SELECT ps.customer_id, mc.campaign_id, mc.name AS campana, mc.channel AS canal FROM primera_sesion ps INNER JOIN marketing_campaigns mc ON mc.campaign_id = ps.campaign_id WHERE ps.rn = 1 ), revenue_cliente AS ( SELECT o.customer_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status = 'delivered' GROUP BY o.customer_id ) SELECT co.campana, co.canal, COUNT(DISTINCT co.customer_id) AS clientes_adquiridos, COALESCE(SUM(rc.revenue), 0) AS revenue_total_atribuido FROM canal_origen co LEFT JOIN revenue_cliente rc ON rc.customer_id = co.customer_id GROUP BY co.campana, co.canal ORDER BY revenue_total_atribuido DESC;",
+    "tables_used": ["website_sessions", "marketing_campaigns", "orders", "order_items"],
+    "join_types": ["INNER JOIN", "LEFT JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["campana", "canal", "clientes_adquiridos", "revenue_total_atribuido"],
+    "sample_rows": [
+      ["PLACEHOLDER — campana con mayor revenue atribuido", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA SOBRE ATRIBUCION: la atribucion de revenue al canal de la primera sesion del cliente es el modelo last-touch de primer contacto (first-touch attribution). Es una simplificacion: el cliente puede haber visto 10 campanas antes de comprar. El teacher debe mencionar esta limitacion y que en la industria existen modelos mas sofisticados (last-touch, linear, time-decay, data-driven). CLIENTES SIN SESION: clientes que tienen pedidos pero no tienen sesion registrada en website_sessions no apareceran en este resultado. Si son muchos, el revenue atribuido seria materialmente menor que el revenue total. El teacher puede sugerir verificar cuantos clientes activos no tienen sesion registrada como ejercicio complementario. PUNTO NARRATIVO: el seed diseño campanas de alto ROI concentradas en email y Black Friday. Es probable que las campanas de Black Friday (noviembre) tengan el mayor revenue atribuido si el seed tiene sesiones y pedidos en esos periodos. Esto puede usarse para contextualizar el resultado."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Sesiones previas al primer pedido — promedio de visitas antes de comprar",
+    "briefing_ref": "Briefing 7.9 — Marco Jimenez y Valentina Torres: Promedio de sesiones antes del primer pedido",
+    "lesson_ref": "Leccion 2 — Atribucion temporal: sesiones anteriores a un evento clave",
+    "reference_query": "WITH primer_pedido AS ( SELECT o.customer_id, MIN(o.ordered_at) AS fecha_primer_pedido FROM orders o WHERE o.status != 'cancelled' GROUP BY o.customer_id ), sesiones_previas AS ( SELECT pp.customer_id, COUNT(ws.session_id) AS sesiones_antes_de_comprar FROM primer_pedido pp INNER JOIN website_sessions ws ON ws.customer_id = pp.customer_id AND ws.started_at < pp.fecha_primer_pedido GROUP BY pp.customer_id ) SELECT ROUND(AVG(sesiones_antes_de_comprar), 2) AS promedio_sesiones_previas, MIN(sesiones_antes_de_comprar) AS minimo, MAX(sesiones_antes_de_comprar) AS maximo, COUNT(*) AS clientes_con_sesiones_previas FROM sesiones_previas;",
+    "tables_used": ["orders", "website_sessions"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["promedio_sesiones_previas", "minimo", "maximo", "clientes_con_sesiones_previas"],
+    "sample_rows": [
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado es una sola fila (resumen estadistico). CLIENTES EXCLUIDOS: los clientes que hicieron su primer pedido antes de tener cualquier sesion registrada tendran 0 sesiones previas — con el INNER JOIN entre primer_pedido y website_sessions, esos clientes quedan excluidos (no aparecen en sesiones_previas). El teacher debe mencionar esto: el promedio solo incluye clientes que SI tuvieron sesiones antes de comprar. Si se quiere incluir los que compraron sin sesion previa, el COUNT seria 0 para ellos. NOTA SOBRE CANCELADOS: la CTE primer_pedido excluye pedidos cancelled para evitar que una orden que nunca se concretara cuente como 'primer pedido'. El teacher debe aclarar esta decision. PUNTO DE NEGOCIO: si el promedio es bajo (ej: 1.2 sesiones antes de comprar), los clientes son decisivos y la experiencia de primera sesion es critica. Si es alto (ej: 5+ sesiones), los clientes necesitan multiples touchpoints — eso tiene implicaciones para el remarketing."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Funnel financiero Chile marzo-abril 2026 — sesiones a pagos completados",
+    "briefing_ref": "Briefing 7.10 — Ana Castillo: Funnel completo para Chile en el periodo de anomalia",
+    "lesson_ref": "Leccion 2 — Funnel con multiples LEFT JOINs y filtros por pais y periodo",
+    "reference_query": "WITH clientes_chile AS ( SELECT customer_id FROM customers WHERE country = 'Chile' ), sesiones_chile AS ( SELECT ws.session_id, ws.customer_id, ws.converted FROM website_sessions ws INNER JOIN clientes_chile cc ON cc.customer_id = ws.customer_id WHERE ws.started_at >= '2026-03-01' AND ws.started_at < '2026-05-01' ), pedidos_chile AS ( SELECT o.order_id, o.customer_id, o.ordered_at FROM orders o INNER JOIN clientes_chile cc ON cc.customer_id = o.customer_id WHERE o.ordered_at >= '2026-03-01' AND o.ordered_at < '2026-05-01' ) SELECT COUNT(DISTINCT sc.session_id) AS total_sesiones, COUNT(DISTINCT CASE WHEN sc.converted = TRUE THEN sc.session_id END) AS sesiones_convertidas, COUNT(DISTINCT pc.order_id) AS pedidos_creados, COUNT(DISTINCT CASE WHEN p.status = 'completed' THEN p.payment_id END) AS pagos_completados, COUNT(DISTINCT CASE WHEN p.status = 'failed' THEN p.payment_id END) AS pagos_fallidos FROM sesiones_chile sc LEFT JOIN pedidos_chile pc ON pc.customer_id = sc.customer_id LEFT JOIN payments p ON p.order_id = pc.order_id;",
+    "tables_used": ["customers", "website_sessions", "orders", "payments"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "LEFT JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["total_sesiones", "sesiones_convertidas", "pedidos_creados", "pagos_completados", "pagos_fallidos"],
+    "sample_rows": [
+      ["PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera menor que en otros periodos (anomalia)", "PLACEHOLDER — se espera elevado segun narrativa"]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. ESTE EJERCICIO USA PAYMENTS (NIVEL 8): el briefing de Ana pide el funnel hasta 'payment_status'. Esto requiere la tabla payments, que es Nivel 8. Sin embargo, el ejercicio es del Nivel 7. RESOLUCION: incluir payments en este ejercicio es valido como adelanto del Nivel 8 en el contexto del funnel, ya que el Nivel 7 es el ultimo antes del desbloqueo total. ALTERNATIVA: si el teacher quiere evitar usar payments antes del Nivel 8, puede reformular la etapa 4 y 5 usando orders.status (cancelled como proxy de pago fallido, delivered como proxy de pago completado). El teacher debe decidir y documentarlo en la leccion. NARRATIVA: el briefing de Ana menciona 'aumento atipico de pagos fallidos en Chile en marzo-abril 2026'. Si el seed tiene este evento plantado, los pagos_fallidos deberian ser notablemente mas altos que en otros periodos o paises. El teacher puede usar este resultado como introduccion al analisis de Nivel 8."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Segmentacion de clientes por revenue — CASE WHEN con rangos de valor",
+    "briefing_ref": "Briefing 7.11 — Ana Castillo: Clasificacion de clientes por revenue para reporte a inversores",
+    "lesson_ref": "Leccion 1 — CASE WHEN para segmentacion de negocio con aggregados",
+    "reference_query": "WITH revenue_cliente AS ( SELECT c.customer_id, COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS revenue_total FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id AND o.status = 'delivered' LEFT JOIN order_items oi ON oi.order_id = o.order_id GROUP BY c.customer_id ), segmentos AS ( SELECT customer_id, revenue_total, CASE WHEN revenue_total = 0 THEN 'sin compras' WHEN revenue_total BETWEEN 1 AND 100 THEN 'comprador ocasional' WHEN revenue_total BETWEEN 101 AND 500 THEN 'comprador recurrente' WHEN revenue_total > 500 THEN 'cliente de alto valor' END AS segmento FROM revenue_cliente ) SELECT segmento, COUNT(*) AS cantidad_clientes, ROUND(SUM(revenue_total), 2) AS revenue_del_segmento, ROUND( SUM(revenue_total) * 100.0 / NULLIF(SUM(SUM(revenue_total)) OVER (), 0), 2 ) AS pct_revenue_total FROM segmentos GROUP BY segmento ORDER BY CASE segmento WHEN 'sin compras' THEN 1 WHEN 'comprador ocasional' THEN 2 WHEN 'comprador recurrente' THEN 3 WHEN 'cliente de alto valor' THEN 4 END;",
+    "tables_used": ["customers", "orders", "order_items"],
+    "join_types": ["LEFT JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["segmento", "cantidad_clientes", "revenue_del_segmento", "pct_revenue_total"],
+    "sample_rows": [
+      ["sin compras", "PLACEHOLDER", 0.00, "PLACEHOLDER"],
+      ["comprador ocasional", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["comprador recurrente", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["cliente de alto valor", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER — se espera % alto a pesar de pocos clientes"]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado debe tener exactamente 4 filas (una por cada segmento). CLIENTES SIN COMPRAS: con el seed de 500 clientes y 2000 pedidos, hay clientes que no han comprado. El segmento 'sin compras' deberia tener al menos algunos clientes — verificar el conteo real. El revenue_del_segmento para 'sin compras' debe ser exactamente 0.00. WINDOW FUNCTION PARA PORCENTAJE: la query usa SUM(SUM(revenue_total)) OVER () — una window function sobre un agregado. Esto requiere que el motor soporte funciones de ventana sobre resultados de GROUP BY. En PostgreSQL funciona. En SQLite tambien. El teacher debe verificar que funciona en el dialecto del curso. ALTERNATIVA SIN WINDOW FUNCTION: si el motor no soporta esta construccion, calcular el total en una CTE separada y hacer JOIN con esa CTE. PUNTO NARRATIVO: el segmento 'cliente de alto valor' probablemente representa el 20-30% del revenue total con el 5-10% de los clientes — ley de Pareto aplicada al ecommerce. El teacher puede mencionar esta regla 80/20 como contexto."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Tasa de devolucion por canal de adquisicion — cruce de primera sesion con returns",
+    "briefing_ref": "Briefing 7.12 — Diego Morales: Devoluciones por canal de adquisicion del cliente",
+    "lesson_ref": "Leccion 2 — Atribucion de canal de origen con multiples tablas y LEFT JOIN defensivo",
+    "reference_query": "WITH primera_sesion_canal AS ( SELECT ws.customer_id, mc.channel AS canal_adquisicion, ROW_NUMBER() OVER (PARTITION BY ws.customer_id ORDER BY ws.started_at ASC) AS rn FROM website_sessions ws LEFT JOIN marketing_campaigns mc ON mc.campaign_id = ws.campaign_id ), canal_cliente AS ( SELECT customer_id, COALESCE(canal_adquisicion, 'sin datos') AS canal FROM primera_sesion_canal WHERE rn = 1 ), clientes_con_canal AS ( SELECT c.customer_id, COALESCE(cc.canal, 'sin datos') AS canal FROM customers c LEFT JOIN canal_cliente cc ON cc.customer_id = c.customer_id ), devoluciones_por_cliente AS ( SELECT o.customer_id, COUNT(DISTINCT r.return_id) AS devoluciones FROM orders o INNER JOIN returns r ON r.order_id = o.order_id WHERE r.status IN ('approved', 'refunded') GROUP BY o.customer_id ), pedidos_por_cliente AS ( SELECT o.customer_id, COUNT(DISTINCT o.order_id) AS total_pedidos FROM orders o GROUP BY o.customer_id ) SELECT ccc.canal, COUNT(DISTINCT ccc.customer_id) AS clientes_distintos, COALESCE(SUM(dpc.devoluciones), 0) AS total_devoluciones, SUM(ppc.total_pedidos) AS total_pedidos, ROUND( COALESCE(SUM(dpc.devoluciones), 0) * 100.0 / NULLIF(SUM(ppc.total_pedidos), 0), 2 ) AS tasa_devolucion_pct FROM clientes_con_canal ccc LEFT JOIN devoluciones_por_cliente dpc ON dpc.customer_id = ccc.customer_id LEFT JOIN pedidos_por_cliente ppc ON ppc.customer_id = ccc.customer_id GROUP BY ccc.canal ORDER BY tasa_devolucion_pct DESC NULLS LAST;",
+    "tables_used": ["customers", "website_sessions", "marketing_campaigns", "orders", "returns"],
+    "join_types": ["LEFT JOIN", "LEFT JOIN", "LEFT JOIN", "LEFT JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["canal", "clientes_distintos", "total_devoluciones", "total_pedidos", "tasa_devolucion_pct"],
+    "sample_rows": [
+      ["PLACEHOLDER — canal con mayor tasa de devolucion", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"],
+      ["sin datos", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. COMPLEJIDAD DE ESTE EJERCICIO: es el mas complejo del Nivel 7. Involucra 5 tablas, 5 CTEs y el concepto de canal de adquisicion como primera sesion del cliente. El teacher puede dividirlo en pasos: (1) identificar la primera sesion por cliente, (2) obtener el canal de esa sesion, (3) asignar canal a todos los clientes incluyendo los que no tienen sesion, (4) calcular metricas de devolucion por canal. CATEGORIA 'sin datos': los clientes sin ninguna sesion registrada en website_sessions reciben canal = 'sin datos' via el LEFT JOIN. El briefing de Diego pide explicitamente este tratamiento. El teacher debe mostrar que este grupo existe y cuantificarlo — si 'sin datos' tiene la mayor tasa de devolucion, puede indicar que hay clientes que compran por un canal no trackeado (ej: tienda fisica, telefono). HIPOTESIS DE DIEGO: si paid_search tiene tasa de devolucion notablemente mayor, confirma el problema de expectativa vs realidad. El resultado es interpretacion de negocio, no solo numeros."
+  }
+]

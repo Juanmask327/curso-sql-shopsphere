@@ -1,0 +1,1728 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Ejercicio 01",
+    "briefing_ref": "Briefing 2.1",
+    "lesson_ref": "Lección 1",
+    "reference_query": "SELECT COUNT(*) AS total_pedidos\nFROM orders;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "total_pedidos"
+    ],
+    "sample_rows": [
+      [
+        31345
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Ejercicio 02",
+    "briefing_ref": "Briefing 2.2",
+    "lesson_ref": "Lección 2",
+    "reference_query": "SELECT\n    COUNT(*)                    AS total_productos,\n    COUNT(*) FILTER (WHERE is_active = TRUE)  AS productos_activos,\n    MIN(price)                  AS precio_min,\n    MAX(price)                  AS precio_max,\n    ROUND(AVG(price), 2)        AS precio_promedio\nFROM products;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "total_productos",
+      "productos_activos",
+      "precio_min",
+      "precio_max",
+      "precio_promedio"
+    ],
+    "sample_rows": [
+      [
+        90,
+        86,
+        9.99,
+        549.99,
+        83.38
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Ejercicio 03",
+    "briefing_ref": "Briefing 2.3",
+    "lesson_ref": "Lección 3",
+    "reference_query": "SELECT\n    COUNT(*)                    AS total_clientes,\n    COUNT(city)                 AS con_ciudad,\n    COUNT(*) - COUNT(city)      AS sin_ciudad\nFROM customers;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "total_clientes",
+      "con_ciudad",
+      "sin_ciudad"
+    ],
+    "sample_rows": [
+      [
+        550,
+        520,
+        30
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Ejercicio 04",
+    "briefing_ref": "Briefing 2.4",
+    "lesson_ref": "Lección 4",
+    "reference_query": "SELECT\n    COUNT(*)            AS pedidos_entregados,\n    MIN(ordered_at)     AS primer_pedido,\n    MAX(ordered_at)     AS ultimo_pedido\nFROM orders\nWHERE status = 'delivered';",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "pedidos_entregados",
+      "primer_pedido",
+      "ultimo_pedido"
+    ],
+    "sample_rows": [
+      [
+        18245,
+        "2023-06-01 10:00:00",
+        "2026-05-15 22:48:00"
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Ejercicio 05",
+    "briefing_ref": "Briefing 2.5",
+    "lesson_ref": "Lección 5",
+    "reference_query": "SELECT COUNT(DISTINCT customer_id) AS clientes_con_pedidos\nFROM orders;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "clientes_con_pedidos"
+    ],
+    "sample_rows": [
+      [
+        550
+      ]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Ejercicio 06",
+    "briefing_ref": "Briefing 2.6",
+    "lesson_ref": "Lección 6",
+    "reference_query": "SELECT\n    country,\n    COUNT(*) AS total\nFROM customers\nGROUP BY country\nORDER BY total DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "country",
+      "total"
+    ],
+    "sample_rows": [
+      [
+        "USA",
+        64
+      ],
+      [
+        "Mexico",
+        64
+      ],
+      [
+        "Colombia",
+        55
+      ],
+      [
+        "Argentina",
+        54
+      ],
+      [
+        "Peru",
+        51
+      ],
+      [
+        "Chile",
+        48
+      ],
+      [
+        "Venezuela",
+        35
+      ],
+      [
+        "Spain",
+        35
+      ],
+      [
+        "Ecuador",
+        31
+      ],
+      [
+        "Bolivia",
+        30
+      ],
+      [
+        "Guatemala",
+        16
+      ],
+      [
+        "El Salvador",
+        16
+      ],
+      [
+        "Honduras",
+        15
+      ],
+      [
+        "Uruguay",
+        13
+      ],
+      [
+        "Costa Rica",
+        12
+      ],
+      [
+        "Paraguay",
+        11
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Ejercicio 07",
+    "briefing_ref": "Briefing 2.7",
+    "lesson_ref": "Lección 7",
+    "reference_query": "SELECT\n    status,\n    COUNT(*) AS total_pedidos\nFROM orders\nGROUP BY status\nORDER BY total_pedidos DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "status",
+      "total_pedidos"
+    ],
+    "sample_rows": [
+      [
+        "delivered",
+        18245
+      ],
+      [
+        "shipped",
+        4473
+      ],
+      [
+        "cancelled",
+        4357
+      ],
+      [
+        "pending",
+        4270
+      ]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Ejercicio 08",
+    "briefing_ref": "Briefing 2.8",
+    "lesson_ref": "Lección 8",
+    "reference_query": "SELECT\n    category_id,\n    COUNT(*)            AS total_productos,\n    MIN(price)          AS precio_min,\n    MAX(price)          AS precio_max,\n    ROUND(AVG(price), 2) AS precio_promedio\nFROM products\nWHERE is_active = TRUE\nGROUP BY category_id\nORDER BY category_id;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "category_id",
+      "total_productos",
+      "precio_min",
+      "precio_max",
+      "precio_promedio"
+    ],
+    "sample_rows": [
+      [
+        1,
+        15,
+        14.99,
+        549.99,
+        125.52
+      ],
+      [
+        2,
+        8,
+        34.99,
+        79.99,
+        54.37
+      ],
+      [
+        3,
+        7,
+        39.99,
+        199.99,
+        108.56
+      ],
+      [
+        4,
+        17,
+        24.99,
+        389.99,
+        140.28
+      ],
+      [
+        5,
+        9,
+        14.99,
+        89.99,
+        62.21
+      ],
+      [
+        6,
+        7,
+        24.99,
+        99.99,
+        51.42
+      ],
+      [
+        7,
+        6,
+        12.99,
+        39.99,
+        22.99
+      ],
+      [
+        8,
+        7,
+        14.99,
+        44.99,
+        29.85
+      ],
+      [
+        9,
+        5,
+        14.99,
+        199.99,
+        75.99
+      ],
+      [
+        10,
+        5,
+        19.99,
+        149.99,
+        62.99
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Ejercicio 09",
+    "briefing_ref": "Briefing 2.9",
+    "lesson_ref": "Lección 9",
+    "reference_query": "SELECT\n    EXTRACT(YEAR FROM registered_at)  AS anio_registro,\n    COUNT(*)                           AS total\nFROM customers\nGROUP BY EXTRACT(YEAR FROM registered_at)\nORDER BY anio_registro;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "anio_registro",
+      "total"
+    ],
+    "sample_rows": [
+      [
+        2023,
+        138
+      ],
+      [
+        2024,
+        362
+      ],
+      [
+        2025,
+        50
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Ejercicio 10",
+    "briefing_ref": "Briefing 2.10",
+    "lesson_ref": "Lección 10",
+    "reference_query": "SELECT\n    DATE_TRUNC('month', ordered_at)  AS mes,\n    COUNT(*)                          AS total_pedidos\nFROM orders\nGROUP BY DATE_TRUNC('month', ordered_at)\nORDER BY mes ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "total_pedidos"
+    ],
+    "sample_rows": [
+      [
+        "2023-06-01",
+        97
+      ],
+      [
+        "2023-07-01",
+        87
+      ],
+      [
+        "2023-08-01",
+        87
+      ],
+      [
+        "2023-09-01",
+        72
+      ],
+      [
+        "2023-10-01",
+        73
+      ],
+      [
+        "2023-11-01",
+        211
+      ],
+      [
+        "2023-12-01",
+        168
+      ],
+      [
+        "2024-01-01",
+        44
+      ],
+      [
+        "2024-02-01",
+        37
+      ],
+      [
+        "2024-03-01",
+        73
+      ],
+      [
+        "2024-04-01",
+        68
+      ],
+      [
+        "2024-05-01",
+        101
+      ],
+      [
+        "2024-06-01",
+        94
+      ],
+      [
+        "2024-07-01",
+        86
+      ],
+      [
+        "2024-08-01",
+        86
+      ],
+      [
+        "2024-09-01",
+        85
+      ],
+      [
+        "2024-10-01",
+        120
+      ],
+      [
+        "2024-11-01",
+        399
+      ],
+      [
+        "2024-12-01",
+        12
+      ],
+      [
+        "2025-01-01",
+        1641
+      ],
+      [
+        "2025-02-01",
+        1062
+      ],
+      [
+        "2025-03-01",
+        1270
+      ],
+      [
+        "2025-04-01",
+        1460
+      ],
+      [
+        "2025-05-01",
+        2325
+      ],
+      [
+        "2025-06-01",
+        1656
+      ],
+      [
+        "2025-07-01",
+        1634
+      ],
+      [
+        "2025-08-01",
+        1560
+      ],
+      [
+        "2025-09-01",
+        1615
+      ],
+      [
+        "2025-10-01",
+        1843
+      ],
+      [
+        "2025-11-01",
+        1889
+      ],
+      [
+        "2025-12-01",
+        2362
+      ],
+      [
+        "2026-01-01",
+        1965
+      ],
+      [
+        "2026-02-01",
+        1878
+      ],
+      [
+        "2026-03-01",
+        2170
+      ],
+      [
+        "2026-04-01",
+        1966
+      ],
+      [
+        "2026-05-01",
+        1049
+      ]
+    ],
+    "expected_row_count_approx": 36,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Ejercicio 11",
+    "briefing_ref": "Briefing 2.11",
+    "lesson_ref": "Lección 11",
+    "reference_query": "SELECT\n    EXTRACT(YEAR FROM ordered_at)     AS anio,\n    EXTRACT(QUARTER FROM ordered_at)  AS trimestre,\n    COUNT(*)                           AS total_pedidos,\n    COUNT(DISTINCT customer_id)        AS clientes_unicos\nFROM orders\nGROUP BY\n    EXTRACT(YEAR FROM ordered_at),\n    EXTRACT(QUARTER FROM ordered_at)\nORDER BY anio, trimestre;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "anio",
+      "trimestre",
+      "total_pedidos",
+      "clientes_unicos"
+    ],
+    "sample_rows": [
+      [
+        2023,
+        2,
+        97,
+        83
+      ],
+      [
+        2023,
+        3,
+        246,
+        178
+      ],
+      [
+        2023,
+        4,
+        452,
+        231
+      ],
+      [
+        2024,
+        1,
+        154,
+        128
+      ],
+      [
+        2024,
+        2,
+        263,
+        184
+      ],
+      [
+        2024,
+        3,
+        257,
+        177
+      ],
+      [
+        2024,
+        4,
+        531,
+        337
+      ],
+      [
+        2025,
+        1,
+        3973,
+        525
+      ],
+      [
+        2025,
+        2,
+        5441,
+        545
+      ],
+      [
+        2025,
+        3,
+        4809,
+        546
+      ],
+      [
+        2025,
+        4,
+        6094,
+        547
+      ],
+      [
+        2026,
+        1,
+        6013,
+        548
+      ],
+      [
+        2026,
+        2,
+        3015,
+        535
+      ]
+    ],
+    "expected_row_count_approx": 13,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Ejercicio 12",
+    "briefing_ref": "Briefing 2.12",
+    "lesson_ref": "Lección 12",
+    "reference_query": "SELECT\n    country,\n    COUNT(*) AS total\nFROM customers\nGROUP BY country\nHAVING COUNT(*) > 25\nORDER BY total DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "country",
+      "total"
+    ],
+    "sample_rows": [
+      [
+        "USA",
+        64
+      ],
+      [
+        "Mexico",
+        64
+      ],
+      [
+        "Colombia",
+        55
+      ],
+      [
+        "Argentina",
+        54
+      ],
+      [
+        "Peru",
+        51
+      ],
+      [
+        "Chile",
+        48
+      ],
+      [
+        "Venezuela",
+        35
+      ],
+      [
+        "Spain",
+        35
+      ],
+      [
+        "Ecuador",
+        31
+      ],
+      [
+        "Bolivia",
+        30
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 13,
+    "title": "Ejercicio 13",
+    "briefing_ref": "Briefing 2.13",
+    "lesson_ref": "Lección 13",
+    "reference_query": "SELECT\n    category_id,\n    COUNT(*)            AS total_activos,\n    ROUND(AVG(price), 2) AS precio_promedio\nFROM products\nWHERE is_active = TRUE\nGROUP BY category_id\nHAVING AVG(price) > 70\nORDER BY precio_promedio DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "category_id",
+      "total_activos",
+      "precio_promedio"
+    ],
+    "sample_rows": [
+      [
+        4,
+        17,
+        140.28
+      ],
+      [
+        1,
+        15,
+        125.52
+      ],
+      [
+        3,
+        7,
+        108.56
+      ],
+      [
+        9,
+        5,
+        75.99
+      ]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 14,
+    "title": "Ejercicio 14",
+    "briefing_ref": "Briefing 2.14",
+    "lesson_ref": "Lección 14",
+    "reference_query": "SELECT\n    DATE_TRUNC('month', ordered_at)  AS mes,\n    COUNT(*)                          AS total_pedidos\nFROM orders\nGROUP BY DATE_TRUNC('month', ordered_at)\nHAVING COUNT(*) > 100\nORDER BY total_pedidos DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "total_pedidos"
+    ],
+    "sample_rows": [
+      [
+        "2025-12-01",
+        2362
+      ],
+      [
+        "2025-05-01",
+        2325
+      ],
+      [
+        "2026-03-01",
+        2170
+      ],
+      [
+        "2026-04-01",
+        1966
+      ],
+      [
+        "2026-01-01",
+        1965
+      ],
+      [
+        "2025-11-01",
+        1889
+      ],
+      [
+        "2026-02-01",
+        1878
+      ],
+      [
+        "2025-10-01",
+        1843
+      ],
+      [
+        "2025-06-01",
+        1656
+      ],
+      [
+        "2025-01-01",
+        1641
+      ],
+      [
+        "2025-07-01",
+        1634
+      ],
+      [
+        "2025-09-01",
+        1615
+      ],
+      [
+        "2025-08-01",
+        1560
+      ],
+      [
+        "2025-04-01",
+        1460
+      ],
+      [
+        "2025-03-01",
+        1270
+      ],
+      [
+        "2025-02-01",
+        1062
+      ],
+      [
+        "2026-05-01",
+        1049
+      ],
+      [
+        "2024-11-01",
+        399
+      ],
+      [
+        "2023-11-01",
+        211
+      ],
+      [
+        "2023-12-01",
+        168
+      ],
+      [
+        "2024-10-01",
+        120
+      ],
+      [
+        "2024-05-01",
+        101
+      ]
+    ],
+    "expected_row_count_approx": 22,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 15,
+    "title": "Ejercicio 15",
+    "briefing_ref": "Briefing 2.15",
+    "lesson_ref": "Lección 15",
+    "reference_query": "SELECT\n    DATE_TRUNC('month', ordered_at)  AS mes,\n    COUNT(*)                          AS pedidos_entregados\nFROM orders\nWHERE EXTRACT(YEAR FROM ordered_at) = 2024\n  AND status = 'delivered'\nGROUP BY DATE_TRUNC('month', ordered_at)\nHAVING COUNT(*) > 80\nORDER BY pedidos_entregados DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "pedidos_entregados"
+    ],
+    "sample_rows": [
+      [
+        "2024-11-01",
+        300
+      ],
+      [
+        "2024-10-01",
+        84
+      ]
+    ],
+    "expected_row_count_approx": 2,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 16,
+    "title": "Ejercicio 16",
+    "briefing_ref": "Briefing 2.16",
+    "lesson_ref": "Lección 16",
+    "reference_query": "SELECT\n    DATE_TRUNC('month', registered_at)  AS mes,\n    COUNT(*)                             AS clientes_nuevos\nFROM customers\nWHERE registered_at >= '2024-07-01'\n  AND registered_at < '2024-12-01'\nGROUP BY DATE_TRUNC('month', registered_at)\nORDER BY mes ASC;\n-- Nota: el rango termina en noviembre porque diciembre 2024\n-- no tiene clientes registrados en el dataset. El resultado\n-- correcto tiene 5 filas (julio a noviembre 2024).",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "clientes_nuevos"
+    ],
+    "sample_rows": [
+      [
+        "2024-07-01",
+        16
+      ],
+      [
+        "2024-08-01",
+        19
+      ],
+      [
+        "2024-09-01",
+        75
+      ],
+      [
+        "2024-10-01",
+        75
+      ],
+      [
+        "2024-11-01",
+        54
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 17,
+    "title": "Ejercicio 17",
+    "briefing_ref": "Briefing 2.17",
+    "lesson_ref": "Lección 17",
+    "reference_query": "SELECT\n    DATE_TRUNC('day', ordered_at)  AS dia,\n    COUNT(*)                        AS total_pedidos\nFROM orders\nWHERE EXTRACT(MONTH FROM ordered_at) = 11\nGROUP BY DATE_TRUNC('day', ordered_at)\nORDER BY dia ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "dia",
+      "total_pedidos"
+    ],
+    "sample_rows": [
+      [
+        "2023-11-01",
+        3
+      ],
+      [
+        "2023-11-02",
+        12
+      ],
+      [
+        "2023-11-03",
+        4
+      ],
+      [
+        "2023-11-04",
+        6
+      ],
+      [
+        "2023-11-05",
+        2
+      ],
+      [
+        "2023-11-06",
+        5
+      ],
+      [
+        "2023-11-07",
+        6
+      ],
+      [
+        "2023-11-08",
+        8
+      ],
+      [
+        "2023-11-09",
+        2
+      ],
+      [
+        "2023-11-10",
+        7
+      ],
+      [
+        "2023-11-11",
+        12
+      ],
+      [
+        "2023-11-12",
+        7
+      ],
+      [
+        "2023-11-13",
+        12
+      ],
+      [
+        "2023-11-14",
+        10
+      ],
+      [
+        "2023-11-15",
+        5
+      ],
+      [
+        "2023-11-16",
+        8
+      ],
+      [
+        "2023-11-17",
+        8
+      ],
+      [
+        "2023-11-18",
+        11
+      ],
+      [
+        "2023-11-19",
+        5
+      ],
+      [
+        "2023-11-20",
+        8
+      ],
+      [
+        "2023-11-21",
+        4
+      ],
+      [
+        "2023-11-22",
+        5
+      ],
+      [
+        "2023-11-23",
+        3
+      ],
+      [
+        "2023-11-24",
+        16
+      ],
+      [
+        "2023-11-25",
+        2
+      ],
+      [
+        "2023-11-26",
+        7
+      ],
+      [
+        "2023-11-27",
+        6
+      ],
+      [
+        "2023-11-28",
+        6
+      ],
+      [
+        "2023-11-29",
+        11
+      ],
+      [
+        "2023-11-30",
+        10
+      ],
+      [
+        "2024-11-01",
+        18
+      ],
+      [
+        "2024-11-02",
+        9
+      ],
+      [
+        "2024-11-03",
+        8
+      ],
+      [
+        "2024-11-04",
+        10
+      ],
+      [
+        "2024-11-05",
+        16
+      ],
+      [
+        "2024-11-06",
+        9
+      ],
+      [
+        "2024-11-07",
+        8
+      ],
+      [
+        "2024-11-08",
+        11
+      ],
+      [
+        "2024-11-09",
+        4
+      ],
+      [
+        "2024-11-10",
+        10
+      ],
+      [
+        "2024-11-11",
+        15
+      ],
+      [
+        "2024-11-12",
+        13
+      ],
+      [
+        "2024-11-13",
+        13
+      ],
+      [
+        "2024-11-14",
+        13
+      ],
+      [
+        "2024-11-15",
+        14
+      ],
+      [
+        "2024-11-16",
+        11
+      ],
+      [
+        "2024-11-17",
+        11
+      ],
+      [
+        "2024-11-18",
+        8
+      ],
+      [
+        "2024-11-19",
+        15
+      ],
+      [
+        "2024-11-20",
+        14
+      ]
+    ],
+    "expected_row_count_approx": 88,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 18,
+    "title": "Ejercicio 18",
+    "briefing_ref": "Briefing 2.18",
+    "lesson_ref": "Lección 18",
+    "reference_query": "SELECT\n    EXTRACT(YEAR FROM ordered_at)   AS anio,\n    EXTRACT(MONTH FROM ordered_at)  AS mes_numero,\n    COUNT(*)                         AS total_pedidos\nFROM orders\nGROUP BY\n    EXTRACT(YEAR FROM ordered_at),\n    EXTRACT(MONTH FROM ordered_at)\nORDER BY anio, mes_numero;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "anio",
+      "mes_numero",
+      "total_pedidos"
+    ],
+    "sample_rows": [
+      [
+        2023,
+        6,
+        97
+      ],
+      [
+        2023,
+        7,
+        87
+      ],
+      [
+        2023,
+        8,
+        87
+      ],
+      [
+        2023,
+        9,
+        72
+      ],
+      [
+        2023,
+        10,
+        73
+      ],
+      [
+        2023,
+        11,
+        211
+      ],
+      [
+        2023,
+        12,
+        168
+      ],
+      [
+        2024,
+        1,
+        44
+      ],
+      [
+        2024,
+        2,
+        37
+      ],
+      [
+        2024,
+        3,
+        73
+      ],
+      [
+        2024,
+        4,
+        68
+      ],
+      [
+        2024,
+        5,
+        101
+      ],
+      [
+        2024,
+        6,
+        94
+      ],
+      [
+        2024,
+        7,
+        86
+      ],
+      [
+        2024,
+        8,
+        86
+      ],
+      [
+        2024,
+        9,
+        85
+      ],
+      [
+        2024,
+        10,
+        120
+      ],
+      [
+        2024,
+        11,
+        399
+      ],
+      [
+        2024,
+        12,
+        12
+      ],
+      [
+        2025,
+        1,
+        1641
+      ],
+      [
+        2025,
+        2,
+        1062
+      ],
+      [
+        2025,
+        3,
+        1270
+      ],
+      [
+        2025,
+        4,
+        1460
+      ],
+      [
+        2025,
+        5,
+        2325
+      ],
+      [
+        2025,
+        6,
+        1656
+      ],
+      [
+        2025,
+        7,
+        1634
+      ],
+      [
+        2025,
+        8,
+        1560
+      ],
+      [
+        2025,
+        9,
+        1615
+      ],
+      [
+        2025,
+        10,
+        1843
+      ],
+      [
+        2025,
+        11,
+        1889
+      ],
+      [
+        2025,
+        12,
+        2362
+      ],
+      [
+        2026,
+        1,
+        1965
+      ],
+      [
+        2026,
+        2,
+        1878
+      ],
+      [
+        2026,
+        3,
+        2170
+      ],
+      [
+        2026,
+        4,
+        1966
+      ],
+      [
+        2026,
+        5,
+        1049
+      ]
+    ],
+    "expected_row_count_approx": 36,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 19,
+    "title": "Ejercicio 19",
+    "briefing_ref": "Briefing 2.19",
+    "lesson_ref": "Lección 19",
+    "reference_query": "SELECT\n    DATE_TRUNC('week', ordered_at)  AS semana,\n    COUNT(*)                         AS pedidos\nFROM orders\nWHERE EXTRACT(YEAR FROM ordered_at) = 2024\nGROUP BY DATE_TRUNC('week', ordered_at)\nORDER BY pedidos DESC\nLIMIT 5;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "semana",
+      "pedidos"
+    ],
+    "sample_rows": [
+      [
+        "2024-11-25",
+        119
+      ],
+      [
+        "2024-11-18",
+        99
+      ],
+      [
+        "2024-11-11",
+        90
+      ],
+      [
+        "2024-11-04",
+        68
+      ],
+      [
+        "2024-10-28",
+        54
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 20,
+    "title": "Ejercicio 20",
+    "briefing_ref": "Briefing 2.20",
+    "lesson_ref": "Lección 20",
+    "reference_query": "SELECT\n    EXTRACT(DOW FROM ordered_at)  AS dia_semana,\n    COUNT(*)                       AS total_pedidos\nFROM orders\nWHERE status = 'delivered'\nGROUP BY EXTRACT(DOW FROM ordered_at)\nORDER BY total_pedidos DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "dia_semana",
+      "total_pedidos"
+    ],
+    "sample_rows": [
+      [
+        3,
+        2703
+      ],
+      [
+        5,
+        2674
+      ],
+      [
+        1,
+        2673
+      ],
+      [
+        6,
+        2581
+      ],
+      [
+        4,
+        2568
+      ],
+      [
+        2,
+        2534
+      ],
+      [
+        0,
+        2512
+      ]
+    ],
+    "expected_row_count_approx": 7,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 21,
+    "title": "Ejercicio 21",
+    "briefing_ref": "Briefing 2.21",
+    "lesson_ref": "Lección 21",
+    "reference_query": "SELECT\n    DATE_TRUNC('month', ordered_at)  AS mes,\n    COUNT(*)                          AS cancelaciones\nFROM orders\nWHERE EXTRACT(YEAR FROM ordered_at) = 2024\n  AND status = 'cancelled'\nGROUP BY DATE_TRUNC('month', ordered_at)\nORDER BY mes ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "cancelaciones"
+    ],
+    "sample_rows": [
+      [
+        "2024-01-01",
+        2
+      ],
+      [
+        "2024-02-01",
+        5
+      ],
+      [
+        "2024-03-01",
+        3
+      ],
+      [
+        "2024-04-01",
+        4
+      ],
+      [
+        "2024-05-01",
+        4
+      ],
+      [
+        "2024-06-01",
+        11
+      ],
+      [
+        "2024-07-01",
+        2
+      ],
+      [
+        "2024-08-01",
+        10
+      ],
+      [
+        "2024-09-01",
+        8
+      ],
+      [
+        "2024-10-01",
+        14
+      ],
+      [
+        "2024-11-01",
+        24
+      ],
+      [
+        "2024-12-01",
+        2
+      ]
+    ],
+    "expected_row_count_approx": 12,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 22,
+    "title": "Ejercicio 22",
+    "briefing_ref": "Briefing 2.22",
+    "lesson_ref": "Lección 22",
+    "reference_query": "SELECT\n    DATE_TRUNC('month', registered_at)  AS mes,\n    COUNT(*)                             AS clientes_nuevos\nFROM customers\nWHERE registered_at >= '2024-01-01'\n  AND registered_at < '2025-01-01'\nGROUP BY DATE_TRUNC('month', registered_at)\nHAVING COUNT(*) >= 20\nORDER BY mes ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "clientes_nuevos"
+    ],
+    "sample_rows": [
+      [
+        "2024-01-01",
+        20
+      ],
+      [
+        "2024-02-01",
+        23
+      ],
+      [
+        "2024-03-01",
+        20
+      ],
+      [
+        "2024-04-01",
+        22
+      ],
+      [
+        "2024-05-01",
+        21
+      ],
+      [
+        "2024-09-01",
+        75
+      ],
+      [
+        "2024-10-01",
+        75
+      ],
+      [
+        "2024-11-01",
+        54
+      ]
+    ],
+    "expected_row_count_approx": 8,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 23,
+    "title": "Ejercicio 23",
+    "briefing_ref": "Briefing 2.23",
+    "lesson_ref": "Lección 23",
+    "reference_query": "SELECT\n    EXTRACT(QUARTER FROM ordered_at)  AS trimestre,\n    COUNT(*)                           AS total_pedidos,\n    COUNT(DISTINCT customer_id)        AS clientes_unicos\nFROM orders\nWHERE ordered_at >= '2024-07-01'\n  AND ordered_at < '2025-01-01'\nGROUP BY EXTRACT(QUARTER FROM ordered_at)\nORDER BY trimestre;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "trimestre",
+      "total_pedidos",
+      "clientes_unicos"
+    ],
+    "sample_rows": [
+      [
+        3,
+        257,
+        177
+      ],
+      [
+        4,
+        531,
+        337
+      ]
+    ],
+    "expected_row_count_approx": 2,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 24,
+    "title": "Ejercicio 24",
+    "briefing_ref": "Briefing 2.24",
+    "lesson_ref": "Lección 24",
+    "reference_query": "SELECT\n    EXTRACT(YEAR FROM ordered_at)   AS anio,\n    status,\n    COUNT(*)                         AS total_pedidos,\n    COUNT(DISTINCT customer_id)      AS clientes_distintos\nFROM orders\nGROUP BY\n    EXTRACT(YEAR FROM ordered_at),\n    status\nORDER BY anio, total_pedidos DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "anio",
+      "status",
+      "total_pedidos",
+      "clientes_distintos"
+    ],
+    "sample_rows": [
+      [
+        2023,
+        "delivered",
+        595,
+        271
+      ],
+      [
+        2023,
+        "shipped",
+        83,
+        71
+      ],
+      [
+        2023,
+        "pending",
+        60,
+        56
+      ],
+      [
+        2023,
+        "cancelled",
+        57,
+        55
+      ],
+      [
+        2024,
+        "delivered",
+        886,
+        397
+      ],
+      [
+        2024,
+        "shipped",
+        141,
+        117
+      ],
+      [
+        2024,
+        "pending",
+        89,
+        81
+      ],
+      [
+        2024,
+        "cancelled",
+        89,
+        80
+      ],
+      [
+        2025,
+        "delivered",
+        11608,
+        550
+      ],
+      [
+        2025,
+        "shipped",
+        2989,
+        515
+      ],
+      [
+        2025,
+        "cancelled",
+        2959,
+        523
+      ],
+      [
+        2025,
+        "pending",
+        2761,
+        503
+      ],
+      [
+        2026,
+        "delivered",
+        5156,
+        546
+      ],
+      [
+        2026,
+        "pending",
+        1360,
+        429
+      ],
+      [
+        2026,
+        "shipped",
+        1260,
+        434
+      ],
+      [
+        2026,
+        "cancelled",
+        1252,
+        426
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 25,
+    "title": "Integrador",
+    "briefing_ref": "Briefing 2.25",
+    "lesson_ref": "Lección 25",
+    "reference_query": "SELECT\n    DATE_TRUNC('month', ordered_at)                              AS mes,\n    COUNT(*)                                                     AS total_pedidos,\n    COUNT(*) FILTER (WHERE status = 'delivered')                AS entregados,\n    COUNT(*) FILTER (WHERE status = 'cancelled')                AS cancelados,\n    ROUND(\n        COUNT(*) FILTER (WHERE status = 'delivered') * 100.0\n        / COUNT(*),\n        1\n    )                                                            AS tasa_entrega\nFROM orders\nWHERE EXTRACT(YEAR FROM ordered_at) = 2024\nGROUP BY DATE_TRUNC('month', ordered_at)\nHAVING COUNT(*) > 50\nORDER BY mes ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "mes",
+      "total_pedidos",
+      "entregados",
+      "cancelados",
+      "tasa_entrega"
+    ],
+    "sample_rows": [
+      [
+        "2024-03-01",
+        73,
+        53,
+        3,
+        72.6
+      ],
+      [
+        "2024-04-01",
+        68,
+        50,
+        4,
+        73.5
+      ],
+      [
+        "2024-05-01",
+        101,
+        76,
+        4,
+        75.2
+      ],
+      [
+        "2024-06-01",
+        94,
+        70,
+        11,
+        74.5
+      ],
+      [
+        "2024-07-01",
+        86,
+        67,
+        2,
+        77.9
+      ],
+      [
+        "2024-08-01",
+        86,
+        57,
+        10,
+        66.3
+      ],
+      [
+        "2024-09-01",
+        85,
+        62,
+        8,
+        72.9
+      ],
+      [
+        "2024-10-01",
+        120,
+        84,
+        14,
+        70.0
+      ],
+      [
+        "2024-11-01",
+        399,
+        300,
+        24,
+        75.2
+      ]
+    ],
+    "expected_row_count_approx": 9,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  }
+]

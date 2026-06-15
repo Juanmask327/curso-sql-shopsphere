@@ -1,0 +1,209 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Stock critico (menos de 10 unidades) — ranking de urgencia con ROW_NUMBER()",
+    "briefing_ref": "Briefing 5.1 — Diego Morales: Stock critico rankeado por urgencia",
+    "lesson_ref": "Leccion 2 — ROW_NUMBER() con ORDER BY en OVER()",
+    "reference_query": "SELECT p.name AS producto, c.name AS categoria, i.stock, ROW_NUMBER() OVER (ORDER BY i.stock ASC, p.name ASC) AS ranking_urgencia FROM inventory i INNER JOIN products p ON p.product_id = i.product_id INNER JOIN categories c ON c.category_id = p.category_id WHERE i.stock < 10 ORDER BY i.stock ASC, p.name ASC;",
+    "tables_used": ["inventory", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "categoria", "stock", "ranking_urgencia"],
+    "sample_rows": [
+      ["Hub USB-C 7-en-1", "Electronics", 0, 1],
+      ["Smartphone Xiaomi Redmi Note 13", "Electronics", 2, 2],
+      ["Smartphone Samsung Galaxy A54", "Electronics", 4, 3],
+      ["Laptop Lenovo IdeaPad 3 15\"", "Electronics", 8, 4],
+      ["Smartwatch ProX 3 Ultra", "Wearables", 7, "PLACEHOLDER — verificar orden con p.name"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — filas de muestra son aproximaciones basadas en lectura directa del seed operacional. Productos con stock < 10 segun el seed: product_id 1 (stock=4), 2 (stock=2), 3 (stock=8), 10 (stock=0), 73 (stock=7). Verificar contra el seed completo. El ranking_urgencia 1 es definitivamente el producto 10 (Hub USB-C 7-en-1, stock=0). PUNTO PEDAGOGICO CLAVE: ROW_NUMBER() no tiene empates — cada fila recibe un numero unico. Si dos productos tienen el mismo stock, el criterio de desempate es el nombre en orden alfabetico (como pide el briefing). NOTA: el conteo exacto de filas depende de cuantos productos tienen stock < 10 en el seed."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Producto con menor stock por categoria — RANK() para mostrar empates",
+    "briefing_ref": "Briefing 5.2 — Diego Morales: Producto mas critico dentro de cada categoria",
+    "lesson_ref": "Leccion 2 — RANK() con PARTITION BY categoria",
+    "reference_query": "WITH ranked AS ( SELECT p.name AS producto, c.name AS categoria, i.stock, RANK() OVER (PARTITION BY c.category_id ORDER BY i.stock ASC) AS rk FROM inventory i INNER JOIN products p ON p.product_id = i.product_id INNER JOIN categories c ON c.category_id = p.category_id ) SELECT producto, categoria, stock FROM ranked WHERE rk = 1 ORDER BY categoria, stock ASC;",
+    "tables_used": ["inventory", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_unordered",
+    "expected_columns": ["producto", "categoria", "stock"],
+    "sample_rows": [
+      ["Hub USB-C 7-en-1", "Electronics", 0],
+      ["PLACEHOLDER", "Audio", "PLACEHOLDER — verificar minimo de Audio"],
+      ["PLACEHOLDER", "Wearables", "PLACEHOLDER"],
+      ["PLACEHOLDER", "Home Appliances", "PLACEHOLDER"],
+      ["PLACEHOLDER", "Clothing", "PLACEHOLDER"],
+      ["PLACEHOLDER", "Sports", "PLACEHOLDER"],
+      ["PLACEHOLDER", "Books", "PLACEHOLDER"],
+      ["PLACEHOLDER", "Beauty", "PLACEHOLDER"],
+      ["PLACEHOLDER", "Toys & Games", "PLACEHOLDER"],
+      ["PLACEHOLDER", "Office", "PLACEHOLDER"]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — solo Electronics es verificable con certeza (stock=0 para product_id 10). NOTA SOBRE RANK() vs ROW_NUMBER(): si dos productos de la misma categoria tienen el mismo stock minimo, RANK() los muestra ambos con rk=1. El briefing dice 'si hay dos con el mismo stock minimo, muéstrame los dos' — esto confirma que RANK() es la funcion correcta para este ejercicio (no ROW_NUMBER()). PUNTO PEDAGOGICO: la diferencia entre RANK() y ROW_NUMBER() es exactamente este caso de empate. El teacher puede fabricar un ejemplo donde dos productos de la misma categoria tienen stock identico para demostrar la diferencia. NOTA: el expected_row_count_approx es null porque depende de cuantas categorias tienen empate en el minimo."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Cuartiles de inventario — NTILE(4) para identificar el cuartil inferior",
+    "briefing_ref": "Briefing 5.3 — Diego Morales: Cuartil inferior de inventario como candidatos a revision",
+    "lesson_ref": "Leccion 2 — NTILE(n): division en grupos iguales",
+    "reference_query": "WITH cuartiles AS ( SELECT p.name AS producto, c.name AS categoria, i.stock, NTILE(4) OVER (ORDER BY i.stock ASC) AS cuartil FROM inventory i INNER JOIN products p ON p.product_id = i.product_id INNER JOIN categories c ON c.category_id = p.category_id ) SELECT producto, categoria, stock FROM cuartiles WHERE cuartil = 1 ORDER BY stock ASC;",
+    "tables_used": ["inventory", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "categoria", "stock"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. Con 90 productos en inventory, NTILE(4) crea 4 grupos de ~22-23 productos. El cuartil 1 (el de menor stock) tendra aproximadamente 22-23 filas. ADVERTENCIA SOBRE NTILE Y EMPATES: NTILE no garantiza que productos con el mismo stock esten en el mismo cuartil — la asignacion es por posicion ordinal, no por valor. Si hay muchos productos con el mismo stock en el borde entre cuartiles, el resultado puede parecer arbitrario. El teacher debe explicar esta limitacion. PUNTO PEDAGOGICO: contrastar con ROW_NUMBER() (que da un ranking individual) y RANK() (que respeta empates). NTILE es para distribucion en grupos, no para ranking. CASO REAL: product_id 10 con stock=0 y product_id 2 con stock=2 definitivamente estan en el cuartil 1."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Top 3 productos por revenue dentro de cada categoria — DENSE_RANK()",
+    "briefing_ref": "Briefing 5.4 — Valentina Torres: Ranking de productos por revenue dentro de categoria",
+    "lesson_ref": "Leccion 2 — DENSE_RANK() con PARTITION BY para ranking sin saltos",
+    "reference_query": "WITH revenue_por_producto AS ( SELECT p.name AS producto, c.name AS categoria, SUM(oi.quantity * oi.unit_price) AS revenue_total FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id GROUP BY p.product_id, p.name, c.category_id, c.name ), ranked AS ( SELECT producto, categoria, revenue_total, DENSE_RANK() OVER (PARTITION BY categoria ORDER BY revenue_total DESC) AS posicion_en_categoria FROM revenue_por_producto ) SELECT producto, categoria, revenue_total, posicion_en_categoria FROM ranked WHERE posicion_en_categoria <= 3 ORDER BY categoria, posicion_en_categoria;",
+    "tables_used": ["order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "categoria", "revenue_total", "posicion_en_categoria"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, 1],
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, 2],
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, 3]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado esperado es entre 30 y 40 filas (hasta 3 por cada una de las 10 categorias, mas si hay empates en posicion 3 que DENSE_RANK mantiene sin saltos). PUNTO PEDAGOGICO: DENSE_RANK vs RANK — si dos productos tienen el mismo revenue exacto (poco probable pero posible), RANK saltaria el siguiente numero (1,1,3) mientras DENSE_RANK no (1,1,2). Para este caso de negocio DENSE_RANK es mas correcto. NOTA DE EJECUCION: los productos hogar premium (product_id 81-90) se lanzaron en sep 2025, tienen menos historia de ventas que los originales — esperar que su posicion en ranking sea mas baja excepto en la categoria 'Home Appliances' si ahi estan concentrados. Verificar a que categoria pertenecen los productos 81-90."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Primer pedido de cada cliente — FIRST_VALUE() o MIN() con window function",
+    "briefing_ref": "Briefing 5.5 — Valentina Torres: Primer pedido de cada cliente para analisis de cohortes",
+    "lesson_ref": "Leccion 1 — CTEs simples: estructurar queries en pasos",
+    "reference_query": "WITH primer_pedido AS ( SELECT o.customer_id, MIN(o.ordered_at) AS fecha_primer_pedido, MIN(o.order_id) AS order_id_primero FROM orders o WHERE o.status = 'delivered' GROUP BY o.customer_id ) SELECT c.first_name || ' ' || c.last_name AS nombre, c.country, pp.fecha_primer_pedido, SUM(oi.quantity * oi.unit_price) AS monto_primer_pedido FROM primer_pedido pp INNER JOIN customers c ON c.customer_id = pp.customer_id INNER JOIN order_items oi ON oi.order_id = pp.order_id_primero GROUP BY c.customer_id, c.first_name, c.last_name, c.country, pp.fecha_primer_pedido ORDER BY pp.fecha_primer_pedido ASC;",
+    "tables_used": ["orders", "customers", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nombre", "country", "fecha_primer_pedido", "monto_primer_pedido"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. AMBIGUEDAD CRITICA: el briefing dice 'todos los clientes con al menos un pedido completado'. La query propuesta usa status='delivered'. Si el estudiante incluye otros estados, el primer pedido puede ser diferente. El teacher debe aclarar el criterio. EDGE CASE: un cliente cuyo unico pedido fue 'cancelled' no aparece en el resultado con la query propuesta. ALTERNATIVA CON WINDOW FUNCTION: usar ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY ordered_at ASC) = 1 en lugar de MIN(). La version con CTE + MIN es mas clara para principiantes. NOTA: la union de order_id_primero con order_items asume que el MIN(order_id) corresponde al MIN(ordered_at) — si un cliente tiene dos pedidos el mismo dia con diferentes order_id, puede haber ambiguedad."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Productos por encima del revenue promedio de su categoria — CTE + Window Function",
+    "briefing_ref": "Briefing 5.6 — Valentina Torres: Productos que superan el promedio de su categoria",
+    "lesson_ref": "Leccion 2 — AVG() OVER (PARTITION BY) para comparar vs promedio del grupo",
+    "reference_query": "WITH revenue_con_promedio AS ( SELECT p.name AS producto, c.name AS categoria, SUM(oi.quantity * oi.unit_price) AS revenue_total, AVG(SUM(oi.quantity * oi.unit_price)) OVER (PARTITION BY c.category_id) AS promedio_categoria FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id INNER JOIN categories c ON c.category_id = p.category_id GROUP BY p.product_id, p.name, c.category_id, c.name ) SELECT producto, categoria, ROUND(revenue_total, 2) AS revenue_total, ROUND(promedio_categoria, 2) AS promedio_categoria FROM revenue_con_promedio WHERE revenue_total > promedio_categoria ORDER BY categoria, revenue_total DESC;",
+    "tables_used": ["order_items", "products", "categories"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["producto", "categoria", "revenue_total", "promedio_categoria"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. PUNTO PEDAGOGICO CLAVE: este ejercicio muestra por que las window functions son superiores a las subqueries correlacionadas para este tipo de comparacion. La alternativa sin window functions requiere una subquery correlacionada en WHERE o un JOIN con subconsulta agrupada — ambas mas complejas. NOTA TECNICA: AVG(SUM(...)) OVER (PARTITION BY) aplica el AVG sobre los valores ya agregados de SUM — esto es valido porque SUM ya opera a nivel producto y AVG opera a nivel de la ventana de categoria. El teacher debe explicar esta doble capa de agregacion. RESULTADO ESPERADO: en cada categoria, aproximadamente la mitad de los productos estaran por encima del promedio (por definicion estadistica, aunque no necesariamente exactamente la mitad)."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Top 3 clientes por revenue en cada pais — ROW_NUMBER() con PARTITION BY country",
+    "briefing_ref": "Briefing 5.7 — Marco Jimenez: Top 3 clientes por pais",
+    "lesson_ref": "Leccion 2 — ROW_NUMBER() PARTITION BY para ranking por grupos",
+    "reference_query": "WITH revenue_cliente AS ( SELECT c.customer_id, c.first_name || ' ' || c.last_name AS nombre, c.country, SUM(oi.quantity * oi.unit_price) AS revenue_total FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id AND o.status = 'delivered' INNER JOIN order_items oi ON oi.order_id = o.order_id GROUP BY c.customer_id, c.first_name, c.last_name, c.country ), ranked AS ( SELECT nombre, country, revenue_total, ROW_NUMBER() OVER (PARTITION BY country ORDER BY revenue_total DESC) AS posicion FROM revenue_cliente ) SELECT nombre, country AS pais, revenue_total, posicion FROM ranked WHERE posicion <= 3 ORDER BY country, posicion;",
+    "tables_used": ["customers", "orders", "order_items"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nombre", "pais", "revenue_total", "posicion"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", 0.00, 1]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El seed tiene clientes en muchos paises (Venezuela, Spain, USA, Colombia, Chile, Mexico, Peru, Argentina, Bolivia, Ecuador, etc.). El resultado puede tener muchas filas (3 por cada pais representado). NOTA SOBRE PAISES CON MENOS DE 3 CLIENTES CON COMPRAS: si un pais tiene menos de 3 clientes con pedidos delivered, el resultado mostrara menos de 3 filas para ese pais (ROW_NUMBER simplemente no llega a posicion 3). Esto es correcto — advertir al estudiante. DIFERENCIA PEDAGOGICA: usar ROW_NUMBER() en lugar de RANK() aqui garantiza exactamente 3 filas por pais (o menos si hay pocos clientes). Si el briefing requiriera mostrar empates en posicion 3, se usaria RANK(). El teacher debe explicar esta decision."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Concentracion de ventas — revenue del cuartil superior vs el resto (NTILE + SUM agregado)",
+    "briefing_ref": "Briefing 5.8 — Marco Jimenez: Porcentaje del revenue que viene del 25% de productos mas vendedores",
+    "lesson_ref": "Leccion 3 — CTEs encadenadas: componer analisis en pasos",
+    "reference_query": "WITH revenue_producto AS ( SELECT p.product_id, SUM(oi.quantity * oi.unit_price) AS revenue_total FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id GROUP BY p.product_id ), cuartil_asignado AS ( SELECT product_id, revenue_total, NTILE(4) OVER (ORDER BY revenue_total ASC) AS cuartil FROM revenue_producto ), totales AS ( SELECT SUM(CASE WHEN cuartil = 4 THEN revenue_total ELSE 0 END) AS revenue_cuartil_superior, SUM(revenue_total) AS revenue_total_global FROM cuartil_asignado ) SELECT revenue_cuartil_superior, revenue_total_global, ROUND(revenue_cuartil_superior * 100.0 / revenue_total_global, 2) AS pct_concentrado_en_top25 FROM totales;",
+    "tables_used": ["order_items", "products"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["revenue_cuartil_superior", "revenue_total_global", "pct_concentrado_en_top25"],
+    "sample_rows": [
+      [0.00, 0.00, 0.00]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado es 1 fila con tres numeros. El pct_concentrado_en_top25 representa la concentracion del revenue: si es alto (>60%), las ventas dependen de pocos productos; si es bajo (<40%), la distribucion es mas pareja. En datasets tipicos de ecommerce, el 25% superior de productos suele concentrar entre 55% y 75% del revenue. NOTA: los productos sin ventas (no aparecen en order_items) no entran en el calculo — NTILE opera solo sobre productos con al menos una venta. El teacher puede agregar un comentario sobre esto. PUNTO PEDAGOGICO AVANZADO: esta es la aproximacion de la regla de Pareto (80/20) aplicada a productos. Si el resultado muestra ~80% en el cuartil superior, el teacher puede vincular este concepto."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Ranking de paises por revenue neto (bruto menos devoluciones reembolsadas) — CTEs encadenadas",
+    "briefing_ref": "Briefing 5.10 — Ana Castillo: Ranking de 5 paises por revenue neto con posicion",
+    "lesson_ref": "Leccion 3 — CTEs multiples encadenadas para composicion de metricas",
+    "reference_query": "WITH revenue_bruto AS ( SELECT c.country, SUM(oi.quantity * oi.unit_price) AS revenue_bruto FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id AND o.status = 'delivered' INNER JOIN order_items oi ON oi.order_id = o.order_id GROUP BY c.country ), reembolsos AS ( SELECT c.country, SUM(oi.quantity * oi.unit_price) AS total_reembolsado FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id INNER JOIN returns r ON r.order_id = o.order_id AND r.status = 'refunded' INNER JOIN order_items oi ON oi.order_id = r.order_id AND oi.product_id = r.product_id GROUP BY c.country ), neto AS ( SELECT rb.country, rb.revenue_bruto, COALESCE(re.total_reembolsado, 0) AS total_reembolsado, rb.revenue_bruto - COALESCE(re.total_reembolsado, 0) AS revenue_neto FROM revenue_bruto rb LEFT JOIN reembolsos re ON re.country = rb.country ) SELECT country AS pais, revenue_bruto, total_reembolsado, revenue_neto, RANK() OVER (ORDER BY revenue_neto DESC) AS posicion FROM neto ORDER BY posicion;",
+    "tables_used": ["customers", "orders", "order_items", "returns"],
+    "join_types": ["INNER JOIN", "INNER JOIN", "INNER JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["pais", "revenue_bruto", "total_reembolsado", "revenue_neto", "posicion"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", 0.00, 0.00, 0.00, 1]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. El briefing menciona 'los cinco paises donde operamos' pero el seed tiene muchos mas paises — usar los top 5 por revenue o mostrar todos con RANK. La query propuesta muestra todos los paises con al menos un pedido delivered. El teacher debe decidir si truncar a 5. PUNTO PEDAGOGICO: esta query es el ejemplo canonico de CTEs encadenadas — cada CTE construye sobre la anterior. El estudiante ve como descomponer un calculo complejo en pasos legibles. ADVERTENCIA: el calculo de reembolsos via order_items es una aproximacion (la tabla returns no tiene columna de monto). POSIBLE REVENUE NETO NEGATIVO: si los reembolsos superan el revenue (poco probable pero posible en datasets pequenos), el valor aparecera negativo — como pide el briefing."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Nuevos clientes ultimos 12 meses — gasto en primeros 30 dias y cuartil de conversion",
+    "briefing_ref": "Briefing 5.12 — Sofia Ramirez: Clientes nuevos — cuanto compraron en su primer mes",
+    "lesson_ref": "Leccion 3 — CTEs con filtros temporales complejos",
+    "reference_query": "WITH clientes_nuevos AS ( SELECT c.customer_id, c.first_name || ' ' || c.last_name AS nombre, c.country, c.registered_at FROM customers c WHERE c.registered_at >= '2025-06-01' AND c.registered_at < '2026-06-01' ), gasto_primer_mes AS ( SELECT cn.customer_id, cn.nombre, cn.country, cn.registered_at, COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS gasto_30d FROM clientes_nuevos cn LEFT JOIN orders o ON o.customer_id = cn.customer_id AND o.ordered_at >= cn.registered_at AND o.ordered_at < cn.registered_at + INTERVAL '30 days' AND o.status = 'delivered' LEFT JOIN order_items oi ON oi.order_id = o.order_id GROUP BY cn.customer_id, cn.nombre, cn.country, cn.registered_at ) SELECT nombre, country AS pais, registered_at AS fecha_registro, gasto_30d, NTILE(4) OVER (ORDER BY gasto_30d DESC) AS cuartil_conversion FROM gasto_primer_mes ORDER BY gasto_30d DESC;",
+    "tables_used": ["customers", "orders", "order_items"],
+    "join_types": ["LEFT JOIN", "LEFT JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nombre", "pais", "fecha_registro", "gasto_30d", "cuartil_conversion"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 0.00, 1]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. ADVERTENCIA SOBRE FECHA RELATIVA: el briefing dice 'ultimos 12 meses' sin fecha fija. La query propuesta usa '2025-06-01' a '2026-06-01' (asumiendo fecha de referencia 2026-06-01). El teacher debe usar una fecha fija en el ejercicio en lugar de CURRENT_DATE para que el resultado sea determinista. NOTA SOBRE INTERVAL: SQLite no soporta INTERVAL — usar datetime(registered_at, '+30 days') en SQLite. Si el curso usa PostgreSQL, INTERVAL '30 days' es correcto. El teacher debe verificar el dialecto. PUNTO PEDAGOGICO: los clientes del cuartil 1 (mayor gasto en primeros 30 dias) son los que mejor convirtieron — el briefing pide perfilarlos por pais y primera categoria comprada. El ejercicio puede extenderse con una CTE adicional para la primera categoria."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Porcentaje del revenue que concentra el top 20% de productos — NTILE(5) quintil superior",
+    "briefing_ref": "Briefing 5.9 — Ana Castillo: Concentracion de revenue en el 20% de productos con mayor revenue",
+    "lesson_ref": "Leccion 3 — CTEs para analisis de concentracion (Pareto)",
+    "reference_query": "WITH revenue_producto AS ( SELECT p.product_id, p.name AS producto, SUM(oi.quantity * oi.unit_price) AS revenue_total FROM order_items oi INNER JOIN products p ON p.product_id = oi.product_id GROUP BY p.product_id, p.name ), quintil_asignado AS ( SELECT producto, revenue_total, NTILE(5) OVER (ORDER BY revenue_total ASC) AS quintil FROM revenue_producto ), resumen AS ( SELECT SUM(CASE WHEN quintil = 5 THEN revenue_total ELSE 0 END) AS revenue_top20, SUM(revenue_total) AS revenue_total_global, COUNT(CASE WHEN quintil = 5 THEN 1 END) AS productos_top20, COUNT(*) AS total_productos FROM quintil_asignado ) SELECT productos_top20, total_productos, ROUND(productos_top20 * 100.0 / total_productos, 1) AS pct_productos, ROUND(revenue_top20, 2) AS revenue_top20, ROUND(revenue_total_global, 2) AS revenue_total, ROUND(revenue_top20 * 100.0 / revenue_total_global, 2) AS pct_revenue_top20 FROM resumen;",
+    "tables_used": ["order_items", "products"],
+    "join_types": ["INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["productos_top20", "total_productos", "pct_productos", "revenue_top20", "revenue_total", "pct_revenue_top20"],
+    "sample_rows": [
+      [0, 0, 0.0, 0.00, 0.00, 0.00]
+    ],
+    "expected_row_count_approx": 1,
+    "notes": "TEMPLATE — valores reales pendientes. El resultado es 1 fila con el resumen del analisis de concentracion. DIFERENCIA CON EL EJERCICIO 8: este usa quintiles (5 grupos / top 20%) mientras el 8 usa cuartiles (4 grupos / top 25%). El briefing de Ana pide especificamente el 20%. PUNTO PEDAGOGICO: este es el ejercicio de 'Pareto aplicado a datos' — el teacher puede mostrar si se cumple o no la regla 80/20 en ShopSphere. NOTA: el denominador del pct_revenue_top20 es el revenue de los productos con ventas (los que aparecen en order_items). Los productos del catalogo sin ninguna venta no afectan el calculo de revenue pero si el de conteo de productos si se incluyeran."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Clientes en su primer mes de compra vs el resto — uso de FIRST_VALUE() o ROW_NUMBER() para detectar la primera orden",
+    "briefing_ref": "Briefing 5.5 — Valentina Torres: Primer pedido de cada cliente (ejercicio complementario con FIRST_VALUE)",
+    "lesson_ref": "Leccion 2 — FIRST_VALUE() y LAST_VALUE() como window functions de valor",
+    "reference_query": "WITH pedidos_con_rank AS ( SELECT o.order_id, o.customer_id, o.ordered_at, o.status, SUM(oi.quantity * oi.unit_price) AS monto_pedido, ROW_NUMBER() OVER (PARTITION BY o.customer_id ORDER BY o.ordered_at ASC) AS rn_cronologico, FIRST_VALUE(o.ordered_at) OVER (PARTITION BY o.customer_id ORDER BY o.ordered_at ASC) AS fecha_primer_pedido FROM orders o INNER JOIN order_items oi ON oi.order_id = o.order_id WHERE o.status = 'delivered' GROUP BY o.order_id, o.customer_id, o.ordered_at, o.status ) SELECT c.first_name || ' ' || c.last_name AS nombre, c.country, p.fecha_primer_pedido, p.monto_pedido AS monto_primer_pedido FROM pedidos_con_rank p INNER JOIN customers c ON c.customer_id = p.customer_id WHERE p.rn_cronologico = 1 ORDER BY p.fecha_primer_pedido ASC;",
+    "tables_used": ["orders", "order_items", "customers"],
+    "join_types": ["INNER JOIN", "INNER JOIN"],
+    "validation_mode": "exact_ordered",
+    "expected_columns": ["nombre", "country", "fecha_primer_pedido", "monto_primer_pedido"],
+    "sample_rows": [
+      ["PLACEHOLDER — verificar con seed real", "PLACEHOLDER", "PLACEHOLDER", 0.00]
+    ],
+    "expected_row_count_approx": null,
+    "notes": "TEMPLATE — valores reales pendientes. PUNTO PEDAGOGICO: este ejercicio complementa el 5.5 mostrando FIRST_VALUE() como alternativa a la CTE con MIN(). Ambos producen el mismo resultado. El teacher puede presentar las dos versiones lado a lado para mostrar la equivalencia. NOTA SOBRE FIRST_VALUE: en algunos dialectos SQL, FIRST_VALUE() requiere especificar el frame de la ventana (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) para garantizar el comportamiento correcto. Sin el frame explicito, el comportamiento puede variar. El teacher debe verificar el dialecto del curso (SQLite, PostgreSQL) y ajustar. DIFERENCIA CON EJERCICIO 5.5: aqui se usa ROW_NUMBER() para filtrar la primera fila, lo cual es una tecnica diferente y mas flexible."
+  }
+]

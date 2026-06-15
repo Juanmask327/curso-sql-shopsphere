@@ -1,0 +1,7 @@
+﻿Validating level 0...
+Exit: 0, Time: 0.6s
+=== ShopSphere Expected Results Generator ===
+Dataset path: C:\Users\Juanm\Desktop\Curso SQL\data\dataset.db
+Modulos path: C:\Users\Juanm\Desktop\Curso SQL\modulos
+Validation complete. Results in C:\Users\Juanm\Desktop\Curso SQL\dataset\validate_result.txt
+

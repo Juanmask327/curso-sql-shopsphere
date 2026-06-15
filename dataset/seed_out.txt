@@ -1,0 +1,98 @@
+﻿
+> shopsphere-backend@0.1.0 seed:exercises
+> tsx src/scripts/seed-exercises.ts
+
+=== ShopSphere ÔÇö Seed de Ejercicios ===
+DATABASE_URL: postgresql://***@db:5432/shopsphere
+MODULOS_BASE: /modulos
+DATASET_BASE: /dataset
+
+[Nivel 0]
+  SQL:  /modulos/nivel-00-fundamentos/ejercicios-nivel-00.sql
+  JSON: /dataset/expected-results-nivel-00.json
+  Enunciados: 20 | Soluciones: 20 | Expected results: 20
+  Resultado: 20 ejercicios procesados
+
+[Nivel 1]
+  SQL:  /modulos/nivel-01-exploracion/ejercicios-nivel-01.sql
+  JSON: /dataset/expected-results-nivel-01.json
+  Enunciados: 20 | Soluciones: 20 | Expected results: 20
+  Resultado: 20 ejercicios procesados
+
+[Nivel 2]
+  SQL:  /modulos/nivel-02-metricas/ejercicios-nivel-02.sql
+  JSON: /dataset/expected-results-nivel-02.json
+  Enunciados: 24 | Soluciones: 24 | Expected results: 25
+  Resultado: 24 ejercicios procesados
+
+[Nivel 3]
+  SQL:  /modulos/nivel-03-joins/ejercicios-nivel-03.sql
+  JSON: /dataset/expected-results-nivel-03.json
+  Enunciados: 24 | Soluciones: 24 | Expected results: 25
+  Resultado: 24 ejercicios procesados
+
+[Nivel 4]
+  SQL:  /modulos/nivel-04-clientes/ejercicios-nivel-04.sql
+  JSON: /dataset/expected-results-nivel-04.json
+  Enunciados: 22 | Soluciones: 24 | Expected results: 25
+  Resultado: 22 ejercicios procesados
+
+[Nivel 5]
+  SQL:  /modulos/nivel-05-avanzado/ejercicios-nivel-05.sql
+  JSON: /dataset/expected-results-nivel-05.json
+  Enunciados: 24 | Soluciones: 25 | Expected results: 25
+  Resultado: 24 ejercicios procesados
+
+[Nivel 6]
+  SQL:  /modulos/nivel-06-analitica/ejercicios-nivel-06.sql
+  JSON: /dataset/expected-results-nivel-06.json
+  Enunciados: 21 | Soluciones: 24 | Expected results: 25
+  Resultado: 21 ejercicios procesados
+
+[Nivel 7]
+  SQL:  /modulos/nivel-07-bi/ejercicios-nivel-07.sql
+  JSON: /dataset/expected-results-nivel-07.json
+  Enunciados: 24 | Soluciones: 24 | Expected results: 25
+  Resultado: 24 ejercicios procesados
+
+[Nivel 8]
+  SQL:  /modulos/nivel-08-profesional/ejercicios-nivel-08.sql
+  JSON: /dataset/expected-results-nivel-08.json
+  Enunciados: 24 | Soluciones: 24 | Expected results: 25
+  Resultado: 24 ejercicios procesados
+
+[Nivel 9]
+  SQL:  /modulos/capstone/parte-01-exploracion.sql, /modulos/capstone/parte-02-clientes.sql, /modulos/capstone/parte-03-marketing.sql, /modulos/capstone/parte-04-operaciones.sql, /modulos/capstone/parte-05-dashboard-ejecutivo.sql
+  JSON: /dataset/expected-results-capstone.json
+  Enunciados: 25 | Soluciones: 23 | Expected results: 25
+docker :   [WARN] Sin soluci├│n para ejercicio 17 ÔÇö omitido
+    + CategoryInfo          : NotSpecified: (  [WARN] Sin so... 17 ÔÇö omitido:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  [WARN] Sin soluci├│n para ejercicio 25 ÔÇö omitido
+  Resultado: 23 ejercicios procesados
+
+Total de ejercicios a insertar: 226
+
+Borrando ejercicios existentes de niveles [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]...
+Insertando...
+  Insertados: 50/226
+  Insertados: 100/226
+  Insertados: 150/226
+  Insertados: 200/226
+  Insertados: 226/226
+Completado: 226 ejercicios insertados.
+
+=== Verificaci├│n ===
+level_id | total | published
+---------+-------+----------
+     0   |   20  |     20
+     1   |   20  |     20
+     2   |   24  |     24
+     3   |   24  |     24
+     4   |   22  |      0
+     5   |   24  |      0
+     6   |   21  |      0
+     7   |   24  |      0
+     8   |   24  |      0
+     9   |   23  |      0

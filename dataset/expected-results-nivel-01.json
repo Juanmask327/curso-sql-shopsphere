@@ -1,0 +1,2947 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Ejercicio 01",
+    "briefing_ref": "Briefing 1.1",
+    "lesson_ref": "Lección 1",
+    "reference_query": "SELECT *\nFROM categories;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "category_id",
+      "name",
+      "description"
+    ],
+    "sample_rows": [
+      [
+        1,
+        "Electronics",
+        "Smartphones, laptops, tablets and accessories"
+      ],
+      [
+        2,
+        "Audio",
+        "Headphones, speakers and audio equipment"
+      ],
+      [
+        3,
+        "Wearables",
+        "Smartwatches, fitness trackers and accessories"
+      ],
+      [
+        4,
+        "Home Appliances",
+        "Kitchen gadgets, cleaning and home automation"
+      ],
+      [
+        5,
+        "Clothing",
+        "Apparel, footwear and fashion accessories"
+      ],
+      [
+        6,
+        "Sports",
+        "Fitness equipment, outdoor gear and sportswear"
+      ],
+      [
+        7,
+        "Books",
+        "Physical and digital books across all genres"
+      ],
+      [
+        8,
+        "Beauty",
+        "Skincare, cosmetics and personal care products"
+      ],
+      [
+        9,
+        "Toys & Games",
+        "Board games, action figures and educational toys"
+      ],
+      [
+        10,
+        "Office",
+        "Stationery, furniture and office supplies"
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Ejercicio 02",
+    "briefing_ref": "Briefing 1.2",
+    "lesson_ref": "Lección 2",
+    "reference_query": "SELECT product_id, name, price\nFROM products;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "product_id",
+      "name",
+      "price"
+    ],
+    "sample_rows": [
+      [
+        1,
+        "Smartphone Samsung Galaxy A54",
+        349.99
+      ],
+      [
+        2,
+        "Smartphone Xiaomi Redmi Note 13",
+        219.99
+      ],
+      [
+        3,
+        "Laptop Lenovo IdeaPad 3 15\"",
+        549.99
+      ],
+      [
+        4,
+        "Tablet Amazon Fire HD 10",
+        149.99
+      ],
+      [
+        5,
+        "Cargador Inalambrico 15W",
+        29.99
+      ],
+      [
+        6,
+        "Cable USB-C Reforzado 2m",
+        14.99
+      ],
+      [
+        7,
+        "Funda Protectora iPhone 15",
+        24.99
+      ],
+      [
+        8,
+        "Memoria microSD 128GB Samsung",
+        22.99
+      ],
+      [
+        9,
+        "Power Bank 20000mAh Anker",
+        49.99
+      ],
+      [
+        10,
+        "Hub USB-C 7-en-1",
+        39.99
+      ],
+      [
+        11,
+        "Teclado Inalambrico Logitech K380",
+        44.99
+      ],
+      [
+        12,
+        "Mouse Optico Logitech M185",
+        19.99
+      ],
+      [
+        13,
+        "Monitor 24\" LG Full HD",
+        219.99
+      ],
+      [
+        14,
+        "Webcam Logitech C920 HD",
+        79.99
+      ],
+      [
+        15,
+        "Disco SSD Externo 480GB",
+        64.99
+      ],
+      [
+        16,
+        "Auriculares Bluetooth JBL Tune 510",
+        49.99
+      ],
+      [
+        17,
+        "Audifonos Sony WH-CH520",
+        59.99
+      ],
+      [
+        18,
+        "Audifonos Noise Cancel Anker Q20",
+        39.99
+      ],
+      [
+        19,
+        "Parlante Portatil JBL Go 3",
+        39.99
+      ],
+      [
+        20,
+        "Parlante Bluetooth Sony SRS-XB13",
+        59.99
+      ],
+      [
+        21,
+        "Auriculares Gaming HyperX Cloud",
+        79.99
+      ],
+      [
+        22,
+        "Microfonon USB Blue Snowball",
+        69.99
+      ],
+      [
+        23,
+        "Earbuds TWS Xiaomi Redmi Buds 4",
+        34.99
+      ],
+      [
+        24,
+        "Smartwatch ProX 3 Ultra",
+        89.99
+      ],
+      [
+        25,
+        "Smartband Xiaomi Mi Band 8",
+        39.99
+      ],
+      [
+        26,
+        "Reloj Deportivo Garmin Forerunner",
+        199.99
+      ],
+      [
+        27,
+        "Smartwatch Samsung Galaxy Watch 4",
+        149.99
+      ],
+      [
+        28,
+        "Fitness Tracker Fitbit Inspire 3",
+        79.99
+      ],
+      [
+        29,
+        "Pulsera Actividad Huawei Band 7",
+        49.99
+      ],
+      [
+        30,
+        "Gafas Inteligentes Ray-Ban Stories",
+        149.99
+      ],
+      [
+        31,
+        "Freidora Aire Philips 4.1L",
+        89.99
+      ],
+      [
+        32,
+        "Hervidor Electrico Oster 1.7L",
+        24.99
+      ],
+      [
+        33,
+        "Cafetera Nespresso Essenza Mini",
+        99.99
+      ],
+      [
+        34,
+        "Licuadora Black+Decker 600W",
+        34.99
+      ],
+      [
+        35,
+        "Aspiradora Vertical Rowenta",
+        79.99
+      ],
+      [
+        36,
+        "Plancha de Vapor Oster",
+        29.99
+      ],
+      [
+        37,
+        "Sandwichera Imaco SGP2000",
+        19.99
+      ],
+      [
+        38,
+        "Ventilador Torre Liliana 45cm",
+        44.99
+      ],
+      [
+        39,
+        "Campera Invierno ThermoShield",
+        79.99
+      ],
+      [
+        40,
+        "Vestido Fiesta EleganceNight",
+        59.99
+      ],
+      [
+        41,
+        "Zapatillas Nike Revolution 6",
+        74.99
+      ],
+      [
+        42,
+        "Jeans Clasico Wrangler",
+        44.99
+      ],
+      [
+        43,
+        "Remera Polo LACOSTE Essential",
+        59.99
+      ],
+      [
+        44,
+        "Zapatillas Adidas Duramo 10",
+        64.99
+      ],
+      [
+        45,
+        "Mochila Samsonite Classic 25L",
+        69.99
+      ],
+      [
+        46,
+        "Campera Rompeviento Columbia",
+        89.99
+      ],
+      [
+        47,
+        "Shorts Deportivo Champion",
+        29.99
+      ],
+      [
+        48,
+        "Medias Pack x6 Hanes",
+        14.99
+      ],
+      [
+        49,
+        "Colchoneta Yoga 6mm Domyos",
+        24.99
+      ],
+      [
+        50,
+        "Mancuernas Fijas 5kg par",
+        29.99
+      ]
+    ],
+    "expected_row_count_approx": 90,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Ejercicio 03",
+    "briefing_ref": "Briefing 1.3",
+    "lesson_ref": "Lección 3",
+    "reference_query": "SELECT DISTINCT email\nFROM customers;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "email"
+    ],
+    "sample_rows": [
+      [
+        "adriana.aguilar@hotmail.com"
+      ],
+      [
+        "adriana.campos@outlook.com"
+      ],
+      [
+        "adriana.medina@protonmail.com"
+      ],
+      [
+        "adriana.mendoza@yahoo.com"
+      ],
+      [
+        "adriana.morales@icloud.com"
+      ],
+      [
+        "adriana.ortiz@outlook.com"
+      ],
+      [
+        "adriana.ramirez@protonmail.com"
+      ],
+      [
+        "alberto.espinoza@icloud.com"
+      ],
+      [
+        "alberto.guerrero@hotmail.com"
+      ],
+      [
+        "alberto.mendoza@gmail.com"
+      ],
+      [
+        "alberto.pena@gmail.com"
+      ],
+      [
+        "alberto.pena@outlook.com"
+      ],
+      [
+        "alberto.romero@yahoo.com"
+      ],
+      [
+        "alberto.torres@protonmail.com"
+      ],
+      [
+        "alejandro.delgado@outlook.com"
+      ],
+      [
+        "alejandro.reyes@yahoo.com"
+      ],
+      [
+        "alicia.castillo@gmail.com"
+      ],
+      [
+        "alicia.hernandez@outlook.com"
+      ],
+      [
+        "alicia.hernandez@protonmail.com"
+      ],
+      [
+        "alicia.perez@icloud.com"
+      ],
+      [
+        "alicia.perez@outlook.com"
+      ],
+      [
+        "alicia.ruiz@yahoo.com"
+      ],
+      [
+        "alicia.soto@outlook.com"
+      ],
+      [
+        "alicia.torres@hotmail.com"
+      ],
+      [
+        "amanda.johnson@yahoo.com"
+      ],
+      [
+        "amanda.thomas@hotmail.com"
+      ],
+      [
+        "ana.aguilar@protonmail.com"
+      ],
+      [
+        "ana.espinoza544@outlook.com"
+      ],
+      [
+        "ana.espinoza@protonmail.com"
+      ],
+      [
+        "ana.guerrero@hotmail.com"
+      ],
+      [
+        "ana.jimenez539@outlook.com"
+      ],
+      [
+        "ana.mendoza548@outlook.com"
+      ],
+      [
+        "ana.torres@gmail.com"
+      ],
+      [
+        "andres.castillo@yahoo.com"
+      ],
+      [
+        "andres.cruz510@gmail.com"
+      ],
+      [
+        "andres.espinoza523@outlook.com"
+      ],
+      [
+        "andres.espinoza546@outlook.com"
+      ],
+      [
+        "andres.fuentes@outlook.com"
+      ],
+      [
+        "andres.garcia503@gmail.com"
+      ],
+      [
+        "andres.garcia@outlook.com"
+      ],
+      [
+        "andres.gonzalez@yahoo.com"
+      ],
+      [
+        "andres.guerrero@gmail.com"
+      ],
+      [
+        "andres.hernandez@yahoo.com"
+      ],
+      [
+        "andres.medina@icloud.com"
+      ],
+      [
+        "andres.navarro@protonmail.com"
+      ],
+      [
+        "andres.perez@gmail.com"
+      ],
+      [
+        "andres.romero541@outlook.com"
+      ],
+      [
+        "ashley.green@hotmail.com"
+      ],
+      [
+        "ashley.jones@yahoo.com"
+      ],
+      [
+        "ashley.moore@outlook.com"
+      ]
+    ],
+    "expected_row_count_approx": 550,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Ejercicio 04",
+    "briefing_ref": "Briefing 1.4",
+    "lesson_ref": "Lección 4",
+    "reference_query": "SELECT DISTINCT country\nFROM customers\nORDER BY country ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "country"
+    ],
+    "sample_rows": [
+      [
+        "Argentina"
+      ],
+      [
+        "Bolivia"
+      ],
+      [
+        "Chile"
+      ],
+      [
+        "Colombia"
+      ],
+      [
+        "Costa Rica"
+      ],
+      [
+        "Ecuador"
+      ],
+      [
+        "El Salvador"
+      ],
+      [
+        "Guatemala"
+      ],
+      [
+        "Honduras"
+      ],
+      [
+        "Mexico"
+      ],
+      [
+        "Paraguay"
+      ],
+      [
+        "Peru"
+      ],
+      [
+        "Spain"
+      ],
+      [
+        "USA"
+      ],
+      [
+        "Uruguay"
+      ],
+      [
+        "Venezuela"
+      ]
+    ],
+    "expected_row_count_approx": 16,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Ejercicio 05",
+    "briefing_ref": "Briefing 1.5",
+    "lesson_ref": "Lección 5",
+    "reference_query": "SELECT product_id,\n       name  AS producto,\n       price AS precio_usd\nFROM products;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "product_id",
+      "producto",
+      "precio_usd"
+    ],
+    "sample_rows": [
+      [
+        1,
+        "Smartphone Samsung Galaxy A54",
+        349.99
+      ],
+      [
+        2,
+        "Smartphone Xiaomi Redmi Note 13",
+        219.99
+      ],
+      [
+        3,
+        "Laptop Lenovo IdeaPad 3 15\"",
+        549.99
+      ],
+      [
+        4,
+        "Tablet Amazon Fire HD 10",
+        149.99
+      ],
+      [
+        5,
+        "Cargador Inalambrico 15W",
+        29.99
+      ],
+      [
+        6,
+        "Cable USB-C Reforzado 2m",
+        14.99
+      ],
+      [
+        7,
+        "Funda Protectora iPhone 15",
+        24.99
+      ],
+      [
+        8,
+        "Memoria microSD 128GB Samsung",
+        22.99
+      ],
+      [
+        9,
+        "Power Bank 20000mAh Anker",
+        49.99
+      ],
+      [
+        10,
+        "Hub USB-C 7-en-1",
+        39.99
+      ],
+      [
+        11,
+        "Teclado Inalambrico Logitech K380",
+        44.99
+      ],
+      [
+        12,
+        "Mouse Optico Logitech M185",
+        19.99
+      ],
+      [
+        13,
+        "Monitor 24\" LG Full HD",
+        219.99
+      ],
+      [
+        14,
+        "Webcam Logitech C920 HD",
+        79.99
+      ],
+      [
+        15,
+        "Disco SSD Externo 480GB",
+        64.99
+      ],
+      [
+        16,
+        "Auriculares Bluetooth JBL Tune 510",
+        49.99
+      ],
+      [
+        17,
+        "Audifonos Sony WH-CH520",
+        59.99
+      ],
+      [
+        18,
+        "Audifonos Noise Cancel Anker Q20",
+        39.99
+      ],
+      [
+        19,
+        "Parlante Portatil JBL Go 3",
+        39.99
+      ],
+      [
+        20,
+        "Parlante Bluetooth Sony SRS-XB13",
+        59.99
+      ],
+      [
+        21,
+        "Auriculares Gaming HyperX Cloud",
+        79.99
+      ],
+      [
+        22,
+        "Microfonon USB Blue Snowball",
+        69.99
+      ],
+      [
+        23,
+        "Earbuds TWS Xiaomi Redmi Buds 4",
+        34.99
+      ],
+      [
+        24,
+        "Smartwatch ProX 3 Ultra",
+        89.99
+      ],
+      [
+        25,
+        "Smartband Xiaomi Mi Band 8",
+        39.99
+      ],
+      [
+        26,
+        "Reloj Deportivo Garmin Forerunner",
+        199.99
+      ],
+      [
+        27,
+        "Smartwatch Samsung Galaxy Watch 4",
+        149.99
+      ],
+      [
+        28,
+        "Fitness Tracker Fitbit Inspire 3",
+        79.99
+      ],
+      [
+        29,
+        "Pulsera Actividad Huawei Band 7",
+        49.99
+      ],
+      [
+        30,
+        "Gafas Inteligentes Ray-Ban Stories",
+        149.99
+      ],
+      [
+        31,
+        "Freidora Aire Philips 4.1L",
+        89.99
+      ],
+      [
+        32,
+        "Hervidor Electrico Oster 1.7L",
+        24.99
+      ],
+      [
+        33,
+        "Cafetera Nespresso Essenza Mini",
+        99.99
+      ],
+      [
+        34,
+        "Licuadora Black+Decker 600W",
+        34.99
+      ],
+      [
+        35,
+        "Aspiradora Vertical Rowenta",
+        79.99
+      ],
+      [
+        36,
+        "Plancha de Vapor Oster",
+        29.99
+      ],
+      [
+        37,
+        "Sandwichera Imaco SGP2000",
+        19.99
+      ],
+      [
+        38,
+        "Ventilador Torre Liliana 45cm",
+        44.99
+      ],
+      [
+        39,
+        "Campera Invierno ThermoShield",
+        79.99
+      ],
+      [
+        40,
+        "Vestido Fiesta EleganceNight",
+        59.99
+      ],
+      [
+        41,
+        "Zapatillas Nike Revolution 6",
+        74.99
+      ],
+      [
+        42,
+        "Jeans Clasico Wrangler",
+        44.99
+      ],
+      [
+        43,
+        "Remera Polo LACOSTE Essential",
+        59.99
+      ],
+      [
+        44,
+        "Zapatillas Adidas Duramo 10",
+        64.99
+      ],
+      [
+        45,
+        "Mochila Samsonite Classic 25L",
+        69.99
+      ],
+      [
+        46,
+        "Campera Rompeviento Columbia",
+        89.99
+      ],
+      [
+        47,
+        "Shorts Deportivo Champion",
+        29.99
+      ],
+      [
+        48,
+        "Medias Pack x6 Hanes",
+        14.99
+      ],
+      [
+        49,
+        "Colchoneta Yoga 6mm Domyos",
+        24.99
+      ],
+      [
+        50,
+        "Mancuernas Fijas 5kg par",
+        29.99
+      ]
+    ],
+    "expected_row_count_approx": 90,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Ejercicio 06",
+    "briefing_ref": "Briefing 1.6",
+    "lesson_ref": "Lección 6",
+    "reference_query": "SELECT name, price, is_active\nFROM products\nWHERE is_active = FALSE;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "name",
+      "price",
+      "is_active"
+    ],
+    "sample_rows": [
+      [
+        "Sandwichera Imaco SGP2000",
+        19.99,
+        0
+      ],
+      [
+        "Shorts Deportivo Champion",
+        29.99,
+        0
+      ],
+      [
+        "Cuerda de Saltar PVC",
+        9.99,
+        0
+      ],
+      [
+        "Puzzle 1000 piezas Ravensburger",
+        19.99,
+        0
+      ]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Ejercicio 07",
+    "briefing_ref": "Briefing 1.7",
+    "lesson_ref": "Lección 7",
+    "reference_query": "SELECT *\nFROM products\nWHERE price = 14.99;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_unordered",
+    "expected_columns": [
+      "product_id",
+      "name",
+      "category_id",
+      "price",
+      "is_active"
+    ],
+    "sample_rows": [
+      [
+        6,
+        "Cable USB-C Reforzado 2m",
+        1,
+        14.99,
+        1
+      ],
+      [
+        48,
+        "Medias Pack x6 Hanes",
+        5,
+        14.99,
+        1
+      ],
+      [
+        64,
+        "Crema Hidratante Nivea Q10 200ml",
+        8,
+        14.99,
+        1
+      ],
+      [
+        68,
+        "Mascarilla Facial Sheet Pack x10",
+        8,
+        14.99,
+        1
+      ],
+      [
+        74,
+        "Funko Pop Harry Potter",
+        9,
+        14.99,
+        1
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Ejercicio 08",
+    "briefing_ref": "Briefing 1.8",
+    "lesson_ref": "Lección 8",
+    "reference_query": "SELECT first_name, last_name, email, country\nFROM customers\nWHERE country IN ('Argentina', 'Chile', 'Uruguay')\nORDER BY country, last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "first_name",
+      "last_name",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        "Silvia",
+        "Aguilar",
+        "silvia.aguilar@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Ivan",
+        "Alvarez",
+        "ivan.alvarez@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Pedro",
+        "Bravo",
+        "pedro.bravo@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Emilio",
+        "Bravo",
+        "emilio.bravo@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Sofia",
+        "Castillo",
+        "sofia.castillo529@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Kenneth",
+        "Clark",
+        "kenneth.clark@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Mario",
+        "Delgado",
+        "mario.delgado@hotmail.com",
+        "Argentina"
+      ],
+      [
+        "Beatriz",
+        "Dominguez",
+        "beatriz.dominguez@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Oscar",
+        "Espinoza",
+        "oscar.espinoza@gmail.com",
+        "Argentina"
+      ],
+      [
+        "Alberto",
+        "Espinoza",
+        "alberto.espinoza@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Andres",
+        "Espinoza",
+        "andres.espinoza523@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Ana",
+        "Espinoza",
+        "ana.espinoza544@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Sofia",
+        "Gonzalez",
+        "sofia.gonzalez@gmail.com",
+        "Argentina"
+      ],
+      [
+        "Susan",
+        "Green",
+        "susan.green@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Melissa",
+        "Green",
+        "melissa.green@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Elena",
+        "Gutierrez",
+        "elena.gutierrez@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Lorena",
+        "Hernandez",
+        "lorena.hernandez@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Alicia",
+        "Hernandez",
+        "alicia.hernandez@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Raul",
+        "Herrera",
+        "raul.herrera@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Patricia",
+        "Herrera",
+        "patricia.herrera@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Thomas",
+        "Jackson",
+        "thomas.jackson@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Laura",
+        "Jackson",
+        "laura.jackson@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Veronica",
+        "Jimenez",
+        "veronica.jimenez@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Laura",
+        "Jimenez",
+        "laura.jimenez530@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Cynthia",
+        "Lewis",
+        "cynthia.lewis@hotmail.com",
+        "Argentina"
+      ],
+      [
+        "Natalia",
+        "Lopez",
+        "natalia.lopez@hotmail.com",
+        "Argentina"
+      ],
+      [
+        "Marcela",
+        "Martinez",
+        "marcela.martinez@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Adriana",
+        "Medina",
+        "adriana.medina@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Ana",
+        "Mendoza",
+        "ana.mendoza548@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Linda",
+        "Miller",
+        "linda.miller@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Mario",
+        "Moreno",
+        "mario.moreno@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Gloria",
+        "Navarro",
+        "gloria.navarro@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Rodrigo",
+        "Ortiz",
+        "rodrigo.ortiz@gmail.com",
+        "Argentina"
+      ],
+      [
+        "Valentina",
+        "Ortiz",
+        "valentina.ortiz543@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Gabriela",
+        "Pena",
+        "gabriela.pena@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Alberto",
+        "Pena",
+        "alberto.pena@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Pedro",
+        "Perez",
+        "pedro.perez@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Isabella",
+        "Ramirez",
+        "isabella.ramirez@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Ivan",
+        "Ramos",
+        "ivan.ramos@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Roberto",
+        "Ramos",
+        "roberto.ramos@protonmail.com",
+        "Argentina"
+      ],
+      [
+        "Ivan",
+        "Reyes",
+        "ivan.reyes@gmail.com",
+        "Argentina"
+      ],
+      [
+        "Laura",
+        "Robinson",
+        "laura.robinson@gmail.com",
+        "Argentina"
+      ],
+      [
+        "Melissa",
+        "Robinson",
+        "melissa.robinson@icloud.com",
+        "Argentina"
+      ],
+      [
+        "Alberto",
+        "Romero",
+        "alberto.romero@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Andres",
+        "Romero",
+        "andres.romero541@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Alicia",
+        "Ruiz",
+        "alicia.ruiz@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Lorena",
+        "Sanchez",
+        "lorena.sanchez@hotmail.com",
+        "Argentina"
+      ],
+      [
+        "Lorena",
+        "Soto",
+        "lorena.soto@outlook.com",
+        "Argentina"
+      ],
+      [
+        "Mark",
+        "Taylor",
+        "mark.taylor@yahoo.com",
+        "Argentina"
+      ],
+      [
+        "Ronald",
+        "Thomas",
+        "ronald.thomas@yahoo.com",
+        "Argentina"
+      ]
+    ],
+    "expected_row_count_approx": 115,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 9,
+    "title": "Ejercicio 09",
+    "briefing_ref": "Briefing 1.9",
+    "lesson_ref": "Lección 9",
+    "reference_query": "SELECT name, price, category_id\nFROM products\nWHERE is_active = TRUE\n  AND price BETWEEN 25 AND 75\nORDER BY price;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "name",
+      "price",
+      "category_id"
+    ],
+    "sample_rows": [
+      [
+        "Serum Vitamina C CeraVe 30ml",
+        28.99,
+        8
+      ],
+      [
+        "Cargador Inalambrico 15W",
+        29.99,
+        1
+      ],
+      [
+        "Plancha de Vapor Oster",
+        29.99,
+        4
+      ],
+      [
+        "Mancuernas Fijas 5kg par",
+        29.99,
+        6
+      ],
+      [
+        "Shampoo Anticaida Kerastase",
+        29.99,
+        8
+      ],
+      [
+        "Monopoly Clasico Hasbro",
+        29.99,
+        9
+      ],
+      [
+        "Soporte Laptop Aluminio Ajustable",
+        29.99,
+        10
+      ],
+      [
+        "Earbuds TWS Xiaomi Redmi Buds 4",
+        34.99,
+        2
+      ],
+      [
+        "Licuadora Black+Decker 600W",
+        34.99,
+        4
+      ],
+      [
+        "Bolsa Gimnasio Nike Brasilia 30L",
+        34.99,
+        6
+      ],
+      [
+        "Python Crash Course 3rd Ed",
+        34.99,
+        7
+      ],
+      [
+        "Perfume Zara Gardenia 80ml",
+        34.99,
+        8
+      ],
+      [
+        "LEGO Classic Set 300 piezas",
+        34.99,
+        9
+      ],
+      [
+        "Lampara LED Escritorio con USB",
+        34.99,
+        10
+      ],
+      [
+        "Hub USB-C 7-en-1",
+        39.99,
+        1
+      ],
+      [
+        "Audifonos Noise Cancel Anker Q20",
+        39.99,
+        2
+      ],
+      [
+        "Parlante Portatil JBL Go 3",
+        39.99,
+        2
+      ],
+      [
+        "Smartband Xiaomi Mi Band 8",
+        39.99,
+        3
+      ],
+      [
+        "Clean Code - Robert C Martin",
+        39.99,
+        7
+      ],
+      [
+        "Set Maquillaje Rimmel London",
+        39.99,
+        8
+      ],
+      [
+        "Teclado Inalambrico Logitech K380",
+        44.99,
+        1
+      ],
+      [
+        "Ventilador Torre Liliana 45cm",
+        44.99,
+        4
+      ],
+      [
+        "Jeans Clasico Wrangler",
+        44.99,
+        5
+      ],
+      [
+        "Kit Skincare Neutrogena 3 pasos",
+        44.99,
+        8
+      ],
+      [
+        "Power Bank 20000mAh Anker",
+        49.99,
+        1
+      ],
+      [
+        "Auriculares Bluetooth JBL Tune 510",
+        49.99,
+        2
+      ],
+      [
+        "Pulsera Actividad Huawei Band 7",
+        49.99,
+        3
+      ],
+      [
+        "Casco Bici Urbano Giro Ember",
+        54.99,
+        6
+      ],
+      [
+        "Audifonos Sony WH-CH520",
+        59.99,
+        2
+      ],
+      [
+        "Parlante Bluetooth Sony SRS-XB13",
+        59.99,
+        2
+      ],
+      [
+        "Vestido Fiesta EleganceNight",
+        59.99,
+        5
+      ],
+      [
+        "Remera Polo LACOSTE Essential",
+        59.99,
+        5
+      ],
+      [
+        "Disco SSD Externo 480GB",
+        64.99,
+        1
+      ],
+      [
+        "Zapatillas Adidas Duramo 10",
+        64.99,
+        5
+      ],
+      [
+        "Microfonon USB Blue Snowball",
+        69.99,
+        2
+      ],
+      [
+        "Mochila Samsonite Classic 25L",
+        69.99,
+        5
+      ],
+      [
+        "Zapatillas Nike Revolution 6",
+        74.99,
+        5
+      ]
+    ],
+    "expected_row_count_approx": 37,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 10,
+    "title": "Ejercicio 10",
+    "briefing_ref": "Briefing 1.10",
+    "lesson_ref": "Lección 10",
+    "reference_query": "SELECT customer_id, first_name, last_name, country\nFROM customers\nWHERE city IS NULL\nORDER BY country, last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "customer_id",
+      "first_name",
+      "last_name",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        25,
+        "Raul",
+        "Herrera",
+        "Argentina"
+      ],
+      [
+        16,
+        "Lorena",
+        "Soto",
+        "Argentina"
+      ],
+      [
+        24,
+        "Ricardo",
+        "Aguilar",
+        "Bolivia"
+      ],
+      [
+        6,
+        "Raul",
+        "Castillo",
+        "Chile"
+      ],
+      [
+        21,
+        "Mario",
+        "Hernandez",
+        "Chile"
+      ],
+      [
+        4,
+        "Mark",
+        "Moore",
+        "Colombia"
+      ],
+      [
+        13,
+        "Miguel",
+        "Ortiz",
+        "Colombia"
+      ],
+      [
+        15,
+        "Jorge",
+        "Gonzalez",
+        "Costa Rica"
+      ],
+      [
+        11,
+        "Ronald",
+        "Harris",
+        "Ecuador"
+      ],
+      [
+        10,
+        "Adriana",
+        "Morales",
+        "El Salvador"
+      ],
+      [
+        19,
+        "Sharon",
+        "Thompson",
+        "El Salvador"
+      ],
+      [
+        29,
+        "Susan",
+        "Allen",
+        "Honduras"
+      ],
+      [
+        17,
+        "Joseph",
+        "Thompson",
+        "Honduras"
+      ],
+      [
+        22,
+        "Pablo",
+        "Aguilar",
+        "Mexico"
+      ],
+      [
+        7,
+        "Patricia",
+        "Herrera",
+        "Mexico"
+      ],
+      [
+        14,
+        "Claudia",
+        "Bravo",
+        "Paraguay"
+      ],
+      [
+        26,
+        "Carlos",
+        "Moreno",
+        "Paraguay"
+      ],
+      [
+        28,
+        "Roberto",
+        "Ruiz",
+        "Paraguay"
+      ],
+      [
+        27,
+        "Marcela",
+        "Aguilar",
+        "Peru"
+      ],
+      [
+        12,
+        "Steven",
+        "Hall",
+        "Peru"
+      ],
+      [
+        23,
+        "Lorena",
+        "Torres",
+        "Peru"
+      ],
+      [
+        2,
+        "Sofia",
+        "Sanchez",
+        "Spain"
+      ],
+      [
+        30,
+        "Rebecca",
+        "Smith",
+        "Spain"
+      ],
+      [
+        3,
+        "Natalia",
+        "Guerrero",
+        "USA"
+      ],
+      [
+        20,
+        "Rafael",
+        "Ramos",
+        "USA"
+      ],
+      [
+        18,
+        "Ashley",
+        "Thomas",
+        "USA"
+      ],
+      [
+        9,
+        "Elena",
+        "Campos",
+        "Venezuela"
+      ],
+      [
+        1,
+        "Fernanda",
+        "Guerrero",
+        "Venezuela"
+      ],
+      [
+        8,
+        "Oscar",
+        "Pena",
+        "Venezuela"
+      ],
+      [
+        5,
+        "Patricia",
+        "Sanchez",
+        "Venezuela"
+      ]
+    ],
+    "expected_row_count_approx": 30,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 11,
+    "title": "Ejercicio 11",
+    "briefing_ref": "Briefing 1.11",
+    "lesson_ref": "Lección 11",
+    "reference_query": "SELECT name, price\nFROM products\nWHERE name LIKE 'Auricular%'\n   OR name LIKE 'Audifonos%'\nORDER BY name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "name",
+      "price"
+    ],
+    "sample_rows": [
+      [
+        "Audifonos Noise Cancel Anker Q20",
+        39.99
+      ],
+      [
+        "Audifonos Sony WH-CH520",
+        59.99
+      ],
+      [
+        "Auriculares Bluetooth JBL Tune 510",
+        49.99
+      ],
+      [
+        "Auriculares Gaming HyperX Cloud",
+        79.99
+      ]
+    ],
+    "expected_row_count_approx": 4,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 12,
+    "title": "Ejercicio 12",
+    "briefing_ref": "Briefing 1.12",
+    "lesson_ref": "Lección 12",
+    "reference_query": "SELECT first_name, last_name, email, country\nFROM customers\nWHERE email LIKE '%@gmail.com'\n  AND country IN ('Mexico', 'Colombia')\nORDER BY country, last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "first_name",
+      "last_name",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        "Elena",
+        "Alvarez",
+        "elena.alvarez@gmail.com",
+        "Colombia"
+      ],
+      [
+        "Alberto",
+        "Mendoza",
+        "alberto.mendoza@gmail.com",
+        "Colombia"
+      ],
+      [
+        "Pablo",
+        "Aguilar",
+        "pablo.aguilar@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Eduardo",
+        "Gutierrez",
+        "eduardo.gutierrez@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Gloria",
+        "Gutierrez",
+        "gloria.gutierrez@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Joseph",
+        "Hall",
+        "joseph.hall@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Richard",
+        "Jones",
+        "richard.jones@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Fernanda",
+        "Mendoza",
+        "fernanda.mendoza@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Isabella",
+        "Morales",
+        "isabella.morales@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Patricia",
+        "Ramos",
+        "patricia.ramos@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Ana",
+        "Torres",
+        "ana.torres@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Ricardo",
+        "Vega",
+        "ricardo.vega@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Charles",
+        "White",
+        "charles.white@gmail.com",
+        "Mexico"
+      ]
+    ],
+    "expected_row_count_approx": 13,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 13,
+    "title": "Ejercicio 13",
+    "briefing_ref": "Briefing 1.13",
+    "lesson_ref": "Lección 13",
+    "reference_query": "SELECT name, price, category_id\nFROM products\nWHERE category_id IN (1, 2)\n  AND is_active = TRUE\n  AND price > 30\nORDER BY category_id, price DESC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "name",
+      "price",
+      "category_id"
+    ],
+    "sample_rows": [
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        549.99,
+        1
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        349.99,
+        1
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        219.99,
+        1
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        219.99,
+        1
+      ],
+      [
+        "Tablet Amazon Fire HD 10",
+        149.99,
+        1
+      ],
+      [
+        "Webcam Logitech C920 HD",
+        79.99,
+        1
+      ],
+      [
+        "Disco SSD Externo 480GB",
+        64.99,
+        1
+      ],
+      [
+        "Power Bank 20000mAh Anker",
+        49.99,
+        1
+      ],
+      [
+        "Teclado Inalambrico Logitech K380",
+        44.99,
+        1
+      ],
+      [
+        "Hub USB-C 7-en-1",
+        39.99,
+        1
+      ],
+      [
+        "Auriculares Gaming HyperX Cloud",
+        79.99,
+        2
+      ],
+      [
+        "Microfonon USB Blue Snowball",
+        69.99,
+        2
+      ],
+      [
+        "Audifonos Sony WH-CH520",
+        59.99,
+        2
+      ],
+      [
+        "Parlante Bluetooth Sony SRS-XB13",
+        59.99,
+        2
+      ],
+      [
+        "Auriculares Bluetooth JBL Tune 510",
+        49.99,
+        2
+      ],
+      [
+        "Audifonos Noise Cancel Anker Q20",
+        39.99,
+        2
+      ],
+      [
+        "Parlante Portatil JBL Go 3",
+        39.99,
+        2
+      ],
+      [
+        "Earbuds TWS Xiaomi Redmi Buds 4",
+        34.99,
+        2
+      ]
+    ],
+    "expected_row_count_approx": 18,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 14,
+    "title": "Ejercicio 14",
+    "briefing_ref": "Briefing 1.14",
+    "lesson_ref": "Lección 14",
+    "reference_query": "SELECT name, price\nFROM products\nORDER BY price DESC, name ASC\nLIMIT 10;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "name",
+      "price"
+    ],
+    "sample_rows": [
+      [
+        "Laptop Lenovo IdeaPad 3 15\"",
+        549.99
+      ],
+      [
+        "Estufa Bioetanol Design",
+        389.99
+      ],
+      [
+        "Smartphone Samsung Galaxy A54",
+        349.99
+      ],
+      [
+        "Lampara de Pie Design Nordico",
+        299.99
+      ],
+      [
+        "Cuchillos Chef Zwilling 3pz",
+        249.99
+      ],
+      [
+        "Juego Sabanas Percal 300 hilos",
+        219.99
+      ],
+      [
+        "Monitor 24\" LG Full HD",
+        219.99
+      ],
+      [
+        "Smartphone Xiaomi Redmi Note 13",
+        219.99
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        199.99
+      ],
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        199.99
+      ]
+    ],
+    "expected_row_count_approx": 10,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 15,
+    "title": "Ejercicio 15",
+    "briefing_ref": "Briefing 1.15",
+    "lesson_ref": "Lección 15",
+    "reference_query": "SELECT first_name, last_name, country, registered_at\nFROM customers\nORDER BY registered_at DESC\nLIMIT 5;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "first_name",
+      "last_name",
+      "country",
+      "registered_at"
+    ],
+    "sample_rows": [
+      [
+        "Juan",
+        "Chavez",
+        "Colombia",
+        "2025-09-28"
+      ],
+      [
+        "Valentina",
+        "Navarro",
+        "Chile",
+        "2025-09-27"
+      ],
+      [
+        "Ana",
+        "Jimenez",
+        "Colombia",
+        "2025-09-27"
+      ],
+      [
+        "Laura",
+        "Jimenez",
+        "Argentina",
+        "2025-09-26"
+      ],
+      [
+        "Andres",
+        "Romero",
+        "Argentina",
+        "2025-09-26"
+      ]
+    ],
+    "expected_row_count_approx": 5,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 16,
+    "title": "Ejercicio 16",
+    "briefing_ref": "Briefing 1.16",
+    "lesson_ref": "Lección 16",
+    "reference_query": "SELECT name, price\nFROM products\nWHERE is_active = TRUE\nORDER BY price DESC\nLIMIT 8\nOFFSET 8;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "name",
+      "price"
+    ],
+    "sample_rows": [
+      [
+        "Reloj Deportivo Garmin Forerunner",
+        199.99
+      ],
+      [
+        "Nintendo Switch Lite Amarillo",
+        199.99
+      ],
+      [
+        "Set Cubiertos Inox Tramontina 24pz",
+        189.99
+      ],
+      [
+        "Almohada Memory Foam Premium",
+        169.99
+      ],
+      [
+        "Tablet Amazon Fire HD 10",
+        149.99
+      ],
+      [
+        "Smartwatch Samsung Galaxy Watch 4",
+        149.99
+      ],
+      [
+        "Gafas Inteligentes Ray-Ban Stories",
+        149.99
+      ],
+      [
+        "Silla de Oficina Ergonomica MiDesk",
+        149.99
+      ]
+    ],
+    "expected_row_count_approx": 8,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 17,
+    "title": "Ejercicio 17",
+    "briefing_ref": "Briefing 1.17",
+    "lesson_ref": "Lección 17",
+    "reference_query": "SELECT name, price\nFROM products\nWHERE category_id = 7\n  AND is_active = TRUE\nORDER BY price ASC\nLIMIT 3;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "name",
+      "price"
+    ],
+    "sample_rows": [
+      [
+        "El Principe - Maquiavelo",
+        12.99
+      ],
+      [
+        "Cien Anos de Soledad",
+        13.99
+      ],
+      [
+        "Sapiens - Yuval Noah Harari",
+        16.99
+      ]
+    ],
+    "expected_row_count_approx": 3,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 18,
+    "title": "Ejercicio 18",
+    "briefing_ref": "Briefing 1.18",
+    "lesson_ref": "Lección 18",
+    "reference_query": "SELECT\n    first_name || ' ' || last_name  AS nombre_completo,\n    email,\n    country\nFROM customers\nWHERE country = 'Mexico'\nORDER BY last_name;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_completo",
+      "email",
+      "country"
+    ],
+    "sample_rows": [
+      [
+        "Pablo Aguilar",
+        "pablo.aguilar@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Ana Aguilar",
+        "ana.aguilar@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Camila Aguilar",
+        "camila.aguilar538@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Gustavo Alvarez",
+        "gustavo.alvarez@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Diego Alvarez",
+        "diego.alvarez2@yahoo.com",
+        "Mexico"
+      ],
+      [
+        "Fernando Alvarez",
+        "fernando.alvarez@icloud.com",
+        "Mexico"
+      ],
+      [
+        "Rafael Bravo",
+        "rafael.bravo@outlook.com",
+        "Mexico"
+      ],
+      [
+        "David Brown",
+        "david.brown@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Jorge Chavez",
+        "jorge.chavez@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Rafael Chavez",
+        "rafael.chavez@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Roberto Cruz",
+        "roberto.cruz537@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Melissa Davis",
+        "melissa.davis@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Claudia Espinoza",
+        "claudia.espinoza@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Jorge Espinoza",
+        "jorge.espinoza@icloud.com",
+        "Mexico"
+      ],
+      [
+        "Raul Flores",
+        "raul.flores@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Claudia Fuentes",
+        "claudia.fuentes2@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Carlos Fuentes",
+        "carlos.fuentes@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Sergio Gonzalez",
+        "sergio.gonzalez@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Ana Guerrero",
+        "ana.guerrero@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Carlos Guerrero",
+        "carlos.guerrero@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Eduardo Gutierrez",
+        "eduardo.gutierrez@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Isabella Gutierrez",
+        "isabella.gutierrez@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Teresa Gutierrez",
+        "teresa.gutierrez@yahoo.com",
+        "Mexico"
+      ],
+      [
+        "Daniela Gutierrez",
+        "daniela.gutierrez@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Gloria Gutierrez",
+        "gloria.gutierrez@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Joseph Hall",
+        "joseph.hall@gmail.com",
+        "Mexico"
+      ],
+      [
+        "David Harris",
+        "david.harris@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Alicia Hernandez",
+        "alicia.hernandez@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Patricia Herrera",
+        "patricia.herrera@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Sebastian Herrera",
+        "sebastian.herrera@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Gustavo Herrera",
+        "gustavo.herrera@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Maria Jimenez",
+        "maria.jimenez528@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Emily Jones",
+        "emily.jones@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Richard Jones",
+        "richard.jones@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Thomas Martin",
+        "thomas.martin@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Rafael Medina",
+        "rafael.medina@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Emilio Medina",
+        "emilio.medina@protonmail.com",
+        "Mexico"
+      ],
+      [
+        "Fernanda Mendoza",
+        "fernanda.mendoza@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Gloria Mendoza",
+        "gloria.mendoza@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Carlos Mendoza",
+        "carlos.mendoza524@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Edward Miller",
+        "edward.miller@yahoo.com",
+        "Mexico"
+      ],
+      [
+        "Susan Moore",
+        "susan.moore@icloud.com",
+        "Mexico"
+      ],
+      [
+        "James Moore",
+        "james.moore@yahoo.com",
+        "Mexico"
+      ],
+      [
+        "Isabella Morales",
+        "isabella.morales@gmail.com",
+        "Mexico"
+      ],
+      [
+        "Valentina Morales",
+        "valentina.morales549@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Carolina Moreno",
+        "carolina.moreno@hotmail.com",
+        "Mexico"
+      ],
+      [
+        "Isabella Navarro",
+        "isabella.navarro@icloud.com",
+        "Mexico"
+      ],
+      [
+        "Juan Ortiz",
+        "juan.ortiz535@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Alicia Perez",
+        "alicia.perez@outlook.com",
+        "Mexico"
+      ],
+      [
+        "Roberto Ramirez",
+        "roberto.ramirez@outlook.com",
+        "Mexico"
+      ]
+    ],
+    "expected_row_count_approx": 64,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 19,
+    "title": "Ejercicio 19",
+    "briefing_ref": "Briefing 1.19",
+    "lesson_ref": "Lección 19",
+    "reference_query": "SELECT\n    UPPER(name)          AS nombre_producto,\n    ROUND(price)         AS precio_entero,\n    category_id\nFROM products\nWHERE is_active = TRUE\nORDER BY nombre_producto;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_producto",
+      "precio_entero",
+      "category_id"
+    ],
+    "sample_rows": [
+      [
+        "ALMOHADA MEMORY FOAM PREMIUM",
+        170.0,
+        4
+      ],
+      [
+        "ASPIRADORA VERTICAL ROWENTA",
+        80.0,
+        4
+      ],
+      [
+        "ATOMIC HABITS - JAMES CLEAR",
+        19.0,
+        7
+      ],
+      [
+        "AUDIFONOS NOISE CANCEL ANKER Q20",
+        40.0,
+        2
+      ],
+      [
+        "AUDIFONOS SONY WH-CH520",
+        60.0,
+        2
+      ],
+      [
+        "AURICULARES BLUETOOTH JBL TUNE 510",
+        50.0,
+        2
+      ],
+      [
+        "AURICULARES GAMING HYPERX CLOUD",
+        80.0,
+        2
+      ],
+      [
+        "BOLSA GIMNASIO NIKE BRASILIA 30L",
+        35.0,
+        6
+      ],
+      [
+        "BOTELLA DEPORTIVA 750ML CAMELBAK",
+        25.0,
+        6
+      ],
+      [
+        "CABLE USB-C REFORZADO 2M",
+        15.0,
+        1
+      ],
+      [
+        "CAFETERA DE PRENSA BODUM 1L",
+        150.0,
+        4
+      ],
+      [
+        "CAFETERA NESPRESSO ESSENZA MINI",
+        100.0,
+        4
+      ],
+      [
+        "CAMPERA INVIERNO THERMOSHIELD",
+        80.0,
+        5
+      ],
+      [
+        "CAMPERA ROMPEVIENTO COLUMBIA",
+        90.0,
+        5
+      ],
+      [
+        "CARGADOR INALAMBRICO 15W",
+        30.0,
+        1
+      ],
+      [
+        "CASCO BICI URBANO GIRO EMBER",
+        55.0,
+        6
+      ],
+      [
+        "CIEN ANOS DE SOLEDAD",
+        14.0,
+        7
+      ],
+      [
+        "CLEAN CODE - ROBERT C MARTIN",
+        40.0,
+        7
+      ],
+      [
+        "COLCHONETA YOGA 6MM DOMYOS",
+        25.0,
+        6
+      ],
+      [
+        "CREMA HIDRATANTE NIVEA Q10 200ML",
+        15.0,
+        8
+      ],
+      [
+        "CUCHILLOS CHEF ZWILLING 3PZ",
+        250.0,
+        4
+      ],
+      [
+        "DISCO SSD EXTERNO 480GB",
+        65.0,
+        1
+      ],
+      [
+        "DRONE MINI DJI TELLO",
+        100.0,
+        9
+      ],
+      [
+        "EARBUDS TWS XIAOMI REDMI BUDS 4",
+        35.0,
+        2
+      ],
+      [
+        "EL PRINCIPE - MAQUIAVELO",
+        13.0,
+        7
+      ],
+      [
+        "ESTUFA BIOETANOL DESIGN",
+        390.0,
+        4
+      ],
+      [
+        "FITNESS TRACKER FITBIT INSPIRE 3",
+        80.0,
+        3
+      ],
+      [
+        "FREIDORA AIRE PHILIPS 4.1L",
+        90.0,
+        4
+      ],
+      [
+        "FUNDA PROTECTORA IPHONE 15",
+        25.0,
+        1
+      ],
+      [
+        "FUNKO POP HARRY POTTER",
+        15.0,
+        9
+      ],
+      [
+        "GAFAS INTELIGENTES RAY-BAN STORIES",
+        150.0,
+        3
+      ],
+      [
+        "HERVIDOR ELECTRICO OSTER 1.7L",
+        25.0,
+        4
+      ],
+      [
+        "HUB USB-C 7-EN-1",
+        40.0,
+        1
+      ],
+      [
+        "IMPRESORA HP DESKJET 2775",
+        80.0,
+        10
+      ],
+      [
+        "JEANS CLASICO WRANGLER",
+        45.0,
+        5
+      ],
+      [
+        "JUEGO SABANAS PERCAL 300 HILOS",
+        220.0,
+        4
+      ],
+      [
+        "KIT SKINCARE NEUTROGENA 3 PASOS",
+        45.0,
+        8
+      ],
+      [
+        "LAMPARA DE PIE DESIGN NORDICO",
+        300.0,
+        4
+      ],
+      [
+        "LAMPARA LED ESCRITORIO CON USB",
+        35.0,
+        10
+      ],
+      [
+        "LAPTOP LENOVO IDEAPAD 3 15\"",
+        550.0,
+        1
+      ],
+      [
+        "LEGO CLASSIC SET 300 PIEZAS",
+        35.0,
+        9
+      ],
+      [
+        "LICUADORA BLACK+DECKER 600W",
+        35.0,
+        4
+      ],
+      [
+        "MANCUERNAS FIJAS 5KG PAR",
+        30.0,
+        6
+      ],
+      [
+        "MASCARILLA FACIAL SHEET PACK X10",
+        15.0,
+        8
+      ],
+      [
+        "MEDIAS PACK X6 HANES",
+        15.0,
+        5
+      ],
+      [
+        "MEMORIA MICROSD 128GB SAMSUNG",
+        23.0,
+        1
+      ],
+      [
+        "MICROFONON USB BLUE SNOWBALL",
+        70.0,
+        2
+      ],
+      [
+        "MOCHILA SAMSONITE CLASSIC 25L",
+        70.0,
+        5
+      ],
+      [
+        "MONITOR 24\" LG FULL HD",
+        220.0,
+        1
+      ],
+      [
+        "MONOPOLY CLASICO HASBRO",
+        30.0,
+        9
+      ]
+    ],
+    "expected_row_count_approx": 86,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  },
+  {
+    "exercise_number": 20,
+    "title": "Ejercicio 20",
+    "briefing_ref": "Briefing 1.20",
+    "lesson_ref": "Lección 20",
+    "reference_query": "SELECT\n    first_name || ' ' || last_name                     AS nombre_completo,\n    EXTRACT(YEAR FROM registered_at)                   AS anio_registro,\n    EXTRACT(MONTH FROM registered_at)                  AS mes_registro,\n    DATE_TRUNC('month', registered_at)                 AS cohorte\nFROM customers\nWHERE country = 'Argentina'\nORDER BY cohorte ASC;",
+    "tables_used": [],
+    "join_types": [],
+    "validation_mode": "exact_ordered",
+    "expected_columns": [
+      "nombre_completo",
+      "anio_registro",
+      "mes_registro",
+      "cohorte"
+    ],
+    "sample_rows": [
+      [
+        "Alberto Pena",
+        2023,
+        6,
+        "2023-06-01"
+      ],
+      [
+        "Ivan Alvarez",
+        2023,
+        7,
+        "2023-07-01"
+      ],
+      [
+        "Ronald Thomas",
+        2023,
+        7,
+        "2023-07-01"
+      ],
+      [
+        "David Walker",
+        2023,
+        7,
+        "2023-07-01"
+      ],
+      [
+        "Alicia Ruiz",
+        2023,
+        7,
+        "2023-07-01"
+      ],
+      [
+        "Roberto Ramos",
+        2023,
+        8,
+        "2023-08-01"
+      ],
+      [
+        "Lorena Hernandez",
+        2023,
+        8,
+        "2023-08-01"
+      ],
+      [
+        "Thomas Jackson",
+        2023,
+        10,
+        "2023-10-01"
+      ],
+      [
+        "Paola Vega",
+        2023,
+        10,
+        "2023-10-01"
+      ],
+      [
+        "Elena Gutierrez",
+        2023,
+        10,
+        "2023-10-01"
+      ],
+      [
+        "Pedro Bravo",
+        2023,
+        11,
+        "2023-11-01"
+      ],
+      [
+        "Alberto Romero",
+        2023,
+        11,
+        "2023-11-01"
+      ],
+      [
+        "Oscar Espinoza",
+        2023,
+        12,
+        "2023-12-01"
+      ],
+      [
+        "Rodrigo Ortiz",
+        2023,
+        12,
+        "2023-12-01"
+      ],
+      [
+        "Natalia Lopez",
+        2023,
+        12,
+        "2023-12-01"
+      ],
+      [
+        "Veronica Jimenez",
+        2024,
+        1,
+        "2024-01-01"
+      ],
+      [
+        "Lorena Soto",
+        2024,
+        2,
+        "2024-02-01"
+      ],
+      [
+        "Amanda Thomas",
+        2024,
+        2,
+        "2024-02-01"
+      ],
+      [
+        "Sofia Gonzalez",
+        2024,
+        2,
+        "2024-02-01"
+      ],
+      [
+        "Raul Herrera",
+        2024,
+        3,
+        "2024-03-01"
+      ],
+      [
+        "Marcela Vargas",
+        2024,
+        4,
+        "2024-04-01"
+      ],
+      [
+        "Ivan Ramos",
+        2024,
+        5,
+        "2024-05-01"
+      ],
+      [
+        "Mark Taylor",
+        2024,
+        5,
+        "2024-05-01"
+      ],
+      [
+        "Mario Moreno",
+        2024,
+        5,
+        "2024-05-01"
+      ],
+      [
+        "Adriana Medina",
+        2024,
+        7,
+        "2024-07-01"
+      ],
+      [
+        "Linda Miller",
+        2024,
+        7,
+        "2024-07-01"
+      ],
+      [
+        "Pedro Perez",
+        2024,
+        8,
+        "2024-08-01"
+      ],
+      [
+        "Patricia Herrera",
+        2024,
+        9,
+        "2024-09-01"
+      ],
+      [
+        "Susan Green",
+        2024,
+        9,
+        "2024-09-01"
+      ],
+      [
+        "Melissa Green",
+        2024,
+        9,
+        "2024-09-01"
+      ],
+      [
+        "Gloria Navarro",
+        2024,
+        9,
+        "2024-09-01"
+      ],
+      [
+        "Marcela Martinez",
+        2024,
+        9,
+        "2024-09-01"
+      ],
+      [
+        "Gabriela Pena",
+        2024,
+        9,
+        "2024-09-01"
+      ],
+      [
+        "Emilio Bravo",
+        2024,
+        10,
+        "2024-10-01"
+      ],
+      [
+        "Laura Jackson",
+        2024,
+        10,
+        "2024-10-01"
+      ],
+      [
+        "Cynthia Lewis",
+        2024,
+        10,
+        "2024-10-01"
+      ],
+      [
+        "Lorena Sanchez",
+        2024,
+        10,
+        "2024-10-01"
+      ],
+      [
+        "Beatriz Dominguez",
+        2024,
+        10,
+        "2024-10-01"
+      ],
+      [
+        "Isabella Ramirez",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Mario Delgado",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Laura Robinson",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Melissa Robinson",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Kenneth Clark",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Alberto Espinoza",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Silvia Aguilar",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Alicia Hernandez",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Ivan Reyes",
+        2024,
+        11,
+        "2024-11-01"
+      ],
+      [
+        "Andres Espinoza",
+        2025,
+        9,
+        "2025-09-01"
+      ],
+      [
+        "Sofia Castillo",
+        2025,
+        9,
+        "2025-09-01"
+      ],
+      [
+        "Laura Jimenez",
+        2025,
+        9,
+        "2025-09-01"
+      ]
+    ],
+    "expected_row_count_approx": 54,
+    "notes": "Resultados reales precalculados desde el dataset SQLite."
+  }
+]

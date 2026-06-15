@@ -1,0 +1,247 @@
+[
+  {
+    "exercise_number": 1,
+    "title": "Revenue neto de los ultimos 12 meses desagregado por pais y trimestre",
+    "business_question": "¿Cuanto vale ShopSphere en revenue real? Pagos completados menos reembolsos, por pais y por trimestre. Los inversores quieren la tendencia.",
+    "reference_query_suggestion": "WITH pagos_netos AS (\n  SELECT\n    p.order_id,\n    p.amount,\n    p.status,\n    p.paid_at,\n    c.country\n  FROM payments p\n  INNER JOIN orders o      ON o.order_id    = p.order_id\n  INNER JOIN customers c   ON c.customer_id = o.customer_id\n  WHERE p.paid_at >= CURRENT_DATE - INTERVAL '12 months'\n)\nSELECT\n  country,\n  DATE_TRUNC('quarter', paid_at)::DATE       AS trimestre,\n  ROUND(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 2) AS revenue_bruto,\n  ROUND(SUM(CASE WHEN status = 'refunded'  THEN amount ELSE 0 END), 2) AS reembolsos,\n  ROUND(\n    SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END)\n    - SUM(CASE WHEN status = 'refunded'  THEN amount ELSE 0 END),\n  2)                                         AS revenue_neto\nFROM pagos_netos\nGROUP BY country, DATE_TRUNC('quarter', paid_at)\nORDER BY country, trimestre;",
+    "tables_required": ["payments", "orders", "customers"],
+    "techniques_expected": ["CTE", "CASE WHEN", "DATE_TRUNC", "GROUP BY multidimension", "comparacion de periodos"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "La query retorna revenue agrupado por pais y algun tipo de agrupacion temporal (mes o trimestre).",
+        "Distingue entre pagos completados y reembolsados para calcular el neto.",
+        "El resultado incluye al menos los paises principales del seed (Mexico, Argentina, Colombia, Chile, Peru, Venezuela).",
+        "La tendencia (crecimiento o caida Q1 2025 vs Q1 2026) es identificable en los numeros."
+      ],
+      "excelente": [
+        "Usa DATE_TRUNC o equivalente para agrupar por trimestre exacto (Q1/Q2/Q3/Q4 de cada anio).",
+        "Calcula revenue neto como completados menos reembolsados (no solo filtra por status).",
+        "Incluye una columna de variacion porcentual entre trimestres comparables (LAG o CTE con self-join).",
+        "La interpretacion nombra explicitamente si Q1 2026 crece o cae respecto a Q1 2025 y cuantifica el delta.",
+        "Senala la anomalia de Chile en Q1 2026 aunque no se la hayan pedido explicitamente en esta pregunta.",
+        "El revenue neto de esta pregunta es coherente con los subtotales de la Pregunta 4 (cruce de consistencia)."
+      ],
+      "red_flags": [
+        "Confundir payments.amount con order_items.unit_price * quantity (son medidas distintas).",
+        "Incluir pagos con status 'pending' o 'failed' en el revenue.",
+        "No manejar el caso de payments con status = 'refunded' (deducir del revenue en lugar de ignorar).",
+        "Periodos que no corresponden a los ultimos 12 meses del seed (junio 2025 - mayo 2026 aprox)."
+      ]
+    },
+    "notes": "Este es el KPI central del Capstone. El resultado de esta pregunta debe ser la fuente de verdad que los demas resultados respetan. Un analista excelente verificara que los totales de la P1 son coherentes con los subtotales de P4, P6 y P7. La interpretacion debe mencionar la tendencia, no solo los numeros."
+  },
+  {
+    "exercise_number": 2,
+    "title": "Segmentacion de clientes en 4 niveles de valor con revenue por segmento",
+    "business_question": "¿Quienes son los clientes que sostienen el negocio? 4 segmentos: sin compras / ocasional / recurrente / alto valor. Revenue y porcentaje de revenue por segmento.",
+    "reference_query_suggestion": "WITH clientes_revenue AS (\n  SELECT\n    c.customer_id,\n    c.first_name || ' ' || c.last_name   AS nombre,\n    COUNT(DISTINCT o.order_id)            AS total_pedidos,\n    COALESCE(SUM(p.amount\n      FILTER (WHERE p.status = 'completed')), 0) AS revenue_total\n  FROM customers c\n  LEFT JOIN orders  o ON o.customer_id = c.customer_id\n  LEFT JOIN payments p ON p.order_id   = o.order_id\n  GROUP BY c.customer_id, c.first_name, c.last_name\n),\nsegmentados AS (\n  SELECT\n    customer_id,\n    nombre,\n    total_pedidos,\n    revenue_total,\n    CASE\n      WHEN total_pedidos = 0                        THEN 'sin_compras'\n      WHEN total_pedidos BETWEEN 1 AND 3            THEN 'ocasional'\n      WHEN total_pedidos BETWEEN 4 AND 10           THEN 'recurrente'\n      ELSE                                               'alto_valor'\n    END AS segmento\n  FROM clientes_revenue\n)\nSELECT\n  segmento,\n  COUNT(*)                                                AS total_clientes,\n  ROUND(SUM(revenue_total), 2)                            AS revenue_segmento,\n  ROUND(SUM(revenue_total) * 100.0 / SUM(SUM(revenue_total)) OVER (), 2) AS pct_revenue_total\nFROM segmentados\nGROUP BY segmento\nORDER BY revenue_segmento DESC;",
+    "tables_required": ["customers", "orders", "payments"],
+    "techniques_expected": ["CTE", "CASE WHEN para segmentacion", "LEFT JOIN para incluir clientes sin pedidos", "window function para porcentajes", "GROUP BY sobre columna calculada"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "Define claramente 4 segmentos con criterios numericos justificados (aunque los umbrales difieran de la sugerencia).",
+        "Muestra cantidad de clientes y revenue por segmento.",
+        "Incluye clientes con 0 pedidos en el segmento correspondiente (LEFT JOIN necesario).",
+        "El porcentaje de revenue suma 100% entre todos los segmentos."
+      ],
+      "excelente": [
+        "Los criterios de segmentacion estan documentados con una justificacion de negocio (no solo numeros arbitrarios).",
+        "Usa window function para calcular el porcentaje del revenue total sin necesidad de una subquery adicional.",
+        "La interpretacion nombra explicitamente si hay concentracion de revenue — el riesgo de portafolio si el 80% viene del 20% de clientes.",
+        "Menciona cuantos clientes del seed caen en cada segmento con numeros concretos.",
+        "Propone una accion de negocio para al menos un segmento (ej: campana de reactivacion para 'sin_compras')."
+      ],
+      "red_flags": [
+        "Definir solo 2 o 3 segmentos ignorando la instruccion de 4 niveles.",
+        "Usar revenue de order_items en lugar de payments para esta pregunta (son escalas distintas con la anomalia de Chile).",
+        "Omitir el porcentaje del revenue total — solo mostrar valores absolutos.",
+        "Los porcentajes no suman 100% (error de calculo o doble conteo)."
+      ]
+    },
+    "notes": "El seed tiene 550 clientes. Con los datos del seed, la mayoria de clientes tiene muchos pedidos (el minimo es ~16 pedidos, el maximo es ~176). Esto significa que la segmentacion sugerida (0 / 1-3 / 4-10 / mas de 10) puede dejar muy pocos clientes en los segmentos bajos. El analista excelente ajusta los umbrales de segmentacion a la distribucion real del dataset y justifica el ajuste."
+  },
+  {
+    "exercise_number": 3,
+    "title": "Revenue historico y tasa de conversion por canal de adquisicion",
+    "business_question": "¿Que canales traen los clientes que realmente compran? Revenue total historico por canal (primera sesion del cliente), tasa de conversion y promedio de sesiones antes del primer pedido.",
+    "reference_query_suggestion": "WITH primera_sesion AS (\n  SELECT\n    customer_id,\n    campaign_id,\n    MIN(started_at)  AS primera_sesion_at\n  FROM website_sessions\n  GROUP BY customer_id, campaign_id\n),\ncanal_cliente AS (\n  SELECT\n    ps.customer_id,\n    mc.channel,\n    ps.primera_sesion_at\n  FROM primera_sesion ps\n  INNER JOIN marketing_campaigns mc ON mc.campaign_id = ps.campaign_id\n  WHERE ps.primera_sesion_at = (\n    SELECT MIN(started_at) FROM website_sessions ws2\n    WHERE ws2.customer_id = ps.customer_id\n  )\n),\nrevenue_por_cliente AS (\n  SELECT\n    o.customer_id,\n    SUM(p.amount) FILTER (WHERE p.status = 'completed') AS revenue_cliente\n  FROM orders o\n  INNER JOIN payments p ON p.order_id = o.order_id\n  GROUP BY o.customer_id\n),\nsesiones_por_cliente AS (\n  SELECT customer_id, COUNT(*) AS total_sesiones\n  FROM website_sessions\n  GROUP BY customer_id\n)\nSELECT\n  cc.channel,\n  COUNT(DISTINCT cc.customer_id)                          AS clientes_adquiridos,\n  COUNT(DISTINCT CASE WHEN rpc.revenue_cliente > 0 THEN cc.customer_id END) AS clientes_que_compraron,\n  ROUND(\n    COUNT(DISTINCT CASE WHEN rpc.revenue_cliente > 0 THEN cc.customer_id END)\n    * 100.0 / NULLIF(COUNT(DISTINCT cc.customer_id), 0),\n  2)                                                      AS tasa_conversion_pct,\n  ROUND(SUM(rpc.revenue_cliente), 2)                      AS revenue_total_canal,\n  ROUND(AVG(spc.total_sesiones), 1)                       AS sesiones_promedio\nFROM canal_cliente cc\nLEFT JOIN revenue_por_cliente rpc ON rpc.customer_id = cc.customer_id\nLEFT JOIN sesiones_por_cliente spc ON spc.customer_id = cc.customer_id\nGROUP BY cc.channel\nORDER BY revenue_total_canal DESC;",
+    "tables_required": ["website_sessions", "marketing_campaigns", "orders", "payments", "customers"],
+    "techniques_expected": ["CTEs encadenadas (3+)", "FILTER en agregaciones", "primera sesion con MIN y subquery correlacionada", "LEFT JOIN para clientes sin compras", "tasa de conversion con NULLIF"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "Identifica correctamente el canal de adquisicion usando la primera sesion del cliente (no cualquier sesion).",
+        "Muestra al menos revenue por canal y alguna metrica de conversion.",
+        "Usa los 5 canales del schema: email, social, paid_search, display, affiliate."
+      ],
+      "excelente": [
+        "Distingue entre clientes adquiridos (cualquier sesion) y clientes que efectivamente compraron (primera sesion).",
+        "El promedio de sesiones antes del primer pedido esta correctamente calculado usando solo sesiones anteriores al primer pedido, no todas las sesiones historicas.",
+        "La interpretacion compara el canal con mayor volumen vs el canal con mayor valor generado — si son distintos, lo nombra como hallazgo.",
+        "Identifica si el canal affiliate es el que tiene la anomalia de Chile (sesiones infladas en mar-abr 2026 segun la narrativa del seed).",
+        "No confunde sessions.converted (booleano) con pedidos reales en orders."
+      ],
+      "red_flags": [
+        "Usar cualquier sesion del cliente como canal de adquisicion en lugar de la primera sesion.",
+        "Calcular tasa de conversion como sessions.converted / total_sessions en lugar de clientes que compraron / clientes adquiridos.",
+        "Incluir clientes sin sesion en website_sessions (no todos los clientes del seed tienen sesiones registradas).",
+        "Revenue que no coincide con los totales de la Pregunta 1 para el mismo periodo."
+      ]
+    },
+    "notes": "Esta pregunta requiere las tablas website_sessions y marketing_campaigns ademas de payments, lo que la hace la mas compleja en terminos de numero de tablas. La definicion de 'canal de adquisicion' (primera sesion del cliente) es critica — un error aqui invalida toda la metrica."
+  },
+  {
+    "exercise_number": 4,
+    "title": "Funnel completo por pais en Q1 2026 con tasa de caida por etapa",
+    "business_question": "¿Donde esta perdiendo el funnel en Q1 2026? Por pais: sesiones → sesiones convertidas → pedidos → pedidos entregados. Tasa de caida en cada etapa.",
+    "reference_query_suggestion": "WITH q1_sesiones AS (\n  SELECT\n    c.country,\n    COUNT(*)                                        AS total_sesiones,\n    COUNT(*) FILTER (WHERE ws.converted = TRUE)     AS sesiones_convertidas\n  FROM website_sessions ws\n  INNER JOIN customers c ON c.customer_id = ws.customer_id\n  WHERE ws.started_at >= '2026-01-01' AND ws.started_at < '2026-04-01'\n  GROUP BY c.country\n),\nq1_pedidos AS (\n  SELECT\n    c.country,\n    COUNT(DISTINCT o.order_id)                                                 AS pedidos_creados,\n    COUNT(DISTINCT o.order_id) FILTER (WHERE o.status = 'delivered')           AS pedidos_entregados\n  FROM orders o\n  INNER JOIN customers c ON c.customer_id = o.customer_id\n  WHERE o.ordered_at >= '2026-01-01' AND o.ordered_at < '2026-04-01'\n  GROUP BY c.country\n)\nSELECT\n  s.country,\n  s.total_sesiones,\n  s.sesiones_convertidas,\n  qp.pedidos_creados,\n  qp.pedidos_entregados,\n  ROUND(s.sesiones_convertidas * 100.0 / NULLIF(s.total_sesiones, 0), 2)        AS tasa_conversion_pct,\n  ROUND(qp.pedidos_creados * 100.0 / NULLIF(s.sesiones_convertidas, 0), 2)      AS tasa_intencion_a_pedido_pct,\n  ROUND(qp.pedidos_entregados * 100.0 / NULLIF(qp.pedidos_creados, 0), 2)       AS tasa_entrega_pct\nFROM q1_sesiones s\nINNER JOIN q1_pedidos qp ON qp.country = s.country\nORDER BY s.total_sesiones DESC;",
+    "tables_required": ["website_sessions", "customers", "orders"],
+    "techniques_expected": ["CTEs para desacoplar etapas del funnel", "FILTER en COUNT para multiple condiciones", "NULLIF para division segura", "JOIN entre CTEs con diferentes granularidades"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "Muestra las 4 etapas del funnel (sesiones, conversiones, pedidos, entregas) por pais.",
+        "Calcula al menos una tasa de caida entre etapas.",
+        "El periodo es Q1 2026 (enero 1 - marzo 31 de 2026)."
+      ],
+      "excelente": [
+        "Calcula las tres tasas de caida: sesiones → convertidas, convertidas → pedidos, pedidos → entregados.",
+        "La interpretacion identifica explicitamente que pais tiene una caida atipica y en que etapa.",
+        "Menciona si Chile tiene caida entre pedidos y entrega en Q1 2026 — que es la anomalia narrativa del seed.",
+        "Los numeros de pedidos son coherentes con los de la Pregunta 1 (mismo periodo, mismo filtro de pais).",
+        "Reconoce la limitacion: website_sessions.converted no siempre corresponde a un pedido real (puede haber conversion sin pedido registrado o pedido sin sesion previa registrada)."
+      ],
+      "red_flags": [
+        "Comparar etapas con diferentes periodos de tiempo (sesiones de Q1 vs pedidos de todo el anio).",
+        "Confundir sessions.converted (campo booleano) con pedidos creados — son métricas distintas.",
+        "No identificar la anomalia de Chile aunque los datos la muestren.",
+        "Tasas mayores al 100% (indica error en el denominador o en los filtros de fecha)."
+      ]
+    },
+    "notes": "El funnel tiene una imprecision inherente: las sesiones y los pedidos son granularidades distintas y no siempre se corresponden 1:1 en el mismo trimestre. El analista excelente documenta esta limitacion. La anomalia de Chile en Q1 2026 (pagos fallidos de la Pregunta 7) puede manifestarse aqui como baja tasa de entrega."
+  },
+  {
+    "exercise_number": 5,
+    "title": "Cohorte Q3 2025 — retencion mensual en octubre, noviembre y diciembre 2025",
+    "business_question": "¿Los clientes que adquirimos se quedan? Cohorte de primera compra en Q3 2025. Retención mensual en oct, nov y dic 2025.",
+    "reference_query_suggestion": "WITH primera_compra AS (\n  SELECT\n    o.customer_id,\n    MIN(o.ordered_at)::DATE AS fecha_primera_compra\n  FROM orders o\n  GROUP BY o.customer_id\n),\ncohorte_q3 AS (\n  SELECT customer_id\n  FROM primera_compra\n  WHERE fecha_primera_compra >= '2025-07-01'\n    AND fecha_primera_compra <  '2025-10-01'\n),\ncompras_post AS (\n  SELECT\n    cq.customer_id,\n    DATE_TRUNC('month', o.ordered_at)::DATE AS mes_compra\n  FROM cohorte_q3 cq\n  INNER JOIN orders o ON o.customer_id = cq.customer_id\n  WHERE o.ordered_at >= '2025-10-01'\n    AND o.ordered_at <  '2026-01-01'\n  GROUP BY cq.customer_id, DATE_TRUNC('month', o.ordered_at)\n)\nSELECT\n  mes_compra,\n  COUNT(DISTINCT customer_id)                             AS clientes_activos,\n  (SELECT COUNT(*) FROM cohorte_q3)                       AS cohorte_total,\n  ROUND(\n    COUNT(DISTINCT customer_id) * 100.0\n    / NULLIF((SELECT COUNT(*) FROM cohorte_q3), 0),\n  2)                                                      AS tasa_retencion_pct\nFROM compras_post\nGROUP BY mes_compra\nORDER BY mes_compra;",
+    "tables_required": ["orders", "customers"],
+    "techniques_expected": ["CTE para definir la cohorte", "MIN para primera compra", "filros de periodo post-cohorte", "subquery escalar para el denominador de la cohorte"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "Identifica correctamente la cohorte Q3 2025 (primera compra entre julio 1 y septiembre 30 de 2025).",
+        "Cuenta cuantos de esos clientes volvieron a comprar en octubre, noviembre y diciembre.",
+        "Expresa la retencion como porcentaje sobre el total de la cohorte."
+      ],
+      "excelente": [
+        "El denominador de la cohorte es el total de clientes con primera compra en Q3 2025 — no el total de clientes activos.",
+        "Distingue entre clientes que compraron en cada mes (no clientes que compraron al menos una vez en los 3 meses — son metricas diferentes).",
+        "La interpretacion menciona si la retencion cae mas del 50% entre el primer y segundo mes posterior — el umbral que Valentina menciona como senial de problema.",
+        "Propone una hipotesis de causa si hay caida significativa: problema de producto, experiencia post-compra, o estacionalidad.",
+        "Reconoce la limitacion: Q3 2025 es el periodo de entrada de los clientes premium de hogar (segun la narrativa del seed), lo que puede sesgar la retencion al alza."
+      ],
+      "red_flags": [
+        "Usar todos los pedidos de Q3 2025 como cohorte en lugar de la primera compra de cada cliente.",
+        "Calcular retencion acumulada (al menos una compra en los 3 meses) en lugar de retencion mensual.",
+        "Confundir 'volvio a comprar' con 'registro una sesion' en website_sessions.",
+        "El denominador de la cohorte cambia entre meses (debe ser fijo)."
+      ]
+    },
+    "notes": "Esta es la pregunta mas tecnica del Capstone desde el punto de vista de la logica de cohortes. El error mas comun es confundir la definicion de cohorte (primera compra en Q3) con compras realizadas en Q3. Segun la narrativa del seed, Q3 2025 es cuando entran los clientes premium de hogar (customer_id 521-550), lo que puede hacer que la cohorte sea pequena y la retencion alta."
+  },
+  {
+    "exercise_number": 6,
+    "title": "Top 10 productos por revenue neto descontando devoluciones",
+    "business_question": "¿Que productos generan mas valor real por unidad vendida? Top 10 por revenue neto: revenue de order_items menos revenue de returns. Margen de devolucion.",
+    "reference_query_suggestion": "WITH revenue_bruto AS (\n  SELECT\n    oi.product_id,\n    SUM(oi.quantity * oi.unit_price)    AS revenue_bruto,\n    SUM(oi.quantity)                    AS unidades_vendidas\n  FROM order_items oi\n  GROUP BY oi.product_id\n),\ndevuelto AS (\n  -- returns no tiene monto: aproximamos por el precio promedio del producto en order_items\n  SELECT\n    r.product_id,\n    COUNT(r.return_id)                  AS total_devoluciones\n  FROM returns r\n  WHERE r.status IN ('approved', 'refunded')\n  GROUP BY r.product_id\n),\nproductos_netos AS (\n  SELECT\n    p.product_id,\n    p.name                                                  AS producto,\n    cat.name                                                AS categoria,\n    rb.revenue_bruto,\n    rb.unidades_vendidas,\n    COALESCE(d.total_devoluciones, 0)                      AS devoluciones_aprobadas,\n    -- revenue neto aproximado: descontamos el precio promedio por devolucion aprobada\n    ROUND(\n      rb.revenue_bruto\n      - COALESCE(d.total_devoluciones, 0)\n        * (rb.revenue_bruto / NULLIF(rb.unidades_vendidas, 0)),\n    2)                                                      AS revenue_neto_aprox,\n    ROUND(\n      COALESCE(d.total_devoluciones, 0) * 100.0\n      / NULLIF(rb.unidades_vendidas, 0),\n    2)                                                      AS margen_devolucion_pct\n  FROM revenue_bruto rb\n  INNER JOIN products   p   ON p.product_id   = rb.product_id\n  INNER JOIN categories cat ON cat.category_id = p.category_id\n  LEFT JOIN devuelto    d   ON d.product_id   = rb.product_id\n)\nSELECT\n  producto, categoria,\n  unidades_vendidas, revenue_bruto,\n  revenue_neto_aprox, margen_devolucion_pct\nFROM productos_netos\nORDER BY revenue_neto_aprox DESC\nLIMIT 10;",
+    "tables_required": ["order_items", "products", "categories", "returns"],
+    "techniques_expected": ["CTEs para separar revenue bruto de devoluciones", "LEFT JOIN para productos sin devoluciones", "aproximacion de revenue neto (returns no tiene monto directo)", "COALESCE para productos sin devoluciones"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "Muestra los 10 productos con mayor revenue historico e incorpora alguna metrica de devoluciones.",
+        "Distingue entre revenue bruto y revenue neto.",
+        "Incluye la categoria del producto."
+      ],
+      "excelente": [
+        "Reconoce y documenta explicitamente que la tabla returns no tiene un campo de monto — el revenue neto es una aproximacion basada en el precio promedio del producto.",
+        "El margen de devolucion (devoluciones / unidades vendidas) es el indicador correcto para identificar productos con alto costo de devoluciones.",
+        "La interpretacion identifica al menos un producto con alto revenue bruto pero alto margen de devolucion (riesgo) y al menos uno con bajo margen de devolucion (candidato a escalar).",
+        "Solo cuenta devoluciones aprobadas o reembolsadas (no pendientes o rechazadas).",
+        "El top 10 por revenue neto puede diferir del top 10 por revenue bruto — el analista nota la diferencia si existe."
+      ],
+      "red_flags": [
+        "No incluir devoluciones en el calculo del revenue neto (solo mostrar order_items sin cruzar con returns).",
+        "Incluir devoluciones con status 'rejected' o 'pending' en el descuento de revenue.",
+        "Revenue neto que da negativo para algun producto (indica error en la formula de descuento).",
+        "Confundir returns.return_id con la cantidad de unidades devueltas (no hay campo quantity en returns)."
+      ]
+    },
+    "notes": "La tabla returns NO tiene un campo de monto o cantidad de unidades devueltas — solo tiene return_id, product_id, order_id, reason y status. Esto es una limitacion real del schema que el analista debe documentar. La aproximacion mas limpia es contar devoluciones aprobadas como una unidad cada una y multiplicar por el precio promedio del producto. Este punto de limitacion del schema es el hallazgo que distingue al analista excelente."
+  },
+  {
+    "exercise_number": 7,
+    "title": "Analisis de la anomalia de pagos de Chile en Q1 2026",
+    "business_question": "¿Que tan expuesta esta la empresa en Chile? Tasa de fallo por metodo de pago Chile vs otros paises en mar-abr 2026, concentracion por rango de ticket, impacto en revenue neto chileno de Q1.",
+    "reference_query_suggestion": "WITH pagos_q1 AS (\n  SELECT\n    p.payment_id,\n    p.order_id,\n    p.amount,\n    p.method,\n    p.status,\n    p.paid_at,\n    c.country,\n    CASE\n      WHEN p.amount < 50   THEN 'bajo (<$50)'\n      WHEN p.amount < 200  THEN 'medio ($50-$200)'\n      ELSE                      'alto (>$200)'\n    END AS rango_ticket\n  FROM payments p\n  INNER JOIN orders   o ON o.order_id    = p.order_id\n  INNER JOIN customers c ON c.customer_id = o.customer_id\n  WHERE p.paid_at >= '2026-03-01' AND p.paid_at < '2026-05-01'\n),\ntasa_por_pais_metodo AS (\n  SELECT\n    country,\n    method,\n    COUNT(*)                                            AS total_pagos,\n    COUNT(*) FILTER (WHERE status = 'failed')           AS pagos_fallidos,\n    ROUND(\n      COUNT(*) FILTER (WHERE status = 'failed') * 100.0\n      / NULLIF(COUNT(*), 0),\n    2)                                                  AS tasa_fallo_pct\n  FROM pagos_q1\n  GROUP BY country, method\n)\nSELECT\n  t.*,\n  -- comparacion vs promedio global del mismo metodo\n  ROUND(AVG(tasa_fallo_pct) OVER (PARTITION BY method), 2) AS tasa_fallo_global_metodo\nFROM tasa_por_pais_metodo t\nORDER BY country, tasa_fallo_pct DESC;",
+    "tables_required": ["payments", "orders", "customers"],
+    "techniques_expected": ["FILTER en COUNT para tasas de fallo", "CASE WHEN para rangos de ticket", "window function para comparacion vs promedio global", "analisis bivariado (pais x metodo)"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "Calcula la tasa de fallo de pagos en Chile durante el periodo critico (marzo-abril 2026).",
+        "Compara Chile contra al menos otro pais o contra el promedio global.",
+        "Identifica si el problema esta concentrado en algun metodo de pago especifico."
+      ],
+      "excelente": [
+        "El analisis es tridimensional: pais x metodo x rango de ticket — identifica en que combinacion se concentra la anomalia.",
+        "Cuantifica el impacto en revenue: cuanto revenue se perdio en Chile por pagos fallidos en mar-abr 2026.",
+        "Nombra explicitamente el metodo con mayor tasa de fallo en Chile (segun la narrativa del seed: credit_card).",
+        "Compara la tasa de fallo de Chile en credit_card vs la tasa de fallo global en credit_card (no solo vs todos los paises).",
+        "La interpretacion dice explicitamente 'el riesgo aqui es...' o 'la accion que recomendaría es...' con un fundamento en los datos.",
+        "El impacto en revenue de Chile es coherente con los subtotales de la Pregunta 1 para Chile en Q1 2026."
+      ],
+      "red_flags": [
+        "Analizar todo el historico en lugar de concentrarse en mar-abr 2026 que es el periodo de la anomalia.",
+        "Confundir tasa de fallo (failed/total) con porcentaje de revenue perdido (son metricas relacionadas pero distintas).",
+        "No identificar el metodo de pago especifico con mayor tasa de fallo — quedarse solo en el nivel pais.",
+        "Revenue de Chile en Q1 que no es coherente con los numeros de la Pregunta 1."
+      ]
+    },
+    "notes": "Esta es la pregunta con mayor impacto de negocio del Capstone — es el punto que los inversores del fondo chileno van a preguntar primero. Segun la narrativa del seed, el credit_card tiene una tasa de fallo 40% superior en Chile durante mar-abr 2026 respecto al promedio historico. El analista excelente cuantifica este 40% con datos reales del seed."
+  },
+  {
+    "exercise_number": 8,
+    "title": "Auditoria de integridad de la tabla payments",
+    "business_question": "¿Estan los datos en condiciones para auditoria externa? Payments con status=completed pero paid_at IS NULL. Pedidos sin registro en payments. Impacto en revenue de cada anomalia.",
+    "reference_query_suggestion": "-- Anomalia 1: pagos completados sin fecha de pago\nSELECT\n  'completed_sin_paid_at'              AS tipo_anomalia,\n  COUNT(*)                             AS registros_afectados,\n  ROUND(SUM(amount), 2)               AS revenue_impactado\nFROM payments\nWHERE status = 'completed'\n  AND paid_at IS NULL\n\nUNION ALL\n\n-- Anomalia 2: pedidos sin ningun registro en payments\nSELECT\n  'pedidos_sin_pago'                   AS tipo_anomalia,\n  COUNT(DISTINCT o.order_id)           AS registros_afectados,\n  ROUND(\n    SUM(oi.quantity * oi.unit_price),\n  2)                                   AS revenue_impactado\nFROM orders o\nINNER JOIN order_items oi ON oi.order_id = o.order_id\nLEFT JOIN payments p ON p.order_id = o.order_id\nWHERE p.payment_id IS NULL\n\nORDER BY revenue_impactado DESC;",
+    "tables_required": ["payments", "orders", "order_items"],
+    "techniques_expected": ["UNION ALL para consolidar dos tipos de anomalias", "LEFT JOIN para detectar huerfanos", "IS NULL para detectar campos obligatorios ausentes", "cuantificacion del impacto en revenue"],
+    "validation_mode": "manual_review",
+    "evaluation_criteria": {
+      "suficiente": [
+        "Verifica la existencia de payments con status='completed' y paid_at IS NULL.",
+        "Verifica la existencia de pedidos sin ningun registro correspondiente en payments.",
+        "Cuantifica cuantos registros tiene cada anomalia (aunque el conteo sea 0)."
+      ],
+      "excelente": [
+        "Cuantifica el impacto en revenue de cada anomalia: cuanto revenue esta en duda por cada tipo de problema.",
+        "Si alguna anomalia retorna 0 registros, lo documenta explicitamente como 'la integridad es correcta para esta metrica' — no lo ignora.",
+        "Para los pedidos sin payment, usa el revenue estimado de order_items como proxy del impacto.",
+        "La presentacion del resultado es clara para un auditor externo: dos categorias de anomalia con su conteo e impacto en dolares.",
+        "Menciona que los datos de payments con paid_at IS NULL representan un riesgo de auditoria incluso si el status es 'completed' — es una inconsistencia que un auditor externo va a cuestionar.",
+        "Si detecta anomalias adicionales no solicitadas (ej: payments con status='completed' y amount=0), las reporta como hallazgo adicional."
+      ],
+      "red_flags": [
+        "Solo verificar una de las dos anomalias solicitadas.",
+        "Reportar el conteo de anomalias sin cuantificar el impacto en revenue.",
+        "Si el resultado es 0 registros en alguna anomalia, no mencionarlo — omitir el resultado vacio es peor que reportar integridad correcta.",
+        "Confundir payments.amount con la suma de order_items para calcular el impacto — deben ser consistentes pero pueden diferir."
+      ]
+    },
+    "notes": "Esta pregunta es la unica del Capstone que no tiene una respuesta 'correcta' predeterminada: el resultado depende de la integridad real del seed. Si el seed no tiene anomalias de integridad, el resultado correcto es 0 registros para ambas anomalias. El analista excelente documenta los 0 como una afirmacion positiva de calidad de datos, no como ausencia de analisis. Esta es la pregunta que mas distingue a quienes entienden que el analisis de calidad de datos tiene valor aunque no encuentre problemas."
+  }
+]

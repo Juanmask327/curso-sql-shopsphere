@@ -1,0 +1,57 @@
+# ============================================================
+# backend/.dockerignore
+# Archivos excluidos del contexto de build de Docker.
+# Regla: si no es codigo fuente ni manifiesto de dependencias,
+#        no entra en la imagen.
+# ============================================================
+
+# Dependencias instaladas localmente — siempre se reinstalan en el build
+node_modules/
+
+# Secrets y configuracion local — NUNCA deben entrar en una imagen
+.env
+.env.*
+*.env
+
+# Output de compilacion de TypeScript
+# (en prod se copia desde el stage build, no desde el host)
+dist/
+
+# Cobertura de tests y reportes
+coverage/
+*.lcov
+
+# Logs de cualquier tipo
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Control de versiones
+.git/
+.gitignore
+
+# Archivos de editor e IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Documentacion y archivos de proyecto
+docs/
+*.md
+!README.md
+
+# Archivos de CI — no necesarios en la imagen
+.github/
+
+# Archivos de test — no van en la imagen de produccion
+**/*.test.ts
+**/*.spec.ts
+**/__tests__/
+vitest.config.ts
+
+# Dataset SQLite del playground — se monta o se copia desde CDN, no desde el host
+data/*.db

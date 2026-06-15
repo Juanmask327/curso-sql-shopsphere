@@ -1,0 +1,2 @@
+﻿Table categories_jerarquia created with 16 rows
+Row count: 16

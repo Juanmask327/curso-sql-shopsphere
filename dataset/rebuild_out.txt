@@ -1,0 +1,12 @@
+﻿python : Traceback (most recent call last):
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\Juanm\Desktop\Curso SQL\dataset\rebuild_dataset.py", line 167, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\Juanm\Desktop\Curso SQL\dataset\rebuild_dataset.py", line 128, in main
+    os.remove(DB_PATH)
+    ~~~~~~~~~^^^^^^^^^
+PermissionError: [WinError 32] El proceso no tiene acceso al archivo porque estß siendo utilizado por otro proceso: 
+'C:\\Users\\Juanm\\Desktop\\Curso SQL\\data\\dataset.db'
