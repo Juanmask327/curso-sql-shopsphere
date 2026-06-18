@@ -150,6 +150,15 @@ sqlite3 data/dataset.db < dataset/shopsphere-seed.sql
 
 `data/dataset.db` está en `.gitignore` — se genera en build time. El frontend lo carga una vez desde CDN con `Cache-Control: immutable`.
 
+Scripts adicionales de mantenimiento del dataset (usar cuando sea necesario):
+
+| Script | Cuándo usarlo |
+|---|---|
+| `dataset/rebuild_dataset.py` | Reconstruir `data/dataset.db` desde cero (combina los tres archivos de seed SQL parciales) |
+| `dataset/validate_exercises.py` | Verificar que todas las queries de referencia de los ejercicios producen resultados en el dataset actual |
+| `dataset/generate_expected.py` | Regenerar todos los archivos `expected-results-nivel-XX.json` tras cambiar el dataset o las queries de referencia |
+| `dataset/run_validate.py` | Correr validación de un nivel específico contra el dataset (debug de ejercicios) |
+
 ### Pipeline de seed de ejercicios
 
 `npm run seed:exercises` lee dos fuentes y las inserta en PostgreSQL (es idempotente — borra y reinsertar los niveles procesados):
@@ -164,7 +173,7 @@ Los archivos `dataset/expected-results-*.json` se generan con `python dataset/ge
 Para crear una cuenta de desarrollo local (sin pasar por registro):
 ```bash
 docker exec shopsphere-backend npx tsx src/scripts/seed-dev-account.ts
-# Crea usuario dev@shopsphere.local / password: devpassword123
+# Crea usuario dev@shopsphere.com / password: DevAdmin2024! / role: admin
 ```
 
 ---
@@ -193,6 +202,12 @@ npm run db:studio    # Drizzle Studio UI
 docker-compose exec backend npm run db:migrate
 docker exec shopsphere-backend npm run seed:exercises
 ```
+
+**Swagger UI (desarrollo):** habilitar con `ENABLE_SWAGGER=true` en `.env`. La UI queda disponible en `http://localhost:3001/docs`. Está desactivada por defecto y nunca debe habilitarse en producción.
+
+**Worker pool no-fatal:** si `data/dataset.db` no existe, el playground queda deshabilitado pero el resto del backend (auth, niveles, progreso, certificados) arranca normalmente. El log indica `Worker pool failed to initialize — playground disabled`.
+
+**Tests de integración:** `test-setup.ts` reemplaza automáticamente la base de datos `/shopsphere` por `/shopsphere_test` en `DATABASE_URL`. Asegurarse de que esa base exista antes de correr los tests de integración.
 
 *Nota para Windows:* Si la política de ejecución de scripts de PowerShell bloquea los scripts `.ps1`, ejecute los comandos usando `cmd /c` (ejemplo: `cmd /c npm run test`).
 
@@ -338,6 +353,9 @@ Ver `.env.example` para la lista completa. Las indispensables para arrancar:
 | `SESSION_COOKIE_SECRET` | Mínimo 32 chars — `openssl rand -hex 32` |
 | `DATABASE_URL` | Connection string PostgreSQL |
 | `REDIS_URL` | Connection string Redis |
+| `ALLOWED_ORIGINS` | Lista de orígenes CORS separados por coma (e.g. `http://localhost:3000,https://app.com`). Alternativa multi-origen a `CORS_ORIGIN`. En producción sin este valor, el CORS deniega todos los orígenes. |
+| `ENABLE_SWAGGER` | `true` habilita la UI de Swagger en `/docs` (solo para desarrollo) |
+| `TRUST_PROXY` | `true` si el backend corre detrás de un proxy (Railway/Vercel/Nginx) — necesario para que el rate limiting por IP funcione correctamente |
 
 En PowerShell: `-join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16) })` genera un secreto aleatorio.
 
