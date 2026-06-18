@@ -976,6 +976,31 @@ function generateAlmostSolutionHint(referenceQuery: string): string {
   return `Estructura de la query:\n\`\`\`sql\n${maskedLines.join('\n')}\n\`\`\``;
 }
 
+/**
+ * Extrae las tablas de la query de referencia y las antepone a las instrucciones
+ * del ejercicio como "Tabla: `X`" o "Tablas: `X`, `Y`", para que el estudiante
+ * siempre sepa sobre qué tabla(s) debe trabajar sin necesidad de pedir pistas.
+ */
+function injectTableInfo(instructions: string, referenceQuery: string): string {
+  const tableMatches = [...referenceQuery.matchAll(/(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*)/gi)];
+  const tables = [
+    ...new Set(
+      tableMatches
+        .map((m) => m[1]?.toLowerCase())
+        .filter((t): t is string => !!t && !['select', 'with', 'dual'].includes(t)),
+    ),
+  ];
+
+  if (tables.length === 0) return instructions;
+
+  const tableInfo =
+    tables.length === 1
+      ? `Tabla: \`${tables[0]}\``
+      : `Tablas: ${tables.map((t) => `\`${t}\``).join(', ')}`;
+
+  return `${tableInfo}\n\n${instructions}`;
+}
+
 function ensureThreeHints(parsedHints: string[], referenceQuery: string): string[] {
   const hints = [...parsedHints];
 
@@ -1088,7 +1113,7 @@ function processLevel(config: NivelConfig): ParsedExercise[] {
       orderIndex: stmt.orderIndex,
       title,
       description: stmt.description,
-      instructions: stmt.instructions,
+      instructions: injectTableInfo(stmt.instructions, solution),
       difficulty: config.difficulty,
       xpReward: config.xpReward,
       referenceQuery: solution,
