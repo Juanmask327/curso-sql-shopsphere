@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { api, storeTokens, TOKEN_KEY } from "@/lib/api-client";
+import { TOKEN_KEY } from "@/lib/api-client";
+import { useAuth } from "@/lib/auth-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -103,6 +104,7 @@ function Field({
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login } = useAuth();
   const nextPath = searchParams.get("next") ?? "/dashboard";
   const oauthError = searchParams.get("error");
   const resetSuccess = searchParams.get("reset") === "success";
@@ -153,8 +155,7 @@ function LoginForm() {
     setFormError(null);
 
     try {
-      const data = await api.auth.login({ email: email.trim(), password });
-      storeTokens(data.tokens);
+      await login({ email: email.trim(), password });
       router.push(nextPath);
     } catch {
       setFormError("Email o contraseña incorrectos. Intenta de nuevo.");
