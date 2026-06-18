@@ -27,8 +27,16 @@ import type { Database as SqlDatabase } from "sql.js";
 
 // ===================================================================
 // Dataset path — served from /public/dataset.db
+// Append build-time version so browsers always fetch the current file
+// instead of a stale cached copy. In production this is a fixed string
+// (build ID); in dev we use a 5-minute bucket so each refresh within
+// the same session reuses the cached file, but a change is picked up
+// within at most 5 minutes without needing a hard-refresh.
 // ===================================================================
-const DATASET_PATH = "/dataset.db";
+const DATASET_VERSION =
+  process.env.NEXT_PUBLIC_BUILD_ID ??
+  Math.floor(Date.now() / 300_000).toString();
+const DATASET_PATH = `/dataset.db?v=${DATASET_VERSION}`;
 
 // ===================================================================
 // SQL execution — runs a query against an in-memory SQLite instance

@@ -37,10 +37,13 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Cache the SQLite dataset in the browser for 1 hour
+        // Cache the SQLite dataset in the browser for 5 minutes only.
+        // "immutable" is intentionally omitted: the file can be updated between
+        // deployments, and immutable would prevent browsers from picking up changes
+        // until the TTL expires even after a hard refresh.
         source: "/dataset.db",
         headers: [
-          { key: "Cache-Control", value: "public, max-age=3600, immutable" },
+          { key: "Cache-Control", value: "public, max-age=300" },
           { key: "Content-Type", value: "application/octet-stream" },
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
         ],
