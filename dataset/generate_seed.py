@@ -2,8 +2,12 @@
 ShopSphere Seed Data Generator v2
 Genera datos coherentes y realistas para el dataset del curso SQL.
 Target: ticket promedio $80-$150, revenue ~$950K, tasa devolucion ~5%
+
+Uso: python dataset/generate_seed.py > dataset/shopsphere-seed.sql
+El SQL va a stdout; el reporte de validacion va a stderr.
 """
 
+import sys
 import random
 from datetime import date, timedelta
 
@@ -779,16 +783,21 @@ emit("")
 emit("-- End of ShopSphere seed data")
 
 # ---------------------------------------------------------------------------
-# Write file
+# Escribir SQL directamente al archivo (UTF-8 sin BOM)
+# Evita que la redirección de PowerShell genere UTF-16 LE.
 # ---------------------------------------------------------------------------
 
-output_path = r"C:\Users\Juanm\OneDrive\Desktop\Curso SQL\dataset\shopsphere-seed.sql"
+import os
+output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shopsphere-seed.sql")
 with open(output_path, "w", encoding="utf-8") as f:
-    f.write("\n".join(lines))
+    f.write("\n".join(lines) + "\n")
 
 # ---------------------------------------------------------------------------
 # Validation report
 # ---------------------------------------------------------------------------
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 total_items = len(order_items)
 total_orders = len(orders)
@@ -808,35 +817,35 @@ rev_all_active = sum(
 )
 rev = rev_delivered
 
-print("=" * 55)
-print("SHOPSPHERE SEED — VALIDATION REPORT")
-print("=" * 55)
-print(f"Archivo:          {output_path}")
-print(f"Lineas totales:   {len(lines):,}")
-print(f"categories:       {len(categories)}")
-print(f"customers:        {len(customers)}")
-print(f"campaigns:        {len(campaigns)}")
-print(f"products:         {len(products)}")
-print(f"orders:           {total_orders:,}")
-print(f"order_items:      {total_items:,}")
-print(f"returns:          {total_returns:,}")
-print(f"inventory:        {len(products)}")
-print(f"website_sessions: 8000")
-print(f"payments:         {total_payments:,}")
-print("-" * 55)
-print(f"Orders delivered: {n_delivered:,}")
-print(f"Revenue delivered:${rev:,.2f}")
-print(f"Revenue all active:${rev_all_active:,.2f}")
+eprint("=" * 55)
+eprint("SHOPSPHERE SEED — VALIDATION REPORT")
+eprint("=" * 55)
+eprint(f"Archivo:          {output_path}")
+eprint(f"Lineas totales:   {len(lines):,}")
+eprint(f"categories:       {len(categories)}")
+eprint(f"customers:        {len(customers)}")
+eprint(f"campaigns:        {len(campaigns)}")
+eprint(f"products:         {len(products)}")
+eprint(f"orders:           {total_orders:,}")
+eprint(f"order_items:      {total_items:,}")
+eprint(f"returns:          {total_returns:,}")
+eprint(f"inventory:        {len(products)}")
+eprint(f"website_sessions: 8000")
+eprint(f"payments:         {total_payments:,}")
+eprint("-" * 55)
+eprint(f"Orders delivered: {n_delivered:,}")
+eprint(f"Revenue delivered:${rev:,.2f}")
+eprint(f"Revenue all active:${rev_all_active:,.2f}")
 if n_delivered > 0:
-    print(f"Ticket promedio:  ${rev/n_delivered:,.2f}")
-print(f"Tasa devoluciones:{total_returns/total_items*100:.2f}% of items")
-print("-" * 55)
+    eprint(f"Ticket promedio:  ${rev/n_delivered:,.2f}")
+eprint(f"Tasa devoluciones:{total_returns/total_items*100:.2f}% of items")
+eprint("-" * 55)
 # Campaign ROI summary
-print("Campanas por ROI:")
+eprint("Campanas por ROI:")
 for c in campaigns:
     roi = (c["revenue_generated"] / c["budget"] - 1) * 100
-    print(f"  {c['campaign_id']:2d}. {c['name'][:30]:<30s} ROI={roi:+.0f}%  [{c['roi_type']}]")
-print("=" * 55)
+    eprint(f"  {c['campaign_id']:2d}. {c['name'][:30]:<30s} ROI={roi:+.0f}%  [{c['roi_type']}]")
+eprint("=" * 55)
 
 # Referential integrity checks
 order_ids_set = {o["order_id"] for o in orders}
@@ -848,6 +857,6 @@ bad_returns = [r for r in returns
 delivered_ids = {o["order_id"] for o in orders if o["status"] == "delivered"}
 # payments only on delivered
 payments_on_non_delivered = 0  # handled by filter above
-print(f"FK errors in order_items: {len(bad_items)}")
-print(f"FK errors in returns:     {len(bad_returns)}")
-print("Referential integrity: OK" if not bad_items and not bad_returns else "ERRORS FOUND")
+eprint(f"FK errors in order_items: {len(bad_items)}")
+eprint(f"FK errors in returns:     {len(bad_returns)}")
+eprint("Referential integrity: OK" if not bad_items and not bad_returns else "ERRORS FOUND")

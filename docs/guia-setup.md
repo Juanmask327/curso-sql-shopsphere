@@ -117,13 +117,12 @@ El dataset de e-commerce no está en el repositorio y debe generarse localmente.
 Requiere Python 3 instalado.
 
 ```bash
-python dataset/generate_seed.py > dataset/shopsphere-seed.sql
+python dataset/generate_seed.py
 python dataset/validate_seed.py
-sqlite3 data/dataset.db < dataset/shopsphere-seed.sql
+python dataset/build_db.py
 ```
 
-> Si no tienes `sqlite3` en el PATH en Windows, descárgalo desde https://sqlite.org/download.html
-> y agrégalo al PATH, o instala Python y usa `pip install apsw`.
+> No requiere instalar nada extra — usa el módulo `sqlite3` incluido en Python.
 
 ---
 
@@ -165,8 +164,9 @@ docker exec shopsphere-backend npx tsx src/scripts/seed-dev-account.ts
 ```
 
 Credenciales creadas:
-- **Email:** `dev@shopsphere.local`
-- **Contraseña:** `devpassword123`
+- **Email:** `dev@shopsphere.com`
+- **Contraseña:** `DevAdmin2024!`
+- **Rol:** `admin` (todos los niveles desbloqueados, XP máximo)
 
 ---
 
@@ -194,8 +194,8 @@ Cambiar en `.env` las variables `FRONTEND_PORT`, `PORT` o `POSTGRES_PORT_EXPOSED
 **"Hot-reload no detecta cambios en Windows"**
 Normal — está resuelto por defecto con `WATCHPACK_POLLING=true` en `docker-compose.override.yml`. Si persiste, reiniciar el contenedor: `docker-compose restart frontend`
 
-**"sqlite3: comando no encontrado" al generar el dataset**
-En Windows, descargar el binario desde https://sqlite.org/download.html (sqlite-tools-win-x64) y descomprimirlo en una carpeta del PATH (ej: `C:\sqlite\`).
+**"No se encontró shopsphere-seed.sql" al correr build_db.py**
+Ejecutar primero `python dataset/generate_seed.py` y luego `python dataset/validate_seed.py` antes de `python dataset/build_db.py`.
 
 ---
 

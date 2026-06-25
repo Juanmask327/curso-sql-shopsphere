@@ -131,21 +131,21 @@ Este proyecto usa **dos bases de datos distintas** — es la confusión más com
 | Base de datos | Motor | Contenido | Quién la usa |
 |---|---|---|---|
 | **Plataforma** | PostgreSQL 16 | users, sessions, levels, exercises, progress, certificates | Backend (Drizzle ORM) |
-| **Dataset e-commerce** | SQLite (`data/dataset.db`) | customers, products, orders, order_items, returns, inventory, payments, website_sessions, marketing_campaigns | Playground WASM (cliente) + Worker de validación (backend) |
+| **Dataset e-commerce** | SQLite (`data/dataset.db`) | customers, products, categories, orders, order_items, returns, inventory, payments, website_sessions, marketing_campaigns | Playground WASM (cliente) + Worker de validación (backend) |
 
 El schema Drizzle en `backend/src/shared/db/schema.ts` cubre **solo PostgreSQL**. El schema SQLite del dataset vive en `dataset/validate_seed.py`.
 
 ### Generar el dataset SQLite
 
 ```bash
-# 1. Generar SQL de seed (inserts)
-python dataset/generate_seed.py > dataset/shopsphere-seed.sql
+# 1. Generar SQL de seed (escribe dataset/shopsphere-seed.sql directamente)
+python dataset/generate_seed.py
 
 # 2. Validar el seed antes de compilar
 python dataset/validate_seed.py
 
-# 3. Compilar a archivo .db (requiere sqlite3 CLI)
-sqlite3 data/dataset.db < dataset/shopsphere-seed.sql
+# 3. Compilar a archivo .db (usa el módulo sqlite3 de Python, sin CLI externo)
+python dataset/build_db.py
 ```
 
 `data/dataset.db` está en `.gitignore` — se genera en build time. El frontend lo carga una vez desde CDN con `Cache-Control: immutable`.
@@ -154,6 +154,7 @@ Scripts adicionales de mantenimiento del dataset (usar cuando sea necesario):
 
 | Script | Cuándo usarlo |
 |---|---|
+| `dataset/build_db.py` | Compilar `dataset/shopsphere-seed.sql` → `data/dataset.db` (usa módulo sqlite3 de Python, sin CLI externo) |
 | `dataset/rebuild_dataset.py` | Reconstruir `data/dataset.db` desde cero (combina los tres archivos de seed SQL parciales) |
 | `dataset/validate_exercises.py` | Verificar que todas las queries de referencia de los ejercicios producen resultados en el dataset actual |
 | `dataset/generate_expected.py` | Regenerar todos los archivos `expected-results-nivel-XX.json` tras cambiar el dataset o las queries de referencia |
@@ -211,9 +212,7 @@ docker exec shopsphere-backend npm run seed:exercises
 
 *Nota para Windows:* Si la política de ejecución de scripts de PowerShell bloquea los scripts `.ps1`, ejecute los comandos usando `cmd /c` (ejemplo: `cmd /c npm run test`).
 
-*Nota de Tests:* Los tests unitarios (de servicios) están aislados mediante mocks de DB y Redis. Los tests de integración (carpeta `src/integration/`) requieren que Docker esté activo y que los contenedores de PostgreSQL y Redis estén corriendo en los puertos `5432` y `6379`. En caso contrario, los tests de integración fallarán por timeout de conexión.
-
-**Tests usan servicios reales.** No hay mocks de base de datos. Localmente necesitás tener los servicios corriendo (`docker-compose up -d db redis`) y las variables de entorno seteadas. `BCRYPT_ROUNDS=4` en test para velocidad.
+*Nota de Tests:* Los tests unitarios (`*.service.test.ts`) usan `vi.mock` para aislar DB y Redis — no requieren servicios activos. Los tests de integración (`src/integration/`) sí requieren Docker activo con PostgreSQL y Redis corriendo en los puertos `5432` y `6379`. `BCRYPT_ROUNDS=4` en test para velocidad.
 
 El alias `@` en imports apunta a `src/` (configurado en `vitest.config.ts` y `tsconfig.json`).
 
@@ -400,6 +399,10 @@ Para mantener los archivos de resultados esperados en JSON livianos, la propieda
 ### 7. Conflictos de puerto
 Si los puertos 3000, 3001, 5432 o 6379 están ocupados, cambiar las variables `*_PORT_EXPOSED` en `.env` (e.g., `FRONTEND_PORT_EXPOSED=3100`). No editar `docker-compose.yml` directamente.
 
+### 8. `worker-compiled.mjs` es auto-generado — no editar a mano
+En desarrollo, `WorkerPool.initialize()` compila automáticamente `worker.ts` → `worker-compiled.mjs` usando `esbuild` en tiempo de arranque (porque Node.js 22+ no puede cargar `.ts` directamente en Worker Threads). En producción, `tsc` genera `worker.js`. El archivo `worker-compiled.mjs` está en el repo solo para que el worker pool arranque sin esperar compilación en entornos donde esbuild no está disponible; **si se modifica `worker.ts`, el archivo se regenera solo al reiniciar el backend en dev**. No editar `worker-compiled.mjs` directamente.
+
+El backend worker usa `better-sqlite3` (síncrono, seguro en Worker Threads). El frontend usa `sql.js` (WASM, asíncrono). Ambos apuntan al mismo schema SQLite, pero son librerías distintas.
 
 ---
 

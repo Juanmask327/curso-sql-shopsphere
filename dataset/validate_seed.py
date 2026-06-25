@@ -1,8 +1,17 @@
+import os
 import sqlite3
 
-sql_path = r"C:\Users\Juanm\OneDrive\Desktop\Curso SQL\dataset\shopsphere-seed.sql"
-with open(sql_path, "r", encoding="utf-8") as f:
-    sql = f.read()
+sql_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shopsphere-seed.sql")
+with open(sql_path, "rb") as f:
+    raw = f.read()
+
+# PowerShell > en Windows genera UTF-16 LE con BOM (0xFF 0xFE)
+if raw.startswith(b'\xff\xfe') or raw.startswith(b'\xfe\xff'):
+    sql = raw.decode("utf-16")
+elif raw.startswith(b'\xef\xbb\xbf'):
+    sql = raw[3:].decode("utf-8")
+else:
+    sql = raw.decode("utf-8")
 
 schema = """
 CREATE TABLE customers (
