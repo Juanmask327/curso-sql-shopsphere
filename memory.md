@@ -6,7 +6,7 @@ El desarrollo del proyecto está estrictamente alineado con los requerimientos y
 *   **PRD de la Plataforma:** `PRD_Plataforma_SQL_ShopSphere.docx` — Define el alcance del MVP (niveles 0-3, Playground, 100+ ejercicios, diagnóstico y gamificación), los requerimientos funcionales y el roadmap de desarrollo.
 *   **Descripción y Contexto del Curso:** `Descripcion_Contexto_Objetivos_Curso_SQL.docx` — Establece la filosofía pedagógica (20% teoría, 60% práctica guiada, 20% retos abiertos) orientada a la toma de decisiones empresariales sobre un caso continuo (ShopSphere) para formar analistas junior.
 
-> **Última sincronización con documentos fundacionales y estado del proyecto:** 2026-06-20. Inspección de salud general realizada por el asistente Antigravity ([INSP-04]).
+> **Última sincronización con documentos fundacionales y estado del proyecto:** 2026-11-24. Revisión de errores del repositorio ([FIX-07] a [FIX-09]).
 
 ---
 
@@ -165,12 +165,12 @@ El currículum del curso consta de 9 niveles (0-8) y un proyecto integrador Caps
 | **1** | Exploración | [leccion-01.md](modulos/nivel-01-exploracion/leccion-01.md) a [leccion-04.md](modulos/nivel-01-exploracion/leccion-04.md) | [ejercicios-nivel-01.sql](modulos/nivel-01-exploracion/ejercicios-nivel-01.sql) (20) | `customers`, `categories`, `products` | Aprobado con obs. / Publicado |
 | **2** | Métricas | [leccion-01.md](modulos/nivel-02-metricas/leccion-01.md) a [leccion-04.md](modulos/nivel-02-metricas/leccion-04.md) | [ejercicios-nivel-02.sql](modulos/nivel-02-metricas/ejercicios-nivel-02.sql) (25) | `+ orders` | Aprobado con obs. / Publicado |
 | **3** | JOINs | [leccion-01.md](modulos/nivel-03-joins/leccion-01.md) a [leccion-04.md](modulos/nivel-03-joins/leccion-04.md) | [ejercicios-nivel-03.sql](modulos/nivel-03-joins/ejercicios-nivel-03.sql) (25) | `+ order_items` | Aprobado con obs. / Publicado |
-| **4** | Clientes | [leccion-01.md](modulos/nivel-04-clientes/leccion-01.md) a [leccion-04.md](modulos/nivel-04-clientes/leccion-04.md) | [ejercicios-nivel-04.sql](modulos/nivel-04-clientes/ejercicios-nivel-04.sql) (25) | `+ returns` | Aprobado con obs. / En Desarrollo (is_published=false) |
-| **5** | Avanzado | [leccion-01.md](modulos/nivel-05-avanzado/leccion-01.md) a [leccion-04.md](modulos/nivel-05-avanzado/leccion-04.md) | [ejercicios-nivel-05.sql](modulos/nivel-05-avanzado/ejercicios-nivel-05.sql) (25) | `+ inventory` | Aprobado / En Desarrollo (is_published=false) |
-| **6** | Analítica | [leccion-01.md](modulos/nivel-06-analitica/leccion-01.md) a [leccion-04.md](modulos/nivel-06-analitica/leccion-04.md) | [ejercicios-nivel-06.sql](modulos/nivel-06-analitica/ejercicios-nivel-06.sql) (25) | `+ marketing_campaigns` | Aprobado (correcciones críticas hechas) / En Desarrollo (is_published=false) |
-| **7** | BI | [leccion-01.md](modulos/nivel-07-bi/leccion-01.md) a [leccion-04.md](modulos/nivel-07-bi/leccion-04.md) | [ejercicios-nivel-07.sql](modulos/nivel-07-bi/ejercicios-nivel-07.sql) (25) | `+ website_sessions` | Aprobado con obs. / En Desarrollo (is_published=false) |
-| **8** | Profesional | [leccion-01.md](modulos/nivel-08-profesional/leccion-01.md) a [leccion-04.md](modulos/nivel-08-profesional/leccion-04.md) | [ejercicios-nivel-08.sql](modulos/nivel-08-profesional/ejercicios-nivel-08.sql) (25) | `+ payments` | Aprobado / En Desarrollo (is_published=false) |
-| **Capstone** | Proyecto Final | [README.md](modulos/capstone/README.md) y [capstone-brief.md](contenido/capstone-brief.md) | `parte-01-exploracion.sql` a `parte-05-dashboard-ejecutivo.sql` (25) | Todas las tablas del curso | Aprobado / En Desarrollo (is_published=false) |
+| **4** | Clientes | [leccion-01.md](modulos/nivel-04-clientes/leccion-01.md) a [leccion-04.md](modulos/nivel-04-clientes/leccion-04.md) | [ejercicios-nivel-04.sql](modulos/nivel-04-clientes/ejercicios-nivel-04.sql) (25) | `+ returns` | Aprobado con obs. / Publicado |
+| **5** | Avanzado | [leccion-01.md](modulos/nivel-05-avanzado/leccion-01.md) a [leccion-04.md](modulos/nivel-05-avanzado/leccion-04.md) | [ejercicios-nivel-05.sql](modulos/nivel-05-avanzado/ejercicios-nivel-05.sql) (25) | `+ inventory` | Aprobado / Publicado |
+| **6** | Analítica | [leccion-01.md](modulos/nivel-06-analitica/leccion-01.md) a [leccion-04.md](modulos/nivel-06-analitica/leccion-04.md) | [ejercicios-nivel-06.sql](modulos/nivel-06-analitica/ejercicios-nivel-06.sql) (25) | `+ marketing_campaigns` | Aprobado (correcciones críticas hechas) / Publicado |
+| **7** | BI | [leccion-01.md](modulos/nivel-07-bi/leccion-01.md) a [leccion-04.md](modulos/nivel-07-bi/leccion-04.md) | [ejercicios-nivel-07.sql](modulos/nivel-07-bi/ejercicios-nivel-07.sql) (25) | `+ website_sessions` | Aprobado con obs. / Publicado |
+| **8** | Profesional | [leccion-01.md](modulos/nivel-08-profesional/leccion-01.md) a [leccion-04.md](modulos/nivel-08-profesional/leccion-04.md) | [ejercicios-nivel-08.sql](modulos/nivel-08-profesional/ejercicios-nivel-08.sql) (25) | `+ payments` | Aprobado / Publicado |
+| **Capstone** | Proyecto Final | [README.md](modulos/capstone/README.md) y [capstone-brief.md](contenido/capstone-brief.md) | `parte-01-exploracion.sql` a `parte-05-dashboard-ejecutivo.sql` (25) | Todas las tablas del curso | Aprobado / Publicado |
 
 ---
 
@@ -197,7 +197,7 @@ El currículum del curso consta de 9 niveles (0-8) y un proyecto integrador Caps
 
 ## 7. Timeline de Correcciones QA Críticas Recientes
 
-A continuación se detallan las correcciones aplicadas a junio de 2026:
+A continuación se detallan las correcciones aplicadas entre junio y noviembre de 2026:
 
 *   **[CRIT-N7-01] Vista `v_clientes_perfil` (Nivel 7)**: Se resolvió una multiplicación silenciosa de filas en el triple JOIN de la vista original. Se refactorizó usando CTEs pre-agregadas para evitar inflación en la suma de ingresos (`revenue_total`).
 *   **[CRIT-01] Diagnóstico**: Corrección de la pregunta 15 para usar la respuesta con el JOIN correcto `returns -> orders -> customer_id` y evitar columnas inexistentes.
@@ -225,15 +225,18 @@ A continuación se detallan las correcciones aplicadas a junio de 2026:
 *   **[FIX-06] Garantía de Pista "Casi la solución" (2026-06-05)**: Se detectó que la interfaz requería exactamente 3 pistas (Conceptual, Sintáctica, Casi la solución), pero los archivos de ejercicios usualmente contenían solo 2 pistas, impidiendo que el último slot se llenara y provocando que el tooltip/texto incitara a revisar la pista "Casi la solución" cuando esta no existía. Se desarrolló un enmascarador estructurado de queries de referencia en `seed-exercises.ts` (`generateAlmostSolutionHint`) y una función para normalizar todas las colecciones a exactamente 3 pistas (`ensureThreeHints`). Se re-sembró la base de datos de ejercicios con la tercera pista "Casi la solución" generada para todos los ejercicios.
 *   **[INSP-03] Inspección de Antigravity (2026-06-09)**: Se realizó una inspección completa del proyecto. Se verificó el correcto funcionamiento de los tests unitarios del backend (50 de 75 tests de servicios exitosos; 25 tests de integración quedan pendientes debido a la inactividad local de los contenedores Docker de Postgres y Redis). Se validó el tipado estático del backend (`npm run typecheck`) y frontend (`npm run type-check`) con éxito y sin errores. El linter del frontend finalizó con 0 advertencias/errores. El linter del backend arrojó 6 errores de promesas flotantes (`@typescript-eslint/no-floating-promises`) en el controlador de Google OAuth (`auth.controller.ts`), que fueron corregidos al retornar adecuadamente las respuestas asíncronas de Fastify, resultando en 0 advertencias/errores de lint en la posterior ejecución.
 *   **[INSP-04] Inspección de Antigravity (2026-06-20)**: Se realizó una inspección completa del proyecto. Se validó el tipado estático (`npm run typecheck` en backend y `npm run type-check` en frontend) resultando en 0 errores. Se ejecutaron los tests unitarios del backend (73 unitarios exitosos; tests de integración con timeout debido a inactividad local del daemon de Docker). Se corrigieron 9 errores de linter en el backend (8 por promesas flotantes en el hook `onSend` de `app.ts` usando el operador `void`, y 1 por importación de tipos en `certificates.service.test.ts` moviéndolo a nivel superior), logrando 0 advertencias/errores de lint en ambos frontend y backend.
+*   **[FIX-07] Revisión de errores del repositorio (2026-11-24, commit `7b531fa`)**: (1) El validador del playground rechazaba todo lo que no fuera una sola SELECT, así que los ejercicios de vistas, EXPLAIN y transacciones de N7, N8 y Capstone no se podían aprobar (ni obtener su certificado). Ahora cada envío corre en una copia del dataset en memoria dentro de una transacción que siempre se revierte (ATTACH, PRAGMA y VACUUM siguen bloqueados). (2) Los ejercicios que consultan una vista creada en otro ejercicio (N7 EJ14–22) reciben ese `CREATE VIEW` en `expected_result_json.setup_sql`. (3) Índice en `payments(order_id)` y `ANALYZE` en el dataset: 4 soluciones pasaban el límite de 5 s. (4) La validación compara contra todas las filas (antes solo 1000). (5) Notas de dialecto SQLite en 8 lecciones que enseñaban `DATE_TRUNC`/`EXTRACT`/`INTERVAL`. (6) Desempate por `return_id` en N4 EJ16. (7) Seeder: rutas, cabeceras de ejercicios con sufijo, solución correcta en Capstone EJ20 y modos `manual_review`/`volatile_date_dependent` → `schema_match`. (8) Dependencias sin vulnerabilidades altas o críticas (Next 15.5.29, zod 4, drizzle 0.45, nodemailer 10, vitest 5, better-sqlite3 12). (9) CI: lockfiles versionados, script `type-check`, credenciales de CI sin secrets, `init.sql` sin `\c shopsphere`. Resultado: 240/240 ejercicios validan y 115 tests pasan.
+*   **[FIX-08] Imágenes Docker (2026-11-24, commit `f6de4e3`)**: Imagen base `node:22.23.4-alpine3.24` (Alpine 3.21 ya no tenía soporte y traía OpenSSL vulnerable), `apk upgrade` y sin npm/yarn/corepack en la imagen final (traían `tar` con CVE crítico). Trivy en verde.
+*   **[FIX-09] Tests de integración inestables (2026-11-24, commit `c169839`)**: Los archivos de integración corrían en paralelo y cada uno hacía `TRUNCATE` sobre la misma base, borrando datos del otro a mitad de un test. Ahora corren uno a la vez (`fileParallelism: false`). Además, la opción `skip` del rate limit global no existe en `@fastify/rate-limit`; se reemplazó por un `max` alto solo en tests. Primer run del CI completo en verde.
 
 
 ---
 
 ## 8. Próximos Pasos y Tareas Pendientes
 
-1.  **Publicar Niveles 4 al 8 y Capstone**: Cambiar a `is_published = true` en el seeder / base de datos cuando el contenido pase a producción.
+1.  ~~**Publicar Niveles 4 al 8 y Capstone**~~: Hecho. Todos los niveles (0–9) tienen `is_published = true` en `scripts/init.sql` y en el seeder.
 2.  **Evaluaciones Formales**: Desarrollar evaluaciones de final de nivel para los niveles 1 al 8.
-3.  **Optimizaciones Opcionales**: Implementar notas pedagógicas pendientes en lecciones del Nivel 1 y Nivel 6 relativas a modelos de atribución y dialectos SQL.
+3.  ~~**Optimizaciones Opcionales**~~: Hecho. La nota de modelo de atribución está en `nivel-06-analitica/leccion-01.md` y las notas de dialecto SQLite están en los Niveles 1, 2, 3, 5 y 6 ([FIX-07]).
 
 ---
 
