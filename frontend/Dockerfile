@@ -11,7 +11,7 @@
 
 # ── Stage: base ─────────────────────────────────────────────
 # Tag fijo para reproducibilidad: actualizar deliberadamente, nunca con :latest
-FROM node:22.15-alpine3.21 AS base
+FROM node:22.23.4-alpine3.24 AS base
 
 WORKDIR /app
 
@@ -49,9 +49,19 @@ ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 RUN npm run build
 
 # ── Stage: prod ─────────────────────────────────────────────
-FROM node:22.15-alpine3.21 AS prod
+FROM node:22.23.4-alpine3.24 AS prod
 
 WORKDIR /app
+
+# Parches de seguridad del sistema (p. ej. OpenSSL)
+RUN apk upgrade --no-cache
+
+# El runtime solo usa `node`: se eliminan npm, yarn y corepack de la imagen final.
+# Traen dependencias propias (p. ej. tar) con CVEs críticos que Trivy reporta
+# aunque la app no las use.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+      /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+      /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-*
 
 ENV NODE_ENV=production
 ENV PORT=3000

@@ -11,7 +11,7 @@
 
 # ── Stage: base ─────────────────────────────────────────────
 # Tag fijo para reproducibilidad: actualizar deliberadamente, nunca con :latest
-FROM node:22.15-alpine3.21 AS base
+FROM node:22.23.4-alpine3.24 AS base
 
 WORKDIR /app
 
@@ -45,16 +45,28 @@ COPY . .
 RUN npm run build
 
 # ── Stage: prod ─────────────────────────────────────────────
-FROM node:22.15-alpine3.21 AS prod
+FROM node:22.23.4-alpine3.24 AS prod
 
 WORKDIR /app
 
-# python3/make/g++ necesarios para better-sqlite3 en Alpine
-RUN apk add --no-cache libc6-compat python3 make g++
+# apk upgrade: aplica los parches de seguridad del sistema (p. ej. OpenSSL).
+# python3/make/g++ solo hacen falta para compilar better-sqlite3 durante
+# `npm ci`; se instalan como paquete virtual y se borran después.
+RUN apk upgrade --no-cache && apk add --no-cache libc6-compat
 
 # Solo dependencias de producción
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN apk add --no-cache --virtual .build-deps python3 make g++ \
+    && npm ci --omit=dev \
+    && npm cache clean --force \
+    && apk del .build-deps
+
+# El runtime solo usa `node`: se eliminan npm, yarn y corepack de la imagen final.
+# Traen dependencias propias (p. ej. tar) con CVEs críticos que Trivy reporta
+# aunque la app no las use.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+      /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+      /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-*
 
 # Copiar build compilado
 COPY --from=build /app/dist ./dist
