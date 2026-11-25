@@ -160,10 +160,13 @@ export async function buildApp() {
 
   await app.register(fastifyRateLimit, {
     global: true,
-    max: 100,
+    // @fastify/rate-limit NO tiene opción `skip` (se ignoraba en silencio). En
+    // tests todas las peticiones salen de 127.0.0.1 y comparten el contador en
+    // Redis, así que con 100/min los tests de integración podían recibir 429.
+    // Los límites por ruta (p. ej. /auth/login) siguen activos y se prueban aparte.
+    max: () => (process.env['NODE_ENV'] === 'test' ? 10_000 : 100),
     timeWindow: '1 minute',
     redis: getRedis(),
-    skip: () => process.env['NODE_ENV'] === 'test',
     // Seguridad: usar request.ip, que respeta el setting trustProxy de Fastify.
     // Solo se deriva la IP del header X-Forwarded-For cuando TRUST_PROXY=true.
     // Leer el header crudo permitiría a un atacante falsificar su IP y evadir
