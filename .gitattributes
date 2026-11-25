@@ -1,0 +1,9 @@
+# Estadísticas de lenguajes de GitHub (Linguist).
+# Los seeds del dataset (~29 MB de INSERTs) hacían que el repo apareciera como
+# "PLpgSQL". Se excluyen para que la barra refleje el código de la plataforma.
+dataset/** linguist-vendored
+backend/src/modules/playground/worker-compiled.mjs linguist-generated
+
+# Archivos binarios
+*.db binary
+*.wasm binary

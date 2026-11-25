@@ -1,297 +1,161 @@
-# ShopSphere — Plataforma Educativa de SQL
+# 🛒 ShopSphere — Aprende SQL trabajando como analista de datos
 
-ShopSphere es una plataforma interactiva para aprender SQL usando un dataset realista de e-commerce. El componente central es el **SQL Playground**: un editor que ejecuta queries en tiempo real directamente en el navegador via WebAssembly (sql.js), con latencia sub-50ms y aislamiento de seguridad por diseño.
+[![CI](https://github.com/Juanmask327/curso-sql-shopsphere/actions/workflows/ci.yml/badge.svg)](https://github.com/Juanmask327/curso-sql-shopsphere/actions/workflows/ci.yml)
+
+> ¿Cuántas veces has querido aprender algo nuevo y te has perdido en el intento? En la era de la IA, la información sobra; lo difícil es saber en qué orden aprenderla. No es lo mismo aprender a correr antes de caminar.
+>
+> Por eso nació **ShopSphere**, una plataforma para aprender SQL orientado al análisis de datos. Un diagnóstico inicial identifica tu nivel y arrancas justo donde lo necesitas.
+>
+> ¿Qué la hace diferente? No solo estudias: **trabajas**. Entras como analista de datos de una empresa de e-commerce ficticia, resuelves sus problemas de negocio con consultas reales y cada respuesta se evalúa al instante. Al final, cierras con un proyecto integrador que termina en un dashboard ejecutivo para la dirección de la empresa.
 
 ---
 
-## Getting Started
+## 🎯 Qué vas a poder responder con SQL
 
-### Requisitos previos
+- ¿Por qué disminuyeron las ventas?
+- ¿Qué clientes generan más ingresos?
+- ¿Qué campañas de marketing producen mejores resultados?
+- ¿Qué productos deberían salir del catálogo?
+- ¿Cómo mejorar la retención de clientes?
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
-- Git
-- Node.js 22+ (solo si quieres desarrollar fuera de Docker)
+---
 
-### Opcion rapida (recomendada) — script de setup automatico
+## ✨ Cómo funciona
 
-**Linux / macOS / WSL:**
+- **Diagnóstico de entrada:** 24 preguntas, algunas con consultas SQL reales, que recomiendan el nivel por donde empezar. Se puede repetir cuando quieras.
+- **SQL Playground en el navegador:** editor Monaco y SQLite compilado a WebAssembly (sql.js). Las consultas corren en tu propio navegador, sin servidor y sin esperas.
+- **Corrección automática:** cada respuesta se valida en el servidor contra resultados esperados precalculados, con tres modos de comparación (orden exacto, sin orden o solo estructura). Cada envío corre en una copia aislada del dataset que se descarta al terminar, así que también se practican vistas, `EXPLAIN` y transacciones sin riesgo.
+- **Pistas progresivas:** tres por ejercicio (conceptual, sintáctica y "casi la solución") que se desbloquean con XP.
+- **Gamificación:** XP, rangos (bronce, plata, oro y diamante), rachas diarias y certificados verificables por nivel.
+- **Narrativa continua:** cada nivel tiene briefings, personajes y problemas de la empresa ficticia ShopSphere.
+
+---
+
+## 📚 Plan de estudios
+
+**SQL para Análisis de Datos: De Principiante a Analista Profesional**
+55–60 horas · 20% teoría · 60% práctica guiada · 20% retos abiertos
+
+| Nivel | Tema | Lo que aprendes |
+|---|---|---|
+| 0 | Fundamentos | SELECT, FROM, WHERE, ORDER BY, LIMIT |
+| 1 | Exploración | Filtros, texto, LIKE, IN, BETWEEN, NULL |
+| 2 | Métricas | Agregaciones, GROUP BY, HAVING |
+| 3 | JOINs | Relacionar varias tablas |
+| 4 | Clientes | Comportamiento, devoluciones y segmentación |
+| 5 | Avanzado | Subconsultas, CTEs e inventario |
+| 6 | Analítica | Window functions, cohortes, LTV y campañas |
+| 7 | BI | Vistas y datasets para Power BI y Tableau |
+| 8 | Profesional | Optimización, transacciones y pagos |
+| 🏁 | Capstone | Proyecto integrador en 5 partes con dashboard ejecutivo |
+
+**9 niveles · 36 lecciones · 240 ejercicios con corrección automática**
+
+Todas las lecciones siguen la misma estructura de 7 pasos: problema de negocio → concepto SQL → ejemplos guiados → práctica interactiva → reto abierto → interpretación de resultados → insights empresariales.
+
+---
+
+## 🗄️ El dataset
+
+Una base de datos ficticia y realista de e-commerce en SQLite, con 10 tablas: `customers`, `products`, `categories`, `orders`, `order_items`, `returns`, `inventory`, `payments`, `website_sessions` y `marketing_campaigns` (más `categories_jerarquia` para las consultas recursivas). Las tablas se van desbloqueando a medida que avanzas de nivel.
+
+---
+
+## 🛠️ Stack
+
+| Capa | Tecnologías |
+|---|---|
+| Frontend | Next.js 15, React, TypeScript, Tailwind CSS, shadcn/ui, Monaco Editor, sql.js (WebAssembly) |
+| Backend | Node.js 22, Fastify, Drizzle ORM, Zod, Worker Threads con better-sqlite3 |
+| Datos | PostgreSQL 16 (plataforma), SQLite (dataset del curso), Redis 7 (caché y límite de peticiones) |
+| Autenticación | JWT con rotación de refresh tokens, Google OAuth, verificación por correo |
+| Observabilidad | Prometheus, Grafana, prom-client |
+| Infraestructura | Docker Compose, GitHub Actions |
+
+---
+
+## 🏗️ Arquitectura
+
+```
+Navegador ──► carga el dataset SQLite una sola vez (CDN)
+    │
+    ├──► explora y ejecuta queries localmente con sql.js (WebAssembly)
+    │
+    └──► envía su respuesta ──► API Fastify
+                                   ├── límite de peticiones (Redis)
+                                   ├── pool de workers SQLite aislados ──► valida el resultado
+                                   └── guarda progreso, XP y certificados (PostgreSQL)
+```
+
+Dos bases de datos separadas a propósito: **PostgreSQL** guarda la plataforma (usuarios, progreso y certificados) y **SQLite** guarda el dataset sobre el que practica el estudiante. Las consultas de cada estudiante corren aisladas: en su navegador mientras explora y en workers efímeros con tiempo límite cuando se valida.
+
+---
+
+## 🚀 Levantarlo en local
+
+**Requisitos:** Docker Desktop, Git y Python 3. Node.js 22 solo si quieres desarrollar fuera de Docker.
+
 ```bash
 git clone https://github.com/Juanmask327/curso-sql-shopsphere.git
 cd curso-sql-shopsphere
-bash scripts/setup.sh
 ```
 
-**Windows (PowerShell):**
+**1. Generar el dataset**
+
+```bash
+python dataset/rebuild_dataset.py
+```
+
+**2. Configurar y levantar todo**
+
 ```powershell
-git clone https://github.com/Juanmask327/curso-sql-shopsphere.git
-cd curso-sql-shopsphere
+# Windows (PowerShell)
 .\scripts\setup.ps1
 ```
 
-El script verifica las dependencias, crea el `.env`, levanta los servicios y espera a que todo este listo antes de imprimir las URLs de acceso.
-
----
-
-### Setup manual paso a paso
-
-#### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/Juanmask327/curso-sql-shopsphere.git
-cd curso-sql-shopsphere
-```
-
-#### 2. Configurar variables de entorno
-
 ```bash
 # Linux / macOS / WSL
-cp .env.example .env
-
-# Windows
-copy .env.example .env
+bash scripts/setup.sh
 ```
 
-Abre `.env` y completa los valores vacios. Los criticos son:
+El script crea el `.env` con secretos aleatorios, levanta los servicios y espera a que estén listos. Si lo prefieres manual: copia `.env.example` a `.env`, completa `POSTGRES_PASSWORD`, `JWT_SECRET` y `SESSION_COOKIE_SECRET`, y ejecuta `docker-compose up -d`.
 
-| Variable | Descripcion | Como generarla |
-|---|---|---|
-| `POSTGRES_PASSWORD` | Contrasena de PostgreSQL | Cualquier string seguro |
-| `JWT_SECRET` | Firma de tokens JWT | `openssl rand -hex 64` |
-| `SESSION_COOKIE_SECRET` | Firma de cookies de sesion | `openssl rand -hex 32` |
-
-El resto de variables tienen defaults razonables para desarrollo local.
-
-#### 3. Levantar el entorno
+**3. Cargar los ejercicios**
 
 ```bash
-docker-compose up -d
+docker exec shopsphere-backend npm run seed:exercises
 ```
 
-La primera vez descarga las imagenes y ejecuta `scripts/init.sql` para crear el schema. Puede tardar 1-2 minutos.
+| Servicio | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| API | http://localhost:3001/health |
+| Adminer (base de datos) | http://localhost:8080 |
 
-#### 4. Verificar que todo esta corriendo
-
-```bash
-docker-compose ps
-```
-
-Todos los servicios deben mostrar `healthy` o `running`.
-
-#### 5. Acceder a los servicios
-
-| Servicio | URL | Notas |
-|---|---|---|
-| Frontend | http://localhost:3000 | Next.js 15 |
-| Backend API | http://localhost:3001/health | Fastify — retorna `{"status":"ok"}` |
-| DB Admin | http://localhost:8080 | Adminer — usuario en `.env` |
-| PostgreSQL | localhost:5432 | Para DBeaver / TablePlus / psql |
-
-Para conectarse desde Adminer:
-- Sistema: `PostgreSQL`
-- Servidor: `db`
-- Usuario: valor de `POSTGRES_USER` en `.env`
-- Contrasena: valor de `POSTGRES_PASSWORD` en `.env`
-- Base de datos: valor de `POSTGRES_DB` en `.env`
+Guía detallada: [`docs/guia-setup.md`](docs/guia-setup.md) · Operación: [`docs/runbook.md`](docs/runbook.md) · Decisiones de arquitectura: [`arquitectura/decisiones.md`](arquitectura/decisiones.md)
 
 ---
 
-## Comandos esenciales
+## ✅ Calidad
 
-### Iniciar el entorno
-
-```bash
-docker-compose up -d
-```
-
-### Detener el entorno (preserva los datos)
-
-```bash
-docker-compose down
-```
-
-### Detener y eliminar todos los datos (reset completo)
-
-```bash
-docker-compose down -v
-```
-
-Esto elimina los volumenes de datos. Util para empezar desde cero o cuando cambias el schema.
-
-### Ver logs de todos los servicios
-
-```bash
-docker-compose logs -f
-```
-
-### Ver logs de un servicio especifico
-
-```bash
-docker-compose logs -f backend
-docker-compose logs -f db
-docker-compose logs -f redis
-```
-
-### Reconstruir imagenes (necesario al cambiar Dockerfile o package.json)
-
-```bash
-docker-compose up -d --build
-```
-
-### Entrar al shell de un contenedor
-
-```bash
-# Shell del backend
-docker-compose exec backend sh
-
-# psql directo a la DB
-docker-compose exec db psql -U shopsphere_user -d shopsphere
-```
-
-### Ejecutar migraciones de Drizzle
-
-```bash
-docker-compose exec backend npm run db:migrate
-```
+- Pruebas unitarias e integración con Vitest (servicios reales de PostgreSQL y Redis en CI).
+- GitHub Actions en cada push: lint y tipado estricto (backend y frontend), tests, `npm audit`, análisis estático con CodeQL y escaneo de las imágenes Docker con Trivy.
+- Informes de QA por nivel en [`qa/`](qa/) y auditoría de seguridad en [`security/`](security/).
+- Las 240 soluciones de referencia se validan contra el dataset con `dataset/validate_exercises.py`.
 
 ---
 
-## Estructura del proyecto
+## 👤 Sobre el proyecto
 
-```
-Curso SQL/
-├── docker-compose.yml           # Servicios: backend, frontend, db, redis, adminer
-├── docker-compose.override.yml  # Overrides de desarrollo (adminer con puerto, debug logs)
-├── .env.example                 # Plantilla de variables de entorno
-├── .env                         # Variables reales (NO commiteado — en .gitignore)
-├── .gitignore
-├── .github/
-│   └── workflows/
-│       └── ci.yml               # Pipeline CI: lint → typecheck → test → deploy staging
-├── arquitectura/
-│   └── decisiones.md            # Decisiones de arquitectura tecnica (fuente de verdad)
-├── backend/                     # Node.js 22 + Fastify + TypeScript + Drizzle ORM
-│   ├── Dockerfile               # Multistage: dev (tsx watch) + prod (node dist/)
-│   ├── package.json
-│   ├── src/
-│   │   └── modules/             # auth, users, exercises, playground, certificates
-│   └── drizzle.config.ts
-├── frontend/                    # Next.js 15 + TypeScript + Tailwind + shadcn/ui
-│   ├── Dockerfile               # Multistage: dev (next dev) + prod (standalone)
-│   └── ...
-├── data/                        # dataset.db — SQLite binario para el Playground WASM
-│   └── .gitkeep                 # El .db no va al repo (generado en build time)
-└── scripts/
-    ├── init.sql                 # Schema de PostgreSQL (plataforma: users, sessions, etc.)
-    ├── setup.sh                 # Setup automatico Linux/macOS/WSL
-    └── setup.ps1                # Setup automatico Windows (PowerShell)
-```
+ShopSphere se construyó con agentes de IA especializados (backend, frontend, contenido pedagógico, análisis de datos, DevOps y seguridad), cuya configuración está en [`.claude/agents/`](.claude/agents/). Mi aporte fue la **concepción del producto y las pruebas documentales del curso**: validar que las lecciones, los ejercicios y la plataforma funcionaran como un curso coherente.
 
 ---
 
-## Observabilidad y Monitoring (opcional)
+## 📬 Contacto
 
-El stack de monitoring incluye **Prometheus** (recolección de métricas) y **Grafana** (dashboards). Se activa con un perfil de Docker Compose separado para no consumir recursos en desarrollo normal.
-
-### Activar el stack de monitoring
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml --profile monitoring up -d
-```
-
-### URLs de monitoring
-
-| Servicio    | URL                      | Credenciales          |
-|-------------|--------------------------|-----------------------|
-| Prometheus  | http://localhost:9090    | Sin auth              |
-| Grafana     | http://localhost:3002    | admin / shopsphere_grafana |
-
-Grafana tiene Prometheus pre-configurado como datasource. Al abrir por primera vez, el datasource ya está disponible sin configuración manual.
-
-### Detener el stack de monitoring
-
-```bash
-docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml --profile monitoring down
-```
-
-### Métricas clave del Playground
-
-El backend expone métricas en `GET /metrics` (formato Prometheus). Las métricas críticas a monitorear:
-
-| Métrica | Descripción | Alerta |
-|---|---|---|
-| `playground_query_duration_ms` | Latencia de validación (histogram) | P95 > 1500ms |
-| `playground_worker_pool_utilization` | % de workers en uso (gauge) | > 80% sostenido |
-| `http_requests_total` | Requests por ruta/método/status | Tasa de errores 5xx > 1% |
-| `playground_rate_limit_blocked_total` | Requests bloqueados por rate limiting | Picos inesperados |
+**Juan Manuel Benitez Skolik**
+✉️ Juanmabennitez2008@gmail.com · 💼 [LinkedIn](https://www.linkedin.com/in/juan-manuel-benitez-skolik-9863673a7/) · 🌐 [Portafolio](https://juanmask327.github.io/Portafolio/) · 🆔 [ORCID](https://orcid.org/0009-0009-2170-4617)
 
 ---
 
-## Arquitectura del SQL Playground
-
-El Playground usa **WebAssembly en el navegador** (sql.js) — no hay servidor dedicado de ejecucion de queries. Esto garantiza:
-
-- **Aislamiento maximo**: el codigo del estudiante corre en su propio proceso de browser, nunca en un servidor compartido
-- **Latencia < 50ms**: sin round-trip de red para la exploracion interactiva
-- **Costo cero de cómputo en el backend**: 1000 estudiantes ejecutando queries simultaneamente no genera carga de servidor
-
-El backend solo recibe una llamada al hacer "submit" de respuesta correcta (validacion server-side via Worker Thread de Node.js con SQLite efimero).
-
-Ver `arquitectura/decisiones.md` para la justificacion completa.
-
----
-
-## Arquitectura del entorno local
-
-```
-                  Tu navegador
-                       |
-         +-------------+-------------+
-         |             |             |
-      :3000         :3001         :8080
-  +---------+   +---------+   +---------+
-  | Frontend|   | Backend |   | Adminer |
-  | Next.js |   | Fastify |   | (DB UI) |
-  +---------+   +---------+   +---------+
-                  |       |
-             +----+       +----+
-             |                 |
-          :5432             :6379
-      +-----------+     +---------+
-      | PostgreSQL|     |  Redis  |
-      | (platform)|     |         |
-      +-----------+     +---------+
-
-  Red "backend":  backend <-> db <-> redis
-  Red "frontend": backend <-> frontend
-```
-
----
-
-## Troubleshooting
-
-**Los contenedores no arrancan — error de variable de entorno**
-Asegurate de que `.env` existe y tiene todos los valores requeridos completados. Copia `.env.example` y editalo.
-
-**JWT_SECRET vacio — el backend no arranca**
-El backend valida que `JWT_SECRET` no este vacio al iniciar. Generalo con:
-```bash
-openssl rand -hex 64
-# O en PowerShell:
--join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16) })
-```
-
-**La base de datos no inicializo correctamente**
-`init.sql` solo se ejecuta si el volumen de datos no existe. Para forzar re-inicializacion:
-```bash
-docker-compose down -v
-docker-compose up -d
-```
-
-**Puerto ya en uso**
-Si el puerto 5432, 3000, 3001 o 6379 esta ocupado, cambia las variables `*_PORT_EXPOSED` en `.env`.
-
-**Hot-reload no funciona en Windows**
-Verifica que `WATCHPACK_POLLING=true` este en `docker-compose.override.yml` (ya incluido por defecto).
-
-**El contenedor de backend reinicia en loop**
-Revisa los logs: `docker-compose logs -f backend`. Lo mas probable es una variable de entorno faltante (JWT_SECRET, DATABASE_URL, etc.).
+© 2026 Juan Manuel Benitez Skolik. Todos los derechos reservados. El código está publicado para consulta y aprendizaje.
