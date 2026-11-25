@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Necesario para el Dockerfile: la imagen de producción copia .next/standalone
+  output: "standalone",
   // Allow Monaco Editor WASM and sql.js WASM to load correctly
   webpack: (config, { isServer }) => {
     // Required for sql.js WebAssembly

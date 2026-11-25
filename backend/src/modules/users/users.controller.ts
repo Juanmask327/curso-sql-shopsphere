@@ -30,7 +30,7 @@ export async function getUserExercisesHandler(
   const parsed = ListUsersExercisesQuerySchema.safeParse(request.query);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid query parameters',
+      parsed.error.issues[0]?.message ?? 'Invalid query parameters',
     );
   }
 
@@ -51,7 +51,7 @@ export async function updateProfileHandler(
   const parsed = UpdateProfileSchema.safeParse(request.body);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid request body',
+      parsed.error.issues[0]?.message ?? 'Invalid request body',
     );
   }
 
@@ -66,7 +66,7 @@ export async function getPublicProfileHandler(
   const parsed = UsernameParamSchema.safeParse(request.params);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid username',
+      parsed.error.issues[0]?.message ?? 'Invalid username',
     );
   }
 
@@ -93,7 +93,7 @@ export async function adminListUsersHandler(
   const parsed = AdminListUsersQuerySchema.safeParse(request.query);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid query parameters',
+      parsed.error.issues[0]?.message ?? 'Invalid query parameters',
     );
   }
 
@@ -114,14 +114,14 @@ export async function adminChangeRoleHandler(
   const paramParsed = UserIdParamSchema.safeParse(request.params);
   if (!paramParsed.success) {
     throw new ValidationError(
-      paramParsed.error.errors[0]?.message ?? 'Invalid user ID',
+      paramParsed.error.issues[0]?.message ?? 'Invalid user ID',
     );
   }
 
   const bodyParsed = AdminChangeRoleSchema.safeParse(request.body);
   if (!bodyParsed.success) {
     throw new ValidationError(
-      bodyParsed.error.errors[0]?.message ?? 'Invalid request body',
+      bodyParsed.error.issues[0]?.message ?? 'Invalid request body',
     );
   }
 
@@ -148,7 +148,7 @@ export async function adminDeactivateUserHandler(
   const parsed = UserIdParamSchema.safeParse(request.params);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid user ID',
+      parsed.error.issues[0]?.message ?? 'Invalid user ID',
     );
   }
 

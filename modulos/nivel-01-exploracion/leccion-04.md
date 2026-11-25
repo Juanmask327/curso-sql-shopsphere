@@ -3,6 +3,8 @@
 
 > Tablas disponibles en este nivel: `customers`, `categories`, `products`
 
+> **Nota de dialecto:** Algunos ejemplos de esta lección usan sintaxis de PostgreSQL (`DATE_TRUNC`, `EXTRACT`, `INTERVAL`, `::DATE`) que **no funciona en el Playground**, porque el Playground corre SQLite. Equivalentes en SQLite: `strftime('%Y-%m-01', fecha)` en lugar de `DATE_TRUNC('month', fecha)`; `CAST(strftime('%Y', fecha) AS INTEGER)` en lugar de `EXTRACT(YEAR FROM fecha)` (`'%m'` para el mes); `date('now', '-90 days')` en lugar de `CURRENT_DATE - INTERVAL '90 days'`; `date('2026-01-01')` en lugar de `'2026-01-01'::DATE`. Los ejercicios se validan con la sintaxis SQLite.
+
 ---
 
 ## 1. INTRODUCCIÓN CONCEPTUAL

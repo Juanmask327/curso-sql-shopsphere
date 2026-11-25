@@ -63,6 +63,7 @@ interface PoolWorker {
 interface QueueEntry {
   query: string;
   timeoutMs: number;
+  maxRows?: number;
   resolve: (result: QueryResult) => void;
   reject: (err: Error) => void;
   queuedAt: number;
@@ -88,6 +89,8 @@ export class WorkerPool {
   private workers: PoolWorker[] = [];
   private queue: QueueEntry[] = [];
   private nextRequestId = 0;
+  /** true tras destroy(): evita que los workers terminados se "reemplacen". */
+  private destroyed = false;
 
   /** Métricas para Prometheus. Leer como propiedades. */
   get metrics() {
@@ -139,7 +142,10 @@ export class WorkerPool {
       await build({
         entryPoints: [this.workerScriptPath],
         outfile,
-        bundle: false,
+        // bundle: incluye los módulos locales que importa el worker (sql-script.ts);
+        // los paquetes de node_modules (better-sqlite3) quedan externos.
+        bundle: true,
+        packages: 'external',
         format: 'esm',
         platform: 'node',
       });
@@ -157,6 +163,9 @@ export class WorkerPool {
    * Llamar en el graceful shutdown.
    */
   async destroy(): Promise<void> {
+    // Sin esta marca, terminate() dispara el evento 'exit' (código 1), el pool lo
+    // trata como un crash y vuelve a crear los workers: el proceso nunca termina.
+    this.destroyed = true;
     const terminatePromises = this.workers.map((pw) => pw.worker.terminate());
     await Promise.all(terminatePromises);
     this.workers = [];
@@ -170,11 +179,13 @@ export class WorkerPool {
   async execute(
     query: string,
     timeoutMs: number = DEFAULT_QUERY_TIMEOUT_MS,
+    options: { maxRows?: number } = {},
   ): Promise<QueryResult> {
+    const { maxRows } = options;
     const idleWorker = this.workers.find((w) => !w.busy);
 
     if (idleWorker) {
-      return this.runOnWorker(idleWorker, query, timeoutMs);
+      return this.runOnWorker(idleWorker, query, timeoutMs, maxRows);
     }
 
     // Backpressure: si la cola está llena, rechazar de inmediato (HTTP 503).
@@ -204,6 +215,7 @@ export class WorkerPool {
       this.queue.push({
         query,
         timeoutMs,
+        maxRows,
         resolve: (result) => {
           clearTimeout(acquireTimeout);
           resolve(result);
@@ -284,6 +296,7 @@ export class WorkerPool {
     pw: PoolWorker,
     query: string,
     timeoutMs: number,
+    maxRows?: number,
   ): Promise<QueryResult> {
     return new Promise<QueryResult>((resolve, reject) => {
       const requestId = String(this.nextRequestId++);
@@ -312,6 +325,7 @@ export class WorkerPool {
         requestId,
         query,
         timeoutMs,
+        maxRows,
       };
 
       pw.worker.postMessage(msg);
@@ -359,6 +373,8 @@ export class WorkerPool {
       );
     }
 
+    if (this.destroyed) return;
+
     // Reemplazar el worker crasheado automáticamente
     const index = this.workers.indexOf(pw);
     if (index !== -1) {
@@ -382,7 +398,7 @@ export class WorkerPool {
     if (!next) return;
 
     // Ejecutar la siguiente petición en el worker libre
-    this.runOnWorker(idleWorker, next.query, next.timeoutMs)
+    this.runOnWorker(idleWorker, next.query, next.timeoutMs, next.maxRows)
       .then(next.resolve)
       .catch(next.reject);
   }

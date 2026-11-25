@@ -294,7 +294,8 @@
 -- Enunciado: Retorna return_id, returned_at, nombre del
 --   cliente, nombre del producto, motivo (con COALESCE) y
 --   status_legible (con CASE WHEN ... ELSE). Ordena por
---   returned_at DESC. Limita a 20 filas.
+--   returned_at DESC y, si hay empate de fecha, por return_id
+--   DESC. Limita a 20 filas.
 -- Criterio: COALESCE sobre reason. CASE WHEN con ELSE
 --   explícito. JOIN de customers a través de orders. JOIN
 --   con products para el nombre del producto.
@@ -901,7 +902,7 @@ FROM returns r
 INNER JOIN orders    o   ON o.order_id    = r.order_id
 INNER JOIN customers c   ON c.customer_id = o.customer_id
 INNER JOIN products  p   ON p.product_id  = r.product_id
-ORDER BY r.returned_at DESC
+ORDER BY r.returned_at DESC, r.return_id DESC
 LIMIT 20;
 
 --- Solución 17 ---

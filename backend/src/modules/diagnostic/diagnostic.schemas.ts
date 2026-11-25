@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { required } from '../../shared/validation/required.js';
 
 // ── Schemas de entrada ────────────────────────────────────────────────────────
 
@@ -7,7 +8,7 @@ export const SubmitDiagnosticSchema = z.object({
     .array(
       z.object({
         question_id: z
-          .number({ required_error: 'question_id is required' })
+          .number(required('question_id is required'))
           .int()
           .min(1)
           .max(24),

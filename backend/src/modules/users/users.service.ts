@@ -159,22 +159,26 @@ export async function getDashboard(userId: string): Promise<DashboardResponse> {
  * Calcula estadísticas de ejercicios del usuario.
  */
 async function computeUserStats(userId: string): Promise<UserStats> {
-  // Contadores desde user_exercise_progress
-  const [progressStats] = await db
-    .select({
-      exercises_completed: sql<number>`COUNT(*) FILTER (WHERE ${userExerciseProgress.status} = 'completed')`,
-      exercises_attempted: sql<number>`COUNT(*) FILTER (WHERE ${userExerciseProgress.status} != 'not_started')`,
-      hints_used_total: sum(userExerciseProgress.hintsUsed).mapWith(Number),
-      total_attempts_progress: sum(userExerciseProgress.attemptsCount).mapWith(Number),
-    })
-    .from(userExerciseProgress)
-    .where(eq(userExerciseProgress.userId, userId));
+  // Las dos consultas son independientes: se lanzan en paralelo. Además, así el
+  // orden en que se llama a db.select() es determinista (los tests lo necesitan).
+  const [[progressStats], [attemptsCount]] = await Promise.all([
+    // Contadores desde user_exercise_progress
+    db
+      .select({
+        exercises_completed: sql<number>`COUNT(*) FILTER (WHERE ${userExerciseProgress.status} = 'completed')`,
+        exercises_attempted: sql<number>`COUNT(*) FILTER (WHERE ${userExerciseProgress.status} != 'not_started')`,
+        hints_used_total: sum(userExerciseProgress.hintsUsed).mapWith(Number),
+        total_attempts_progress: sum(userExerciseProgress.attemptsCount).mapWith(Number),
+      })
+      .from(userExerciseProgress)
+      .where(eq(userExerciseProgress.userId, userId)),
 
-  // Total de intentos reales desde exercise_attempts (log inmutable)
-  const [attemptsCount] = await db
-    .select({ total: count() })
-    .from(exerciseAttempts)
-    .where(eq(exerciseAttempts.userId, userId));
+    // Total de intentos reales desde exercise_attempts (log inmutable)
+    db
+      .select({ total: count() })
+      .from(exerciseAttempts)
+      .where(eq(exerciseAttempts.userId, userId)),
+  ]);
 
   const exercisesCompleted = Number(progressStats?.exercises_completed ?? 0);
   const exercisesAttempted = Number(progressStats?.exercises_attempted ?? 0);

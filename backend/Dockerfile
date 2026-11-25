@@ -59,8 +59,9 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Copiar build compilado
 COPY --from=build /app/dist ./dist
 
-# Copiar dataset del playground si existe
-COPY --from=build /app/data ./data 2>/dev/null || true
+# El dataset del playground (data/dataset.db) NO va dentro de la imagen: se monta
+# como volumen (ver docker-compose.yml: ./data:/app/data) o se indica su ruta con
+# PLAYGROUND_DATASET_PATH. Si falta, el backend arranca con el playground deshabilitado.
 
 # Usuario no-root por seguridad
 RUN addgroup -g 1001 -S nodejs && \

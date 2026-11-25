@@ -81,7 +81,7 @@ jobs:
 
       - name: Typecheck
         working-directory: frontend
-        run: npm run typecheck
+        run: npm run type-check
 
   # ----------------------------------------------------------
   # Tests del backend con servicios reales
@@ -99,8 +99,8 @@ jobs:
         env:
           POSTGRES_DB: shopsphere_test
           POSTGRES_USER: shopsphere_user
-          # Secret: definir CI_POSTGRES_PASSWORD en GitHub repo secrets.
-          POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+          # Base de datos efímera solo para CI: no es un secreto real.
+          POSTGRES_PASSWORD: ci_test_password
         ports:
           - 5432:5432
         options: >-
@@ -121,11 +121,11 @@ jobs:
 
     env:
       NODE_ENV: test
-      # Secrets de CI — configurar en GitHub: Settings → Secrets and variables → Actions.
-      DATABASE_URL: postgresql://shopsphere_user:${{ secrets.CI_POSTGRES_PASSWORD }}@localhost:5432/shopsphere_test
+      # Valores de prueba (servicios efímeros del runner). No usar en otros entornos.
+      DATABASE_URL: postgresql://shopsphere_user:ci_test_password@localhost:5432/shopsphere_test
       REDIS_URL: redis://localhost:6379
-      JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
-      SESSION_COOKIE_SECRET: ${{ secrets.CI_SESSION_COOKIE_SECRET }}
+      JWT_SECRET: ci-test-jwt-secret-0123456789abcdef0123456789abcdef0123456789abcdef
+      SESSION_COOKIE_SECRET: ci-test-cookie-secret-0123456789abcdef
       JWT_EXPIRY_ACCESS: 15m
       JWT_EXPIRY_REFRESH: 7d
       BCRYPT_ROUNDS: 4
@@ -150,15 +150,17 @@ jobs:
         working-directory: backend
         run: npm ci
 
+      # init.sql trae "\c shopsphere" (para docker-compose); en CI la base se llama
+      # shopsphere_test, así que se quita esa línea antes de aplicarlo.
       - name: Run schema migrations (init.sql)
         env:
-          PGPASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+          PGPASSWORD: ci_test_password
         run: |
-          psql \
+          sed '/^\\c shopsphere/d' scripts/init.sql | psql \
+            -v ON_ERROR_STOP=1 \
             -h localhost \
             -U shopsphere_user \
-            -d shopsphere_test \
-            -f scripts/init.sql
+            -d shopsphere_test
 
       - name: Run tests
         working-directory: backend

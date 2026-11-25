@@ -29,6 +29,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import { exercises, userExerciseProgress, exerciseAttempts } from '../shared/db/schema.js';
 import { inArray } from 'drizzle-orm';
+import { splitSqlStatements, createViewName } from '../modules/playground/sql-script.js';
 
 // ---------------------------------------------------------------------------
 // Tipos internos
@@ -53,6 +54,8 @@ interface ExpectedResultJson {
   columns: string[];
   rows: unknown[][];
   row_count: number;
+  /** Vistas de otros ejercicios que esta query necesita (ver attachViewSetup). */
+  setup_sql?: string;
 }
 
 interface NivelConfig {
@@ -71,7 +74,8 @@ interface NivelConfig {
 // En el host: se calcula desde REPO_ROOT (4 niveles arriba del script).
 // ---------------------------------------------------------------------------
 
-const REPO_ROOT = resolve(import.meta.dirname, '../../../../');
+// backend/src/scripts → 3 niveles arriba = raíz del repositorio
+const REPO_ROOT = resolve(import.meta.dirname, '../../../');
 
 function resolveBase(envVar: string, containerPath: string, hostRelative: string): string {
   const fromEnv = process.env[envVar];
@@ -206,7 +210,9 @@ function parseExerciseStatements(content: string): Array<{
     solutionsBlockIdx !== -1 ? content.slice(0, solutionsBlockIdx) : content;
 
   // Dividir por cabecera "-- Ejercicio NN"
-  const headerRegex = /^-- Ejercicio (\d+)\s*$/m;
+  // Acepta también cabeceras con sufijo, p. ej. "-- Ejercicio 25 — Integrador del Nivel 6".
+  // Antes esos ejercicios integradores se omitían en silencio.
+  const headerRegex = /^-- Ejercicio (\d+)(?:[ \t]*[—–-][^\n]*)?[ \t]*$/m;
   const parts = exerciseSection.split(headerRegex);
 
   const results: Array<{
@@ -371,6 +377,9 @@ function normalizeValidationMode(
 ): 'exact_ordered' | 'exact_unordered' | 'schema_match' {
   if (raw === 'exact_ordered') return 'exact_ordered';
   if (raw === 'schema_match') return 'schema_match';
+  // Ejercicios cuyo resultado no se puede comparar fila a fila (planes EXPLAIN,
+  // queries que dependen de la fecha actual): solo se valida la estructura.
+  if (raw === 'manual_review' || raw === 'volatile_date_dependent') return 'schema_match';
   return 'exact_unordered';
 }
 
@@ -747,11 +756,20 @@ function parseCapstoneFile(content: string): ParsedCapstoneExercise[] {
 
     // Extraer solución: SQL después de -- Solución EJXX: hasta el fin del comentario multilínea
     let solution = '';
-    // Usar regex dinámico para capturar la solución del ejercicio correspondiente
-    const solHeaderRegex = new RegExp(`-- Soluci[oó]n EJ0?${pos.num}:\\s*\\n/\\*([\\s\\S]*?)\\*/`, 'i');
-    const solMatch = chunk.match(solHeaderRegex);
-    if (solMatch?.[1]) {
-      solution = solMatch[1].trim();
+    // Usar regex dinámico para capturar la solución del ejercicio correspondiente.
+    // Algunos ejercicios traen la solución en varias partes, p. ej.:
+    //   "-- Solución EJ20:" + "-- Solución EJ20 — PARTE B: ..."   → se usa la simple
+    //   "-- Solución EJ17 — Parte A: ..." + "... — Parte B: ..."   → se usa la última
+    // Así coincide con cómo se calculó expected-results-capstone.json.
+    const solHeaderRegex = new RegExp(
+      `-- Soluci[oó]n EJ0?${pos.num}(?![0-9])([^\\n]*)\\n/\\*([\\s\\S]*?)\\*/`,
+      'gi',
+    );
+    const solMatches = [...chunk.matchAll(solHeaderRegex)];
+    const plainSol = solMatches.find((m) => /^\s*:?\s*$/.test(m[1] ?? ''));
+    const chosenSol = plainSol ?? solMatches[solMatches.length - 1];
+    if (chosenSol?.[2]) {
+      solution = chosenSol[2].trim();
     }
 
     // Extraer contexto (descripción) e instrucciones (enunciado + criterios)
@@ -1129,6 +1147,60 @@ function processLevel(config: NivelConfig): ParsedExercise[] {
 }
 
 // ---------------------------------------------------------------------------
+// Dependencias entre ejercicios (vistas)
+// ---------------------------------------------------------------------------
+
+/**
+ * Algunos ejercicios consultan una vista que se crea en OTRO ejercicio
+ * (p. ej. Nivel 7: EJ13 crea v_funnel_adquisicion y EJ14/EJ15 la consultan).
+ * El validador corre cada envío en una sandbox limpia, así que la vista no
+ * existiría. Se guarda en expected_result_json.setup_sql el CREATE VIEW que
+ * hace falta; el playground lo ejecuta antes de la query del estudiante.
+ */
+function attachViewSetup(all: ParsedExercise[]): void {
+  // nombre de vista → { nivel, sentencia CREATE VIEW }
+  const creators = new Map<string, { levelId: number; sql: string }>();
+  for (const ex of all) {
+    for (const stmt of splitSqlStatements(ex.referenceQuery)) {
+      const name = createViewName(stmt);
+      if (name) creators.set(name.toLowerCase(), { levelId: ex.levelId, sql: stmt });
+    }
+  }
+  if (creators.size === 0) return;
+
+  const referencedViews = (sql: string): string[] =>
+    [...creators.keys()].filter((v) => new RegExp(`\\b${v}\\b`, 'i').test(sql));
+
+  for (const ex of all) {
+    const ownViews = new Set(
+      splitSqlStatements(ex.referenceQuery)
+        .map((st) => createViewName(st)?.toLowerCase())
+        .filter((v): v is string => Boolean(v)),
+    );
+
+    // Resolver dependencias (incluye vistas que dependen de otras vistas)
+    const ordered: string[] = [];
+    const visit = (view: string, seen: Set<string>) => {
+      if (ownViews.has(view) || ordered.includes(view) || seen.has(view)) return;
+      seen.add(view);
+      for (const dep of referencedViews(creators.get(view)!.sql)) {
+        if (dep !== view) visit(dep, seen);
+      }
+      ordered.push(view);
+    };
+    for (const v of referencedViews(ex.referenceQuery)) visit(v, new Set());
+
+    if (ordered.length > 0) {
+      ex.expectedResultJson = {
+        ...ex.expectedResultJson,
+        setup_sql: ordered.map((v) => creators.get(v)!.sql).join(';\n'),
+      };
+      console.log(`  [setup] Nivel ${ex.levelId} EJ${ex.orderIndex}: crea antes ${ordered.join(', ')}`);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
 
@@ -1155,6 +1227,8 @@ async function main(): Promise<void> {
     const parsed = processLevel(config);
     allExercises.push(...parsed);
   }
+
+  attachViewSetup(allExercises);
 
   console.log(`\nTotal de ejercicios a insertar: ${allExercises.length}`);
 

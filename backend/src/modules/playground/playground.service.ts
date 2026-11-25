@@ -348,7 +348,15 @@ export async function validateQuery(
   let executionError: string | null = null;
 
   try {
-    executionResult = await workerPool.execute(input.query, queryTimeoutMs);
+    // Si el ejercicio depende de una vista creada en otro ejercicio, se crea
+    // antes de la query del estudiante (todo corre en la sandbox y se revierte).
+    const setupSql = exercise.expectedResult.setup_sql;
+    const script = setupSql ? `${setupSql};\n${input.query}` : input.query;
+
+    // maxRows: la validación compara contra el resultado completo (no solo 1000 filas).
+    executionResult = await workerPool.execute(script, queryTimeoutMs, {
+      maxRows: 50_000,
+    });
   } catch (err) {
     // Backpressure: si la cola del pool está llena, propagar como 503 en vez
     // de tratarlo como un error de la query del estudiante.

@@ -133,31 +133,33 @@ Este proyecto usa **dos bases de datos distintas** — es la confusión más com
 | **Plataforma** | PostgreSQL 16 | users, sessions, levels, exercises, progress, certificates | Backend (Drizzle ORM) |
 | **Dataset e-commerce** | SQLite (`data/dataset.db`) | customers, products, categories, orders, order_items, returns, inventory, payments, website_sessions, marketing_campaigns | Playground WASM (cliente) + Worker de validación (backend) |
 
-El schema Drizzle en `backend/src/shared/db/schema.ts` cubre **solo PostgreSQL**. El schema SQLite del dataset vive en `dataset/validate_seed.py`.
+El schema Drizzle en `backend/src/shared/db/schema.ts` cubre **solo PostgreSQL**. El schema SQLite del dataset vive en `dataset/rebuild_dataset.py` (constante `SCHEMA`).
 
 ### Generar el dataset SQLite
 
 ```bash
-# 1. Generar SQL de seed (escribe dataset/shopsphere-seed.sql directamente)
-python dataset/generate_seed.py
+# Reconstruye data/dataset.db con el schema canónico del curso y copia el
+# resultado a frontend/public/dataset.db (el que carga el playground del navegador)
+python dataset/rebuild_dataset.py
 
-# 2. Validar el seed antes de compilar
-python dataset/validate_seed.py
-
-# 3. Compilar a archivo .db (usa el módulo sqlite3 de Python, sin CLI externo)
-python dataset/build_db.py
+# Verificar que las 240 soluciones siguen produciendo el resultado esperado
+python dataset/validate_exercises.py
 ```
 
-`data/dataset.db` está en `.gitignore` — se genera en build time. El frontend lo carga una vez desde CDN con `Cache-Control: immutable`.
+> ⚠️ No usar `generate_seed.py` + `build_db.py` para el dataset del curso: generan
+> un schema distinto (otra cantidad de clientes/pedidos, sin `is_active`,
+> `device_type` ni `categories_jerarquia`) y los resultados esperados dejan de coincidir.
+
+`data/dataset.db` está en `.gitignore` — se genera en build time. `frontend/public/dataset.db` sí se versiona (es la copia que sirve el frontend y la que usan los tests del backend).
 
 Scripts adicionales de mantenimiento del dataset (usar cuando sea necesario):
 
 | Script | Cuándo usarlo |
 |---|---|
-| `dataset/build_db.py` | Compilar `dataset/shopsphere-seed.sql` → `data/dataset.db` (usa módulo sqlite3 de Python, sin CLI externo) |
-| `dataset/rebuild_dataset.py` | Reconstruir `data/dataset.db` desde cero (combina los tres archivos de seed SQL parciales) |
+| `dataset/rebuild_dataset.py` | **Script oficial.** Reconstruye `data/dataset.db` desde cero (schema canónico + los tres seeds parciales, índices, `ANALYZE`) y lo copia a `frontend/public/dataset.db` |
+| `dataset/build_db.py` | ⚠️ Legado: compila `dataset/shopsphere-seed.sql` (schema antiguo). No usar para el curso |
 | `dataset/validate_exercises.py` | Verificar que todas las queries de referencia de los ejercicios producen resultados en el dataset actual |
-| `dataset/generate_expected.py` | Regenerar todos los archivos `expected-results-nivel-XX.json` tras cambiar el dataset o las queries de referencia |
+| `dataset/generate_expected.py` | Regenerar los `expected-results-nivel-XX.json`. ⚠️ Sobrescribe correcciones hechas a mano (p. ej. capstone EJ20, modos de validación de N7/N8): revisar el `git diff` antes de commitear |
 | `dataset/run_validate.py` | Correr validación de un nivel específico contra el dataset (debug de ejercicios) |
 
 ### Pipeline de seed de ejercicios
@@ -169,7 +171,13 @@ Scripts adicionales de mantenimiento del dataset (usar cuando sea necesario):
 | `modulos/nivel-XX/ejercicios-nivel-XX.sql` | Definiciones de ejercicios con metadatos en comentarios SQL |
 | `dataset/expected-results-nivel-XX.json` | Resultados esperados pre-calculados para `expected_result_json` |
 
-Los archivos `dataset/expected-results-*.json` se generan con `python dataset/generate_expected.py` y se versionan en el repo (son determinísticos y derivados del dataset).
+Los archivos `dataset/expected-results-*.json` se generan con `python dataset/generate_expected.py` y se versionan en el repo. Algunos tienen correcciones manuales, así que revisar el diff tras regenerarlos.
+
+Si un ejercicio consulta una vista creada en otro ejercicio (p. ej. `v_funnel_adquisicion` en el Nivel 7), el seeder guarda el `CREATE VIEW` necesario en `expected_result_json.setup_sql` y el playground lo ejecuta antes de la query del estudiante.
+
+Los archivos `dataset/expected-results-nivel-XX-template.json` son **entrada** de `generate_expected.py` (metadatos por ejercicio, como `validation_mode`, que se mezclan con los resultados calculados), no salida. Editar el template, nunca el JSON generado. `seed-exercises.ts` solo lee los JSON sin `-template`.
+
+Los `*.txt` y los scripts `debug_*.py`, `check_*.py`, `gen*.py` y `run_validate2.py` de `dataset/` son restos de sesiones de debug, no forman parte del pipeline.
 
 Para crear una cuenta de desarrollo local (sin pasar por registro):
 ```bash
@@ -329,6 +337,8 @@ Los informes de QA por nivel viven en `qa/`:
 
 Leer los informes antes de modificar ejercicios de un nivel ya revisado.
 
+`memory.md` (raíz) es el registro de estado del proyecto: estado del contenido por nivel, correcciones QA aplicadas e inspecciones de salud. `security/audit-*.md` guarda las auditorías de seguridad. Consultarlos antes de reabrir algo que ya se resolvió.
+
 ---
 
 ## Modelo de datos (PostgreSQL)
@@ -356,7 +366,7 @@ Ver `.env.example` para la lista completa. Las indispensables para arrancar:
 | `ENABLE_SWAGGER` | `true` habilita la UI de Swagger en `/docs` (solo para desarrollo) |
 | `TRUST_PROXY` | `true` si el backend corre detrás de un proxy (Railway/Vercel/Nginx) — necesario para que el rate limiting por IP funcione correctamente |
 
-En PowerShell: `-join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16) })` genera un secreto aleatorio.
+`scripts/validate-env.ps1` / `scripts/validate-env.sh` verifican el `.env` antes de arrancar.
 
 ---
 
@@ -365,6 +375,7 @@ En PowerShell: `-join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16
 Pipeline en `.github/workflows/ci.yml`:
 - `lint-backend` y `lint-frontend` corren en paralelo
 - `test-backend` corre después de lint, con PostgreSQL 16 y Redis 7 reales como servicios de GitHub Actions
+- `audit-dependencies`, `codeql` y `docker-image-scan` son jobs de seguridad: una vulnerabilidad nueva en una dependencia puede romper el CI sin que cambie el código
 - `deploy-staging` corre solo desde `main` — pendiente de configurar proveedor (ver `arquitectura/decisiones.md` — Estimación de Costos)
 
 El dataset `data/dataset.db` no va al repo (está en `.gitignore`). Se genera en build time.

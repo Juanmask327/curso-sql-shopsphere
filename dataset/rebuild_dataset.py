@@ -6,9 +6,11 @@ y los tres archivos de seed corregidos.
 import sqlite3
 import os
 import sys
+import shutil
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH   = os.path.join(REPO_ROOT, "data", "dataset.db")
+PUBLIC_DB_PATH = os.path.join(REPO_ROOT, "frontend", "public", "dataset.db")
 DS_DIR    = os.path.join(REPO_ROOT, "dataset")
 
 SEED_FILES = [
@@ -129,7 +131,9 @@ def main():
         print(f"DB anterior eliminada: {DB_PATH}")
 
     conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA journal_mode=WAL")
+    # Modo DELETE (no WAL): el archivo queda autocontenido, sin -wal/-shm, y se
+    # puede deserializar en memoria (better-sqlite3 no abre buffers en modo WAL).
+    conn.execute("PRAGMA journal_mode=DELETE")
     conn.execute("PRAGMA foreign_keys=OFF")  # speed during bulk insert
 
     print("Creando schema canonico...")
@@ -164,7 +168,14 @@ def main():
         CREATE INDEX IF NOT EXISTS idx_website_sessions_customer_id ON website_sessions(customer_id);
         CREATE INDEX IF NOT EXISTS idx_website_sessions_started_at ON website_sessions(started_at);
         CREATE INDEX IF NOT EXISTS idx_website_sessions_campaign_id ON website_sessions(campaign_id);
+        CREATE INDEX IF NOT EXISTS idx_payments_order_id ON payments(order_id);
+        CREATE INDEX IF NOT EXISTS idx_inventory_product_id ON inventory(product_id);
     """)
+    conn.commit()
+
+    # Estadísticas para el planificador: sin ANALYZE algunas queries del curso
+    # (p. ej. NOT EXISTS correlacionados) tardan > 5 s y el playground las corta.
+    conn.execute("ANALYZE")
     conn.commit()
 
     # Verificar counts
@@ -176,9 +187,15 @@ def main():
         n = conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
         print(f"  {t:30s} {n:>6}")
 
+    conn.execute("VACUUM")
     conn.close()
     size_kb = os.path.getsize(DB_PATH) // 1024
     print(f"\ndataset.db reconstruido: {DB_PATH} ({size_kb} KB)")
+
+    # El playground del navegador carga /dataset.db desde frontend/public/.
+    # Se mantiene una copia idéntica para que backend y frontend usen el mismo dataset.
+    shutil.copyfile(DB_PATH, PUBLIC_DB_PATH)
+    print(f"Copiado a: {PUBLIC_DB_PATH}")
 
 if __name__ == "__main__":
     main()

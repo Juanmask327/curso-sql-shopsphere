@@ -9,7 +9,7 @@ function parseLevelId(request: FastifyRequest): number {
   const parsed = LevelIdParamSchema.safeParse(request.params);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid level ID',
+      parsed.error.issues[0]?.message ?? 'Invalid level ID',
       'VALIDATION_ERROR',
     );
   }

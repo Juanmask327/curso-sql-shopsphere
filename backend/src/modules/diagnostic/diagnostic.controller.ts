@@ -31,7 +31,7 @@ export async function submitDiagnosticHandler(
   const parsedBody = SubmitDiagnosticSchema.safeParse(request.body);
   if (!parsedBody.success) {
     throw new ValidationError(
-      parsedBody.error.errors[0]?.message ?? 'Invalid input',
+      parsedBody.error.issues[0]?.message ?? 'Invalid input',
     );
   }
 
@@ -59,7 +59,7 @@ export async function saveResultHandler(
   const parsed = SaveResultSchema.safeParse(request.body);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid input',
+      parsed.error.issues[0]?.message ?? 'Invalid input',
     );
   }
 

@@ -12,7 +12,7 @@ export async function checkCertificateHandler(
   const parsed = LevelIdParamSchema.safeParse(request.params);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid level_id',
+      parsed.error.issues[0]?.message ?? 'Invalid level_id',
     );
   }
 
@@ -31,7 +31,7 @@ export async function verifyCertificateHandler(
   const parsed = CertificateUidParamSchema.safeParse(request.params);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid certificate UID',
+      parsed.error.issues[0]?.message ?? 'Invalid certificate UID',
     );
   }
 

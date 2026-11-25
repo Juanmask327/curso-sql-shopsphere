@@ -2,15 +2,16 @@ import type { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { validateQuery } from './playground.service.js';
 import { ValidationError } from '../../shared/errors/index.js';
+import { required } from '../../shared/validation/required.js';
 
 // ── Schema de entrada ─────────────────────────────────────────────────────────
 
 const ValidateQuerySchema = z.object({
-  exercise_id: z.string({ required_error: 'exercise_id is required' }).uuid(
+  exercise_id: z.string(required('exercise_id is required')).uuid(
     'exercise_id must be a valid UUID',
   ),
   query: z
-    .string({ required_error: 'query is required' })
+    .string(required('query is required'))
     .min(1, 'query cannot be empty')
     .max(10_000, 'query must be at most 10,000 characters'),
 });
@@ -24,7 +25,7 @@ export async function validateQueryHandler(
   const parsed = ValidateQuerySchema.safeParse(request.body);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid request body',
+      parsed.error.issues[0]?.message ?? 'Invalid request body',
     );
   }
 

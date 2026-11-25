@@ -131,6 +131,9 @@ describe('UsersService', () => {
         },
       ]);
 
+      // Mock 3b: stats — exercise_attempts count (corre en paralelo con el anterior)
+      mockSelect([{ total: 15 }]);
+
       // Mock 4: recent_activity
       mockSelect([
         {
@@ -149,9 +152,6 @@ describe('UsersService', () => {
         { levelId: 1, levelName: 'SQL Basics', isPublished: true, exercisesTotal: 5 },
         { levelId: 2, levelName: 'Intermediate SQL', isPublished: true, exercisesTotal: 8 },
       ]);
-
-      // Mock 6: stats — exercise_attempts count
-      mockSelect([{ total: 15 }]);
 
       // Mock 7: completed per level query
       mockSelectDirect([
@@ -218,6 +218,9 @@ describe('UsersService', () => {
         },
       ]);
 
+      // Mock attempt count (corre en paralelo con el anterior)
+      mockSelect([{ total: 0 }]);
+
       // Mock recent activity — vacío
       mockSelect([]);
 
@@ -225,9 +228,6 @@ describe('UsersService', () => {
       mockSelectDirect([
         { levelId: 1, levelName: 'SQL Basics', isPublished: true, exercisesTotal: 5 },
       ]);
-
-      // Mock attempt count
-      mockSelect([{ total: 0 }]);
 
       // Mock completed per level
       mockSelectDirect([]);

@@ -15,7 +15,7 @@ El desarrollo del proyecto está estrictamente alineado con los requerimientos y
 **ShopSphere** enseña SQL usando un dataset de e-commerce ficticio y realista. 
 
 ### Decisiones de Arquitectura Críticas
-La arquitectura del proyecto está documentada en [arquitectura/decisiones.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/arquitectura/decisiones.md) y se rige por tres prioridades: **seguridad del aislamiento de queries > latencia del Playground < 50ms > costo operacional**.
+La arquitectura del proyecto está documentada en [arquitectura/decisiones.md](arquitectura/decisiones.md) y se rige por tres prioridades: **seguridad del aislamiento de queries > latencia del Playground < 50ms > costo operacional**.
 
 ```mermaid
 graph TD
@@ -42,16 +42,16 @@ El proyecto mantiene dos bases de datos completamente separadas para evitar conf
 
 El proyecto se divide en los siguientes directorios principales:
 
-*   **[arquitectura/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/arquitectura/)**: Contiene la bitácora de decisiones arquitectónicas (`decisiones.md`).
-*   **[backend/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/backend/)**: Código del API REST (Node.js 22 + Fastify + Drizzle ORM).
-*   **[frontend/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/frontend/)**: Interfaz de usuario y SQL Playground interactivo (Next.js 15 + Tailwind CSS).
-*   **[contenido/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/contenido/)**: Narrativa de ShopSphere, briefings por nivel y worldbuilding de la empresa.
-*   **[modulos/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/)**: Lecciones teóricas y scripts SQL de ejercicios prácticos de los niveles 0 al 8 y el Capstone.
-*   **[dataset/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/dataset/)**: Generadores del dataset, validador de seeds y plantillas de resultados esperados (`expected-results-*.json`).
-*   **[evaluaciones/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/evaluaciones/)**: Contiene la evaluación diagnóstica inicial del estudiante (`diagnostico.md`).
-*   **[qa/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/qa/)**: Informes de calidad (QA) y correcciones aplicadas a lecciones y ejercicios.
-*   **[scripts/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/scripts/)**: Automatización de setup para Windows (PowerShell) y Linux/macOS (bash).
-*   **[monitoring/](file:///C:/Users/Juanm/Desktop/Curso%20SQL/monitoring/)**: Configuración del stack de monitoreo (Prometheus + Grafana).
+*   **[arquitectura/](arquitectura/)**: Contiene la bitácora de decisiones arquitectónicas (`decisiones.md`).
+*   **[backend/](backend/)**: Código del API REST (Node.js 22 + Fastify + Drizzle ORM).
+*   **[frontend/](frontend/)**: Interfaz de usuario y SQL Playground interactivo (Next.js 15 + Tailwind CSS).
+*   **[contenido/](contenido/)**: Narrativa de ShopSphere, briefings por nivel y worldbuilding de la empresa.
+*   **[modulos/](modulos/)**: Lecciones teóricas y scripts SQL de ejercicios prácticos de los niveles 0 al 8 y el Capstone.
+*   **[dataset/](dataset/)**: Generadores del dataset, validador de seeds y plantillas de resultados esperados (`expected-results-*.json`).
+*   **[evaluaciones/](evaluaciones/)**: Contiene la evaluación diagnóstica inicial del estudiante (`diagnostico.md`).
+*   **[qa/](qa/)**: Informes de calidad (QA) y correcciones aplicadas a lecciones y ejercicios.
+*   **[scripts/](scripts/)**: Automatización de setup para Windows (PowerShell) y Linux/macOS (bash).
+*   **[monitoring/](monitoring/)**: Configuración del stack de monitoreo (Prometheus + Grafana).
 
 ---
 
@@ -161,16 +161,16 @@ El currículum del curso consta de 9 niveles (0-8) y un proyecto integrador Caps
 
 | ID | Nivel | Contenido Teórico | Ejercicios Prácticos | Tablas Desbloqueadas | Estado QA / Publicación |
 |---|---|---|---|---|---|
-| **0** | Fundamentos | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-00-fundamentos/leccion-01.md) | N/A (conceptual) | Ninguna | Aprobado / Publicado |
-| **1** | Exploración | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-01-exploracion/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-01-exploracion/leccion-04.md) | [ejercicios-nivel-01.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-01-exploracion/ejercicios-nivel-01.sql) (20) | `customers`, `categories`, `products` | Aprobado con obs. / Publicado |
-| **2** | Métricas | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-02-metricas/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-02-metricas/leccion-04.md) | [ejercicios-nivel-02.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-02-metricas/ejercicios-nivel-02.sql) (25) | `+ orders` | Aprobado con obs. / Publicado |
-| **3** | JOINs | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-03-joins/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-03-joins/leccion-04.md) | [ejercicios-nivel-03.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-03-joins/ejercicios-nivel-03.sql) (25) | `+ order_items` | Aprobado con obs. / Publicado |
-| **4** | Clientes | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-04-clientes/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-04-clientes/leccion-04.md) | [ejercicios-nivel-04.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-04-clientes/ejercicios-nivel-04.sql) (25) | `+ returns` | Aprobado con obs. / En Desarrollo (is_published=false) |
-| **5** | Avanzado | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-05-avanzado/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-05-avanzado/leccion-04.md) | [ejercicios-nivel-05.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-05-avanzado/ejercicios-nivel-05.sql) (25) | `+ inventory` | Aprobado / En Desarrollo (is_published=false) |
-| **6** | Analítica | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-06-analitica/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-06-analitica/leccion-04.md) | [ejercicios-nivel-06.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-06-analitica/ejercicios-nivel-06.sql) (25) | `+ marketing_campaigns` | Aprobado (correcciones críticas hechas) / En Desarrollo (is_published=false) |
-| **7** | BI | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-07-bi/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-07-bi/leccion-04.md) | [ejercicios-nivel-07.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-07-bi/ejercicios-nivel-07.sql) (25) | `+ website_sessions` | Aprobado con obs. / En Desarrollo (is_published=false) |
-| **8** | Profesional | [leccion-01.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-08-profesional/leccion-01.md) a [leccion-04.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-08-profesional/leccion-04.md) | [ejercicios-nivel-08.sql](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/nivel-08-profesional/ejercicios-nivel-08.sql) (25) | `+ payments` | Aprobado / En Desarrollo (is_published=false) |
-| **Capstone** | Proyecto Final | [README.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/modulos/capstone/README.md) y [capstone-brief.md](file:///C:/Users/Juanm/Desktop/Curso%20SQL/contenido/capstone-brief.md) | `parte-01-exploracion.sql` a `parte-05-dashboard-ejecutivo.sql` (25) | Todas las tablas del curso | Aprobado / En Desarrollo (is_published=false) |
+| **0** | Fundamentos | [leccion-01.md](modulos/nivel-00-fundamentos/leccion-01.md) | N/A (conceptual) | Ninguna | Aprobado / Publicado |
+| **1** | Exploración | [leccion-01.md](modulos/nivel-01-exploracion/leccion-01.md) a [leccion-04.md](modulos/nivel-01-exploracion/leccion-04.md) | [ejercicios-nivel-01.sql](modulos/nivel-01-exploracion/ejercicios-nivel-01.sql) (20) | `customers`, `categories`, `products` | Aprobado con obs. / Publicado |
+| **2** | Métricas | [leccion-01.md](modulos/nivel-02-metricas/leccion-01.md) a [leccion-04.md](modulos/nivel-02-metricas/leccion-04.md) | [ejercicios-nivel-02.sql](modulos/nivel-02-metricas/ejercicios-nivel-02.sql) (25) | `+ orders` | Aprobado con obs. / Publicado |
+| **3** | JOINs | [leccion-01.md](modulos/nivel-03-joins/leccion-01.md) a [leccion-04.md](modulos/nivel-03-joins/leccion-04.md) | [ejercicios-nivel-03.sql](modulos/nivel-03-joins/ejercicios-nivel-03.sql) (25) | `+ order_items` | Aprobado con obs. / Publicado |
+| **4** | Clientes | [leccion-01.md](modulos/nivel-04-clientes/leccion-01.md) a [leccion-04.md](modulos/nivel-04-clientes/leccion-04.md) | [ejercicios-nivel-04.sql](modulos/nivel-04-clientes/ejercicios-nivel-04.sql) (25) | `+ returns` | Aprobado con obs. / En Desarrollo (is_published=false) |
+| **5** | Avanzado | [leccion-01.md](modulos/nivel-05-avanzado/leccion-01.md) a [leccion-04.md](modulos/nivel-05-avanzado/leccion-04.md) | [ejercicios-nivel-05.sql](modulos/nivel-05-avanzado/ejercicios-nivel-05.sql) (25) | `+ inventory` | Aprobado / En Desarrollo (is_published=false) |
+| **6** | Analítica | [leccion-01.md](modulos/nivel-06-analitica/leccion-01.md) a [leccion-04.md](modulos/nivel-06-analitica/leccion-04.md) | [ejercicios-nivel-06.sql](modulos/nivel-06-analitica/ejercicios-nivel-06.sql) (25) | `+ marketing_campaigns` | Aprobado (correcciones críticas hechas) / En Desarrollo (is_published=false) |
+| **7** | BI | [leccion-01.md](modulos/nivel-07-bi/leccion-01.md) a [leccion-04.md](modulos/nivel-07-bi/leccion-04.md) | [ejercicios-nivel-07.sql](modulos/nivel-07-bi/ejercicios-nivel-07.sql) (25) | `+ website_sessions` | Aprobado con obs. / En Desarrollo (is_published=false) |
+| **8** | Profesional | [leccion-01.md](modulos/nivel-08-profesional/leccion-01.md) a [leccion-04.md](modulos/nivel-08-profesional/leccion-04.md) | [ejercicios-nivel-08.sql](modulos/nivel-08-profesional/ejercicios-nivel-08.sql) (25) | `+ payments` | Aprobado / En Desarrollo (is_published=false) |
+| **Capstone** | Proyecto Final | [README.md](modulos/capstone/README.md) y [capstone-brief.md](contenido/capstone-brief.md) | `parte-01-exploracion.sql` a `parte-05-dashboard-ejecutivo.sql` (25) | Todas las tablas del curso | Aprobado / En Desarrollo (is_published=false) |
 
 ---
 

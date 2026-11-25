@@ -9,14 +9,20 @@
  *
  * Ciclo de vida:
  *   1. El worker arranca y espera el mensaje de inicialización con el dataset path.
- *   2. Abre el dataset en modo readonly directo al archivo.
+ *   2. Carga el dataset en una base de datos EN MEMORIA (copia privada del
+ *      worker). El archivo en disco nunca se abre en modo escritura.
  *   3. Queda listo para recibir mensajes de tipo { query, timeoutMs }.
- *   4. Ejecuta la query, responde con el resultado o el error.
+ *   4. Ejecuta el script del estudiante dentro de una transacción que SIEMPRE
+ *      se revierte (sandbox): puede crear vistas, usar EXPLAIN o practicar
+ *      transacciones, pero nada persiste entre envíos ni entre estudiantes.
+ *      Se responde con el resultado de la ÚLTIMA instrucción del script.
  *   5. Ante timeout, el pool termina el worker desde el hilo principal.
  */
 
 import { parentPort, workerData } from 'worker_threads';
+import { readFileSync } from 'node:fs';
 import Database from 'better-sqlite3';
+import { splitSqlStatements, firstKeyword, createViewName } from './sql-script.js';
 
 // ── Tipos de mensajes ─────────────────────────────────────────────────────────
 
@@ -25,6 +31,8 @@ export interface WorkerQueryMessage {
   requestId: string;
   query: string;
   timeoutMs: number;
+  /** Filas a devolver (por defecto 1000). La validación pide todas las escaneadas. */
+  maxRows?: number;
 }
 
 export interface WorkerQueryResult {
@@ -56,19 +64,39 @@ interface WorkerInitData {
 }
 
 let db: Database.Database | null = null;
+let datasetBuffer: Buffer | null = null;
+
+/** Límite de memoria de SQLite por worker (dataset en memoria + datos temporales). */
+const SQLITE_HEAP_LIMIT_BYTES = 256 * 1024 * 1024;
+/** Máximo de instrucciones por envío (evita scripts gigantes). */
+const MAX_STATEMENTS = 30;
+
+/**
+ * Instrucciones prohibidas aunque todo se revierta:
+ * - ATTACH/DETACH y VACUUM (VACUUM INTO) pueden leer o escribir archivos del servidor.
+ * - PRAGMA puede cambiar la configuración del motor (p. ej. desactivar límites).
+ */
+const BLOCKED_KEYWORDS = new Set(['ATTACH', 'DETACH', 'VACUUM', 'PRAGMA']);
+
+function openInMemory(): Database.Database {
+  if (!datasetBuffer) throw new Error('Dataset buffer not loaded');
+  // Copia privada en memoria: lo que haga el estudiante nunca toca el archivo.
+  const memDb = new Database(datasetBuffer);
+  memDb.pragma(`hard_heap_limit = ${SQLITE_HEAP_LIMIT_BYTES}`);
+  return memDb;
+}
 
 function initializeDatabase(datasetPath: string): void {
   try {
-    // Abrir el archivo SQLite directamente en modo readonly.
-    // Múltiples workers pueden apuntar al mismo archivo sin bloqueos porque
-    // ninguno escribe. Si el archivo no existe o está corrupto, lanzamos aquí
-    // y el pool reemplazará este worker.
-    db = new Database(datasetPath, { readonly: true });
-
-    // Configuraciones de seguridad: read-only directo al archivo, sin mutaciones
-    // query_only es redundante con readonly: true, pero lo mantenemos como defensa en profundidad
-    db.pragma('query_only = ON');
-
+    const buf = readFileSync(datasetPath);
+    // better-sqlite3 no puede abrir en memoria un archivo en modo WAL
+    // (bytes 18-19 de la cabecera = 2). Se fuerza modo "legacy" (1) en la copia.
+    if (buf.length > 19 && buf[18] === 2 && buf[19] === 2) {
+      buf[18] = 1;
+      buf[19] = 1;
+    }
+    datasetBuffer = buf;
+    db = openInMemory();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     parentPort?.postMessage({
@@ -81,9 +109,54 @@ function initializeDatabase(datasetPath: string): void {
   }
 }
 
+/**
+ * Si por cualquier motivo la transacción sandbox terminó antes de tiempo,
+ * los cambios del estudiante podrían quedar en la copia en memoria. En ese caso
+ * se descarta la copia y se recarga desde el buffer original.
+ */
+function resetDatabase(): void {
+  try {
+    db?.close();
+  } catch {
+    /* ignorar */
+  }
+  db = openInMemory();
+}
+
+class SandboxError extends Error {}
+
+/**
+ * Traduce el control de transacciones del estudiante a SAVEPOINTs anidados
+ * dentro de la transacción sandbox, para que nunca pueda hacer COMMIT real.
+ * Devuelve el SQL a ejecutar, o null si la instrucción debe ignorarse.
+ */
+function translateTransactionControl(
+  keyword: string,
+  statement: string,
+  stack: string[],
+): string | null | undefined {
+  const normalized = statement.trim().replace(/\s+/g, ' ').toUpperCase();
+  if (keyword === 'BEGIN') {
+    const name = `user_tx_${stack.length}`;
+    stack.push(name);
+    return `SAVEPOINT ${name}`;
+  }
+  if (keyword === 'COMMIT' || keyword === 'END') {
+    const name = stack.pop();
+    return name ? `RELEASE ${name}` : null;
+  }
+  if (keyword === 'ROLLBACK' && !/^ROLLBACK( TRANSACTION)? TO /.test(normalized)) {
+    const name = stack.pop();
+    return name ? `ROLLBACK TO ${name}; RELEASE ${name}` : null;
+  }
+  // SAVEPOINT x, RELEASE x y ROLLBACK TO x son válidos tal cual dentro de la sandbox.
+  return undefined;
+}
+
 function executeQuery(
   requestId: string,
   query: string,
+  maxRows?: number,
 ): WorkerQueryResult | WorkerQueryError {
   if (!db) {
     return {
@@ -95,47 +168,95 @@ function executeQuery(
   }
 
   const start = performance.now();
+  const MAX_SCAN_ROWS = 50_000; // límite duro de filas materializadas
+  // Filas devueltas al hilo principal. La validación necesita TODAS las filas
+  // escaneadas: si solo recibe las primeras 1000, una query correcta pero con
+  // otro orden puede fallar al comparar la muestra del resultado esperado.
+  const MAX_RESPONSE_ROWS = Math.min(maxRows ?? 1000, MAX_SCAN_ROWS);
+
+  const statements = splitSqlStatements(query);
+  if (statements.length === 0) {
+    return { type: 'error', requestId, error: 'La consulta está vacía.', error_type: 'execution_error' };
+  }
+  if (statements.length > MAX_STATEMENTS) {
+    return {
+      type: 'error',
+      requestId,
+      error: `Demasiadas instrucciones (${statements.length}). El máximo es ${MAX_STATEMENTS}.`,
+      error_type: 'execution_error',
+    };
+  }
+
+  const database = db;
+  database.exec('BEGIN');
+  const txStack: string[] = [];
 
   try {
-    // better-sqlite3 es síncrono — perfecto para Worker Threads.
-    // prepare() lanza inmediatamente si hay error de sintaxis SQL.
-    const stmt = db.prepare(query);
-
-    // all() retorna todas las filas. Si el query no es SELECT,
-    // lanzamos un error — no permitimos mutaciones en el playground.
-    if (stmt.readonly === false) {
-      return {
-        type: 'error',
-        requestId,
-        error:
-          'Only SELECT queries are allowed in the playground. Mutations (INSERT, UPDATE, DELETE, DROP, etc.) are not permitted.',
-        error_type: 'execution_error',
-      };
-    }
-
-    // Seguridad (DoS por memoria, CWE-400): NO usar stmt.all(), que materializa
-    // TODAS las filas en memoria antes de truncar. Una query como
-    // `SELECT * FROM t1 CROSS JOIN t2 CROSS JOIN t3` puede producir cientos de
-    // millones de filas y agotar la memoria del worker antes de que el timeout
-    // de 5s lo termine. En su lugar, iteramos y cortamos en un límite duro de
-    // escaneo, acotando la memoria a un número fijo de filas.
-    const MAX_RESPONSE_ROWS = 1000; // filas devueltas al cliente
-    const MAX_SCAN_ROWS = 50_000;   // límite duro de filas materializadas
-
-    // Columnas del statement (disponibles aunque no haya filas).
-    const columns = stmt.columns().map((c) => c.name);
-
-    const serializedRows: unknown[][] = [];
+    let columns: string[] = [];
+    let serializedRows: unknown[][] = [];
     let scanned = 0;
 
-    for (const row of stmt.iterate() as IterableIterator<Record<string, unknown>>) {
-      scanned++;
-      if (serializedRows.length < MAX_RESPONSE_ROWS) {
-        serializedRows.push(columns.map((col) => row[col] ?? null));
+    for (let i = 0; i < statements.length; i++) {
+      // Defensa en profundidad: la sandbox debe seguir abierta en cada paso.
+      if (!database.inTransaction) {
+        throw new SandboxError('La sesión de ejecución se cerró inesperadamente. Intenta de nuevo.');
       }
-      // Cortar el escaneo al alcanzar el límite duro — protege la memoria del
-      // worker frente a productos cartesianos masivos.
-      if (scanned >= MAX_SCAN_ROWS) break;
+
+      const sqlText = statements[i]!;
+      const keyword = firstKeyword(sqlText);
+      const isLast = i === statements.length - 1;
+
+      if (BLOCKED_KEYWORDS.has(keyword)) {
+        throw new SandboxError(`La instrucción ${keyword} no está permitida en el playground.`);
+      }
+
+      const translated = translateTransactionControl(keyword, sqlText, txStack);
+      if (translated !== undefined) {
+        if (translated) database.exec(translated);
+        if (isLast) {
+          columns = [];
+          serializedRows = [];
+          scanned = 0;
+        }
+        continue;
+      }
+
+      // Si la vista ya existe (p. ej. la creó el setup del ejercicio), un
+      // CREATE VIEW del estudiante la reemplaza en vez de fallar.
+      const viewName = createViewName(sqlText);
+      if (viewName) database.exec(`DROP VIEW IF EXISTS ${viewName}`);
+
+      // prepare() lanza inmediatamente si hay error de sintaxis SQL.
+      const stmt = database.prepare(sqlText);
+
+      if (!stmt.reader) {
+        stmt.run();
+        if (isLast) {
+          columns = [];
+          serializedRows = [];
+          scanned = 0;
+        }
+        continue;
+      }
+
+      // Seguridad (DoS por memoria, CWE-400): NO usar stmt.all(), que materializa
+      // TODAS las filas en memoria antes de truncar. Iteramos y cortamos en un
+      // límite duro de escaneo, acotando la memoria a un número fijo de filas.
+      const stmtColumns = stmt.columns().map((c) => c.name);
+      const rows: unknown[][] = [];
+      let count = 0;
+      for (const row of stmt.iterate() as IterableIterator<Record<string, unknown>>) {
+        count++;
+        if (isLast && rows.length < MAX_RESPONSE_ROWS) {
+          rows.push(stmtColumns.map((col) => row[col] ?? null));
+        }
+        if (count >= MAX_SCAN_ROWS) break;
+      }
+      if (isLast) {
+        columns = stmtColumns;
+        serializedRows = rows;
+        scanned = count;
+      }
     }
 
     const execution_ms = Math.round(performance.now() - start);
@@ -156,6 +277,17 @@ function executeQuery(
       error: msg,
       error_type: 'execution_error',
     };
+  } finally {
+    // Nada de lo que hizo el estudiante sobrevive a este envío.
+    if (database.inTransaction) {
+      try {
+        database.exec('ROLLBACK');
+      } catch {
+        resetDatabase();
+      }
+    } else {
+      resetDatabase();
+    }
   }
 }
 
@@ -186,6 +318,6 @@ parentPort.postMessage({ type: 'ready' });
 parentPort.on('message', (msg: WorkerQueryMessage) => {
   if (msg.type !== 'query') return;
 
-  const result = executeQuery(msg.requestId, msg.query);
+  const result = executeQuery(msg.requestId, msg.query, msg.maxRows);
   parentPort!.postMessage(result);
 });

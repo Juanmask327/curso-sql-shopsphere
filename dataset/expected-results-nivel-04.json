@@ -3598,7 +3598,7 @@
     "title": "Ejercicio 16",
     "briefing_ref": "Briefing 4.16",
     "lesson_ref": "Lección 16",
-    "reference_query": "SELECT\n    r.return_id,\n    r.returned_at,\n    c.first_name || ' ' || c.last_name          AS nombre_cliente,\n    p.name                                       AS nombre_producto,\n    COALESCE(r.reason, 'No especificado')        AS motivo,\n    CASE\n        WHEN r.status = 'pending'  THEN 'Pendiente de revisión'\n        WHEN r.status = 'approved' THEN 'Aprobada'\n        WHEN r.status = 'rejected' THEN 'Rechazada'\n        WHEN r.status = 'refunded' THEN 'Reembolsada'\n        ELSE 'Estado desconocido'\n    END                                          AS status_legible\nFROM returns r\nINNER JOIN orders    o   ON o.order_id    = r.order_id\nINNER JOIN customers c   ON c.customer_id = o.customer_id\nINNER JOIN products  p   ON p.product_id  = r.product_id\nORDER BY r.returned_at DESC\nLIMIT 20;",
+    "reference_query": "SELECT\n    r.return_id,\n    r.returned_at,\n    c.first_name || ' ' || c.last_name          AS nombre_cliente,\n    p.name                                       AS nombre_producto,\n    COALESCE(r.reason, 'No especificado')        AS motivo,\n    CASE\n        WHEN r.status = 'pending'  THEN 'Pendiente de revisión'\n        WHEN r.status = 'approved' THEN 'Aprobada'\n        WHEN r.status = 'rejected' THEN 'Rechazada'\n        WHEN r.status = 'refunded' THEN 'Reembolsada'\n        ELSE 'Estado desconocido'\n    END                                          AS status_legible\nFROM returns r\nINNER JOIN orders    o   ON o.order_id    = r.order_id\nINNER JOIN customers c   ON c.customer_id = o.customer_id\nINNER JOIN products  p   ON p.product_id  = r.product_id\nORDER BY r.returned_at DESC, r.return_id DESC\nLIMIT 20;",
     "tables_used": [],
     "join_types": [],
     "validation_mode": "exact_ordered",
@@ -3620,11 +3620,19 @@
         "Pendiente de revisión"
       ],
       [
-        2196,
+        2210,
         "2026-05-26",
-        "Marcela Ramirez",
-        "Pulsera Actividad Huawei Band 7",
-        "changed_mind",
+        "Paola Lopez",
+        "Plancha de Vapor Oster",
+        "wrong_size",
+        "Pendiente de revisión"
+      ],
+      [
+        2209,
+        "2026-05-26",
+        "Veronica Ramos",
+        "Vela Aromatica Luxury Pack x3",
+        "defective",
         "Aprobada"
       ],
       [
@@ -3636,43 +3644,11 @@
         "Aprobada"
       ],
       [
-        2209,
+        2196,
         "2026-05-26",
-        "Veronica Ramos",
-        "Vela Aromatica Luxury Pack x3",
-        "defective",
-        "Aprobada"
-      ],
-      [
-        2210,
-        "2026-05-26",
-        "Paola Lopez",
-        "Plancha de Vapor Oster",
-        "wrong_size",
-        "Pendiente de revisión"
-      ],
-      [
-        2190,
-        "2026-05-25",
-        "Thomas Martin",
-        "Vela Aromatica Luxury Pack x3",
-        "defective",
-        "Aprobada"
-      ],
-      [
-        2195,
-        "2026-05-25",
-        "George Robinson",
-        "Zapatillas Nike Revolution 6",
-        "not_as_described",
-        "Pendiente de revisión"
-      ],
-      [
-        2202,
-        "2026-05-25",
-        "Mario Pena",
-        "Fitness Tracker Fitbit Inspire 3",
-        "not_as_described",
+        "Marcela Ramirez",
+        "Pulsera Actividad Huawei Band 7",
+        "changed_mind",
         "Aprobada"
       ],
       [
@@ -3684,12 +3660,28 @@
         "Aprobada"
       ],
       [
-        2206,
-        "2026-05-24",
-        "Gustavo Herrera",
-        "Atomic Habits - James Clear",
-        "defective",
+        2202,
+        "2026-05-25",
+        "Mario Pena",
+        "Fitness Tracker Fitbit Inspire 3",
+        "not_as_described",
+        "Aprobada"
+      ],
+      [
+        2195,
+        "2026-05-25",
+        "George Robinson",
+        "Zapatillas Nike Revolution 6",
+        "not_as_described",
         "Pendiente de revisión"
+      ],
+      [
+        2190,
+        "2026-05-25",
+        "Thomas Martin",
+        "Vela Aromatica Luxury Pack x3",
+        "defective",
+        "Aprobada"
       ],
       [
         2208,
@@ -3698,6 +3690,14 @@
         "Silla de Oficina Ergonomica MiDesk",
         "defective",
         "Aprobada"
+      ],
+      [
+        2206,
+        "2026-05-24",
+        "Gustavo Herrera",
+        "Atomic Habits - James Clear",
+        "defective",
+        "Pendiente de revisión"
       ],
       [
         2213,
@@ -3716,14 +3716,6 @@
         "Aprobada"
       ],
       [
-        2173,
-        "2026-05-21",
-        "Rosa Flores",
-        "Mancuernas Fijas 5kg par",
-        "not_as_described",
-        "Aprobada"
-      ],
-      [
         2178,
         "2026-05-21",
         "Brian Wright",
@@ -3732,28 +3724,36 @@
         "Aprobada"
       ],
       [
-        2191,
-        "2026-05-20",
-        "Ricardo Fuentes",
-        "Clean Code - Robert C Martin",
-        "wrong_size",
+        2173,
+        "2026-05-21",
+        "Rosa Flores",
+        "Mancuernas Fijas 5kg par",
+        "not_as_described",
         "Aprobada"
       ],
       [
-        2193,
+        2205,
         "2026-05-20",
-        "Mario Mendoza",
-        "Atomic Habits - James Clear",
-        "wrong_size",
+        "Camila Delgado",
+        "Medias Pack x6 Hanes",
+        "defective",
         "Aprobada"
       ],
       [
-        2199,
+        2204,
         "2026-05-20",
-        "David Harris",
-        "Colchoneta Yoga 6mm Domyos",
-        "changed_mind",
+        "William Smith",
+        "Perfume Zara Gardenia 80ml",
+        "not_as_described",
         "Pendiente de revisión"
+      ],
+      [
+        2203,
+        "2026-05-20",
+        "Richard Jones",
+        "Organizador Cocina Bambu Set 5pz",
+        "changed_mind",
+        "Aprobada"
       ],
       [
         2200,
@@ -3764,12 +3764,12 @@
         "Aprobada"
       ],
       [
-        2203,
+        2199,
         "2026-05-20",
-        "Richard Jones",
-        "Organizador Cocina Bambu Set 5pz",
+        "David Harris",
+        "Colchoneta Yoga 6mm Domyos",
         "changed_mind",
-        "Aprobada"
+        "Pendiente de revisión"
       ]
     ],
     "expected_row_count_approx": 20,

@@ -25,7 +25,8 @@ yarn-error.log*
 pnpm-debug.log*
 .pnpm-store/
 .yarn/
-package-lock.json
+# package-lock.json SÍ se versiona (backend/ y frontend/): `npm ci` en CI y en
+# los Dockerfile lo necesita. Solo se ignoran los de otros gestores.
 yarn.lock
 pnpm-lock.yaml
 
@@ -139,6 +140,9 @@ playwright-report/
 data/*.db
 data/*.db-wal
 data/*.db-shm
+# Archivos temporales de SQLite junto a la copia del dataset del frontend
+frontend/public/*.db-wal
+frontend/public/*.db-shm
 !data/.gitkeep
 
 

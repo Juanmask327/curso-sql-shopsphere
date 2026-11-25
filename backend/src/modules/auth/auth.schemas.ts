@@ -1,15 +1,16 @@
 import { z } from 'zod';
+import { required } from '../../shared/validation/required.js';
 
 // ── Schemas de entrada (validación en boundary) ───────────────────────────────
 
 export const RegisterSchema = z.object({
   email: z
-    .string({ required_error: 'Email is required' })
+    .string(required('Email is required'))
     .email('Invalid email format')
     .toLowerCase()
     .max(255, 'Email must be at most 255 characters'),
   username: z
-    .string({ required_error: 'Username is required' })
+    .string(required('Username is required'))
     .min(3, 'Username must be at least 3 characters')
     .max(30, 'Username must be at most 30 characters')
     .regex(
@@ -17,21 +18,21 @@ export const RegisterSchema = z.object({
       'Username can only contain letters, numbers, underscores, and hyphens',
     ),
   password: z
-    .string({ required_error: 'Password is required' })
+    .string(required('Password is required'))
     .min(8, 'Password must be at least 8 characters')
     .max(128, 'Password must be at most 128 characters'),
 });
 
 export const LoginSchema = z.object({
   email: z
-    .string({ required_error: 'Email is required' })
+    .string(required('Email is required'))
     .email('Invalid email format')
     .toLowerCase(),
-  password: z.string({ required_error: 'Password is required' }).min(1, 'Password is required'),
+  password: z.string(required('Password is required')).min(1, 'Password is required'),
 });
 
 export const RefreshSchema = z.object({
-  refreshToken: z.string({ required_error: 'Refresh token is required' }).min(1),
+  refreshToken: z.string(required('Refresh token is required')).min(1),
 });
 
 export const VerifyEmailSchema = z.object({

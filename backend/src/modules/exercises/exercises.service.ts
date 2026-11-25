@@ -32,6 +32,12 @@ export interface ExpectedResult {
   columns: string[];
   rows: unknown[][];
   row_count: number;
+  /**
+   * SQL que se ejecuta antes de la query del estudiante (dentro de la misma
+   * sandbox). Lo usan los ejercicios que consultan una vista creada en otro
+   * ejercicio (p. ej. v_funnel_adquisicion del Nivel 7).
+   */
+  setup_sql?: string;
 }
 
 /**

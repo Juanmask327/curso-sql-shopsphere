@@ -16,7 +16,7 @@ function parseParam(request: FastifyRequest): string {
   const parsed = ExerciseIdParamSchema.safeParse(request.params);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid exercise ID',
+      parsed.error.issues[0]?.message ?? 'Invalid exercise ID',
       'VALIDATION_ERROR',
     );
   }
@@ -32,7 +32,7 @@ export async function listExercisesHandler(
   const parsed = ListExercisesQuerySchema.safeParse(request.query);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid query parameters',
+      parsed.error.issues[0]?.message ?? 'Invalid query parameters',
     );
   }
 
@@ -87,7 +87,7 @@ export async function saveDraftHandler(
   const parsed = SaveDraftSchema.safeParse(request.body);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid request body',
+      parsed.error.issues[0]?.message ?? 'Invalid request body',
     );
   }
 
@@ -124,7 +124,7 @@ export async function createExerciseHandler(
   const parsed = CreateExerciseSchema.safeParse(request.body);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid request body',
+      parsed.error.issues[0]?.message ?? 'Invalid request body',
     );
   }
 
@@ -142,7 +142,7 @@ export async function updateExerciseHandler(
   const parsed = UpdateExerciseSchema.safeParse(request.body);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'Invalid request body',
+      parsed.error.issues[0]?.message ?? 'Invalid request body',
     );
   }
 
@@ -160,7 +160,7 @@ export async function togglePublishHandler(
   const parsed = PublishToggleSchema.safeParse(request.body);
   if (!parsed.success) {
     throw new ValidationError(
-      parsed.error.errors[0]?.message ?? 'is_published must be a boolean',
+      parsed.error.issues[0]?.message ?? 'is_published must be a boolean',
     );
   }
 

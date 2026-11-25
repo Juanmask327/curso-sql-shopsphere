@@ -168,7 +168,7 @@ El motor de base de datos decide *cómo* obtenerlo. Tú describes el resultado q
 
 SQL es el lenguaje. El **RDBMS** (Relational Database Management System) es el software que lo ejecuta y gestiona el almacenamiento físico de los datos.
 
-ShopSphere usa **PostgreSQL** — uno de los RDBMS de código abierto más robustos del mundo. Otros sistemas populares son MySQL, SQLite y SQL Server. La sintaxis de SQL es muy similar entre ellos, con diferencias pequeñas en funciones específicas. Durante el curso señalaremos las diferencias relevantes cuando aparezcan.
+En producción, ShopSphere usa **PostgreSQL** — uno de los RDBMS de código abierto más robustos del mundo. El **Playground** donde practicas en este curso corre **SQLite**, directamente en tu navegador. Otros sistemas populares son MySQL y SQL Server. La sintaxis de SQL es muy similar entre ellos, con diferencias pequeñas en funciones específicas. Durante el curso señalaremos las diferencias relevantes cuando aparezcan.
 
 ---
 

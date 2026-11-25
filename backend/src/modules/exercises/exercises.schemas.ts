@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { required } from '../../shared/validation/required.js';
 
 // ── Schemas de entrada ────────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ export const HintRequestSchema = z.object({
 
 export const SaveDraftSchema = z.object({
   query: z
-    .string({ required_error: 'Query is required' })
+    .string(required('Query is required'))
     .max(10_000, 'Query must be at most 10,000 characters'),
 });
 
@@ -25,20 +26,20 @@ export const SaveDraftSchema = z.object({
 
 export const CreateExerciseSchema = z.object({
   level_id: z
-    .number({ required_error: 'level_id is required' })
+    .number(required('level_id is required'))
     .int()
     .min(0)
     .max(10),
   title: z
-    .string({ required_error: 'Title is required' })
+    .string(required('Title is required'))
     .min(3, 'Title must be at least 3 characters')
     .max(200, 'Title must be at most 200 characters'),
   description: z
-    .string({ required_error: 'Description is required' })
+    .string(required('Description is required'))
     .min(10, 'Description must be at least 10 characters')
     .max(2000),
   instructions: z
-    .string({ required_error: 'Instructions are required' })
+    .string(required('Instructions are required'))
     .min(10)
     .max(5000),
   difficulty: z.enum(['easy', 'medium', 'hard']),
@@ -49,7 +50,7 @@ export const CreateExerciseSchema = z.object({
     .max(1000)
     .default(10),
   reference_query: z
-    .string({ required_error: 'reference_query is required' })
+    .string(required('reference_query is required'))
     .min(5, 'Reference query must be at least 5 characters')
     .max(10_000),
   hints: z
@@ -57,7 +58,7 @@ export const CreateExerciseSchema = z.object({
     .max(5, 'Maximum 5 hints per exercise')
     .default([]),
   order_index: z
-    .number({ required_error: 'order_index is required' })
+    .number(required('order_index is required'))
     .int()
     .min(0),
   validation_mode: z
@@ -68,7 +69,7 @@ export const CreateExerciseSchema = z.object({
 export const UpdateExerciseSchema = CreateExerciseSchema.partial();
 
 export const PublishToggleSchema = z.object({
-  is_published: z.boolean({ required_error: 'is_published is required' }),
+  is_published: z.boolean(required('is_published is required')),
 });
 
 // ── Tipos derivados ───────────────────────────────────────────────────────────

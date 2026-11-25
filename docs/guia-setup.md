@@ -113,14 +113,14 @@ Si los dejas vacíos, el login con email y contraseña funciona normalmente.
 
 ## Paso 4 — Generar el dataset
 
-El dataset de e-commerce no está en el repositorio y debe generarse localmente.
+El backend lee el dataset desde `data/dataset.db`, que no está en el repositorio y debe generarse localmente.
 Requiere Python 3 instalado.
 
 ```bash
-python dataset/generate_seed.py
-python dataset/validate_seed.py
-python dataset/build_db.py
+python dataset/rebuild_dataset.py
 ```
+
+Esto crea `data/dataset.db` y actualiza la copia `frontend/public/dataset.db`.
 
 > No requiere instalar nada extra — usa el módulo `sqlite3` incluido en Python.
 
@@ -194,8 +194,8 @@ Cambiar en `.env` las variables `FRONTEND_PORT`, `PORT` o `POSTGRES_PORT_EXPOSED
 **"Hot-reload no detecta cambios en Windows"**
 Normal — está resuelto por defecto con `WATCHPACK_POLLING=true` en `docker-compose.override.yml`. Si persiste, reiniciar el contenedor: `docker-compose restart frontend`
 
-**"No se encontró shopsphere-seed.sql" al correr build_db.py**
-Ejecutar primero `python dataset/generate_seed.py` y luego `python dataset/validate_seed.py` antes de `python dataset/build_db.py`.
+**"seed file not found" al correr rebuild_dataset.py**
+Verificar que existen los tres archivos de seed parciales en `dataset/` (vienen con el repositorio). No usar `build_db.py`: genera un dataset con otro schema y los ejercicios dejan de validar.
 
 ---
 

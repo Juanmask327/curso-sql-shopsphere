@@ -53,7 +53,7 @@ export async function registerHandler(
 ): Promise<FastifyReply> {
   const parsed = RegisterSchema.safeParse(request.body);
   if (!parsed.success) {
-    throw new ValidationError(parsed.error.errors[0]?.message ?? 'Invalid input');
+    throw new ValidationError(parsed.error.issues[0]?.message ?? 'Invalid input');
   }
 
   const result = await authService.register(parsed.data, buildJwtSigner(request), {
@@ -70,7 +70,7 @@ export async function loginHandler(
 ): Promise<FastifyReply> {
   const parsed = LoginSchema.safeParse(request.body);
   if (!parsed.success) {
-    throw new ValidationError(parsed.error.errors[0]?.message ?? 'Invalid input');
+    throw new ValidationError(parsed.error.issues[0]?.message ?? 'Invalid input');
   }
 
   const result = await authService.login(parsed.data, buildJwtSigner(request), {
@@ -106,7 +106,7 @@ export async function refreshHandler(
 ): Promise<FastifyReply> {
   const parsed = RefreshSchema.safeParse(request.body);
   if (!parsed.success) {
-    throw new ValidationError(parsed.error.errors[0]?.message ?? 'Invalid input');
+    throw new ValidationError(parsed.error.issues[0]?.message ?? 'Invalid input');
   }
 
   const result = await authService.refresh(parsed.data.refreshToken, buildJwtSigner(request), {
@@ -123,7 +123,7 @@ export async function verifyEmailHandler(
 ): Promise<FastifyReply> {
   const parsed = VerifyEmailSchema.safeParse(request.body);
   if (!parsed.success) {
-    throw new ValidationError(parsed.error.errors[0]?.message ?? 'Invalid input');
+    throw new ValidationError(parsed.error.issues[0]?.message ?? 'Invalid input');
   }
   await authService.verifyEmail(parsed.data.email, parsed.data.code);
   return reply.status(204).send();
@@ -135,7 +135,7 @@ export async function resendVerificationHandler(
 ): Promise<FastifyReply> {
   const parsed = ResendVerificationSchema.safeParse(request.body);
   if (!parsed.success) {
-    throw new ValidationError(parsed.error.errors[0]?.message ?? 'Invalid input');
+    throw new ValidationError(parsed.error.issues[0]?.message ?? 'Invalid input');
   }
   await authService.resendVerificationEmail(parsed.data.email);
   return reply.status(204).send();
@@ -147,7 +147,7 @@ export async function forgotPasswordHandler(
 ): Promise<FastifyReply> {
   const parsed = ForgotPasswordSchema.safeParse(request.body);
   if (!parsed.success) {
-    throw new ValidationError(parsed.error.errors[0]?.message ?? 'Invalid input');
+    throw new ValidationError(parsed.error.issues[0]?.message ?? 'Invalid input');
   }
   await authService.forgotPassword(parsed.data.email);
   return reply.status(204).send();
@@ -159,7 +159,7 @@ export async function resetPasswordHandler(
 ): Promise<FastifyReply> {
   const parsed = ResetPasswordSchema.safeParse(request.body);
   if (!parsed.success) {
-    throw new ValidationError(parsed.error.errors[0]?.message ?? 'Invalid input');
+    throw new ValidationError(parsed.error.issues[0]?.message ?? 'Invalid input');
   }
   await authService.resetPassword(parsed.data.email, parsed.data.code, parsed.data.newPassword);
   return reply.status(204).send();
