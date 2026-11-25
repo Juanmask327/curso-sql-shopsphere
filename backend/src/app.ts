@@ -295,27 +295,27 @@ export async function buildApp() {
   // Se remueve X-Powered-By para no revelar el framework.
   const isProductionEnv = process.env['NODE_ENV'] === 'production';
   app.addHook('onSend', (request, reply, payload, done) => {
-    reply.header('X-Content-Type-Options', 'nosniff');
-    reply.header('Referrer-Policy', 'no-referrer');
-    reply.header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    void reply.header('X-Content-Type-Options', 'nosniff');
+    void reply.header('Referrer-Policy', 'no-referrer');
+    void reply.header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
     // No clobbear la CSP/headers que @fastify/swagger-ui setea para /docs
     // (necesita inline scripts/styles para renderizar). El resto de la API es
     // JSON y recibe la política restrictiva.
     if (!request.url.startsWith('/docs')) {
-      reply.header('X-Frame-Options', 'DENY');
-      reply.header('Cross-Origin-Resource-Policy', 'same-site');
-      reply.header(
+      void reply.header('X-Frame-Options', 'DENY');
+      void reply.header('Cross-Origin-Resource-Policy', 'same-site');
+      void reply.header(
         'Content-Security-Policy',
         "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
       );
     }
     if (isProductionEnv) {
-      reply.header(
+      void reply.header(
         'Strict-Transport-Security',
         'max-age=31536000; includeSubDomains',
       );
     }
-    reply.removeHeader('X-Powered-By');
+    void reply.removeHeader('X-Powered-By');
     done(null, payload);
   });
 

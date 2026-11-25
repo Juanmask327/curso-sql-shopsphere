@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import type * as crypto from 'crypto';
 
 vi.mock('../../shared/db/index.js', () => ({
   db: {
@@ -9,7 +10,7 @@ vi.mock('../../shared/db/index.js', () => ({
 }));
 
 vi.mock('crypto', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('crypto')>();
+  const actual = await importOriginal<typeof crypto>();
   return {
     ...actual,
     randomInt: vi.fn(() => 0),
